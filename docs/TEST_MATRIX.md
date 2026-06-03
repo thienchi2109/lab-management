@@ -1,33 +1,59 @@
 # Test Matrix
 
-This file maps product behavior to proof.
+Behavior-to-proof control panel for the Lab Management MVP.
 
-No product behavior has been defined or implemented yet. Do not mark a row
-implemented until tests or validation evidence exist.
+Use `scripts/bin/harness-cli query matrix` for the live view backed by the
+durable layer.
 
-## Status Values
+## Validation Ladder
 
-| Status | Meaning |
-| --- | --- |
-| planned | Accepted as intended behavior, not implemented |
-| in_progress | Actively being built |
-| implemented | Implemented and proof exists |
-| changed | Contract changed after earlier implementation |
-| retired | No longer part of the product contract |
+```text
+validate:quick
+  bun run typecheck
+  bun run lint:strict
+  bun run format:check
+  bun run build
 
-## Matrix
+test:unit
+  bun test (when unit tests exist)
 
-| Story | Contract | Unit | Integration | E2E | Platform | Status | Evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| TBD | Add rows when story packets are created | no | no | no | no | planned | none |
+test:integration
+  database migration tests
+  API route handler tests
+  RLS policy tests
 
-## Evidence Rules
+test:e2e
+  sample creation flow
+  result entry flow
+  export flow
+  role-based access flow
 
-- Unit proof covers pure domain and application rules.
-- Integration proof covers backend enforcement, data integrity, provider
-  behavior, jobs, or service contracts.
-- E2E proof covers user-visible browser flows.
-- Platform proof covers only shell, deployment, mobile, desktop, or runtime
-  behavior that cannot be proven in lower layers.
-- A story can be implemented without every proof column if the story packet
-  explains why.
+test:platform
+  mobile responsive check (< 1024px)
+  desktop grid check (>= 1024px)
+```
+
+## Quality Gate Commands
+
+```bash
+# Required after every phase
+bun run typecheck      # tsc --noEmit
+bun run lint:strict    # eslint --max-warnings=0
+bun run format:check   # prettier --check .
+bun run build          # next build
+
+# Combined
+bun run quality        # all of the above
+
+# Phase-specific
+bun test               # when tests exist
+bun run react:doctor   # for complex UI phases
+```
+
+## No-Any Check
+
+```bash
+grep -R "\bany\b" app components lib types --include='*.ts' --include='*.tsx'
+```
+
+No explicit `any` allowed in new code.

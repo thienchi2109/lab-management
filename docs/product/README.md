@@ -1,22 +1,28 @@
-# Product Docs
+# Product Contract
 
-This directory is intentionally generic and mostly empty in Harness v0.
+Living product documentation for the Lab Management MVP.
 
-When a user provides a project spec, derive smaller product contract files here
-instead of keeping one large spec as the living plan. Name files by the product
-domains that actually exist in that spec, for example `overview.md`,
-`billing.md`, `workflows.md`, `permissions.md`, or `api-conventions.md`.
+These files are the current product truth. They are derived from
+`original_specs/SPEC-001-NextJS-MVP-Phased-Roadmap.md` and updated as
+implementation progresses.
 
-Do not create domain files before the spec just to fill the folder. Empty
-structure is healthier than fake product truth.
+## Documents
 
-## Update Rule
+| File | Domain |
+| --- | --- |
+| [overview.md](overview.md) | Product scope, users, and MVP boundaries |
+| [data-model.md](data-model.md) | Core entities, relationships, and constraints |
+| [roles-permissions.md](roles-permissions.md) | RBAC roles and permission matrix |
+| [result-engine.md](result-engine.md) | Dynamic result entry: groups, metrics, input types, templates |
+| [ui-contract.md](ui-contract.md) | Mobile-first layout, form zones, grid modes, dashboard |
+| [api-contract.md](api-contract.md) | API endpoints, rules, and security |
+| [tech-stack.md](tech-stack.md) | Stack decisions and quality gates |
 
-When behavior changes:
+## Source Hierarchy
 
-1. Update the affected product doc.
-2. Update or create the story packet.
-3. Update durable proof status with `scripts/bin/harness-cli story add` or
-   `scripts/bin/harness-cli story update`.
-4. Record a decision if the change affects architecture, scope, risk, or a
-   previously settled product rule.
+```text
+original_specs/SPEC-001*.md   → input material (frozen after decomposition)
+docs/product/*                → current product truth (living)
+docs/stories/*                → story-sized work packets
+docs/decisions/*              → durable decisions
+```

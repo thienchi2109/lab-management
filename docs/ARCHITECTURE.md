@@ -1,24 +1,39 @@
 # Architecture
 
-No application stack is selected yet.
+Stack selected: Next.js App Router + Bun + Supabase Postgres + Cloudflare R2.
 
-No application code exists yet. This document defines generic architecture
-questions and boundary rules that future implementation should adapt after a
-user-provided spec and stack decision exist.
+See `docs/decisions/0006-nextjs-bun-supabase-stack.md` for the decision record.
+See `docs/product/tech-stack.md` for the full stack reference.
 
-## Discovery Before Shape
+## Product Surfaces
 
-Before proposing implementation shape, identify:
+- **Browser**: Next.js web app, mobile-first responsive, deployed on Vercel.
+- No mobile app, desktop app, CLI, or worker in MVP.
 
-- Product surfaces: browser, mobile, desktop, CLI, API, worker, or service.
-- Runtime stack: language, framework, database, queues, providers, and hosting.
-- Core domains: the product concepts that deserve stable names and contracts.
-- Boundary inputs: user input, API requests, webhooks, jobs, files, credentials,
-  provider payloads, and environment configuration.
-- Validation ladder: the smallest checks that can prove the selected stack.
+## Runtime Stack
 
-Record stack choices in `docs/decisions/` when they meaningfully constrain
-future work.
+| Component | Technology |
+| --- | --- |
+| Language | TypeScript (strict, no explicit `any`) |
+| Framework | Next.js 15 App Router |
+| Package manager | Bun |
+| Database | Supabase Postgres with RLS |
+| Auth | Auth.js / NextAuth |
+| File storage | Cloudflare R2 (S3-compatible, presigned upload) |
+| UI | Tailwind CSS + shadcn/ui |
+| Deploy | Vercel |
+
+## Core Domains
+
+| Domain | Stable names |
+| --- | --- |
+| Kit inventory | kit_batches, kits, kit_types, categories |
+| Sample management | samples, sample_types, customers, companies |
+| Result engine | result_groups, result_metrics, result_templates, metric_settings |
+| Sample results | sample_results, sample_group_conclusions |
+| Media | sample_images |
+| Identity | users, roles (admin/editor/viewer) |
+| Audit | audit_logs |
 
 ## Default Layering
 
@@ -30,42 +45,22 @@ domain
               <- app surfaces
 ```
 
-## Candidate Structure
+Applied to the Next.js codebase:
 
 ```text
-app/
-  domain/
-    entities/
-    value-objects/
-    repositories/
-    services/
-
-  application/
-    commands/
-    queries/
-    handlers/
-
-  infrastructure/
-    database/
-    logging/
-    notifications/
-
-  interface/
-    controllers/
-    dto/
-    presenters/
-    routes/
-    middlewares/
-
-surfaces/
-  browser/
-  mobile/
-  desktop/
-  cli/
+types/               domain types, enums, value objects
+lib/                 application + infrastructure
+  validation/        Zod schemas (parse boundary)
+  db/                Supabase client + queries
+  auth/              session, role helpers
+  permissions/       RBAC helpers
+  audit/             audit log writer
+  result-engine/     KQ_CHUNG computation
+  r2/                R2 presigned URL generation
+app/api/             interface: route handlers
+app/(dashboard)/     surface: browser UI
+components/          UI components
 ```
-
-This is a thinking template, not a scaffold. Create real folders only when a
-story enters implementation and the selected stack needs them.
 
 ## Dependency Rule
 
@@ -73,52 +68,43 @@ Inner layers must not depend on outer layers.
 
 | Layer | May depend on | Must not depend on |
 | --- | --- | --- |
-| domain | nothing project-external except tiny pure utilities | framework, database, UI, provider, process/env |
-| application | domain | framework, UI, provider, database concrete clients |
-| infrastructure | domain, application | interface controllers or UI |
-| interface | all backend layers | UI state or platform shell assumptions |
-| app surfaces | API contracts and app-facing clients | domain internals directly |
+| types/ | nothing | framework, database, UI |
+| lib/ | types/ | UI components, route handlers |
+| app/api/ | lib/, types/ | UI components |
+| components/ | types/ | lib/db directly (use hooks/server actions) |
+| app/(dashboard)/ | components/, types/ | lib/db directly |
 
 ## Parse-First Boundary Rule
 
 Unknown data must be parsed at boundaries before it enters inner code.
 
-Boundaries include:
+Boundaries:
 
-- HTTP request bodies, params, and query strings.
-- Session payloads and identity claims.
-- Environment variables.
-- Database rows returned from external clients.
-- Platform shell payloads.
-- Deep links, tokens, and signed URLs.
-- Provider webhooks, events, and async payloads.
+- HTTP request bodies, params, and query strings → Zod schemas
+- Session payloads and identity claims → typed session helper
+- Environment variables → validated env config
+- Database rows → typed query results
+- R2 presigned URL requests → validated upload params
 
 Target flow:
 
 ```text
 unknown input
-  -> parser
+  -> Zod parser
   -> typed DTO or command
   -> application use case
   -> domain object/value object
 ```
 
-Inner layers should work with meaningful product types such as `UserId`,
-`AccountId`, `WorkspaceId`, `Role`, `DateRange`, or domain-specific IDs,
-rather than repeatedly validating raw strings.
-
 ## Command/Query Boundary
 
-If the product has both reads and writes, keep command/query separation clear at
-the code level even when the storage layer is simple:
-
-- Commands mutate state and own audit side effects.
-- Queries read state and format for consumers.
-- Shared domain rules live in domain/application, not controllers.
+- Commands (POST/PUT/PATCH/DELETE): mutate state, own audit side effects
+- Queries (GET): read state, format for consumers
+- Shared domain rules live in lib/, not route handlers
 
 ## Observability Contract
 
-The future server should emit one canonical JSON log line per request with:
+The server should emit one canonical JSON log line per request with:
 
 - timestamp
 - level
@@ -129,5 +115,5 @@ The future server should emit one canonical JSON log line per request with:
 - status_code
 - message
 
-Audit logs are product records. Application logs are operational records. Do not
-use one as a substitute for the other.
+Audit logs are product records. Application logs are operational records.
+Do not use one as a substitute for the other.
