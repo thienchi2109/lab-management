@@ -14,3 +14,4 @@ scripts/bin/harness-cli.exe
 # Editor / workspace settings
 .codex/
 .claude/
+.gitnexus
