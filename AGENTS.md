@@ -1,6 +1,14 @@
 # Agent Instructions
 
-Add project-specific agent instructions here.
+## Project Rules
+
+- Code files must not exceed 350 lines. Treat this as a hard limit and keep
+  new or modified code split into focused files before crossing it.
+- Always prefer context-mode tools first for gathering, searching, reading, or
+  summarizing context. Use `rtk` as the fallback or for short shell commands
+  when context-mode is not appropriate.
+- Do not edit migration files after they have been applied to a live database.
+  Any correction must use a follow-up, forward-only migration.
 
 <!-- HARNESS:BEGIN -->
 ## Harness
