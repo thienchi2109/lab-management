@@ -9,6 +9,16 @@
   when context-mode is not appropriate.
 - Do not edit migration files after they have been applied to a live database.
   Any correction must use a follow-up, forward-only migration.
+- React Doctor is a mandatory quality gate before commit and push. Enable the
+  tracked hooks once with `scripts/setup-git-hooks.sh`; hooks run from
+  `lab-kit-app/` and call `bun run react-doctor:staged` on pre-commit and
+  `bun run react-doctor:diff` on pre-push.
+- Run React Doctor through the package scripts, not `bunx` or `bun x`.
+  The scripts intentionally use
+  `npm exec --yes --package react-doctor@latest -- react-doctor ...` because
+  Bun can crash on React Doctor's optional native dependency installation in
+  this environment. For a full manual gate, run `cd lab-kit-app && bun run
+  react-doctor` or `bun run quality`.
 
 <!-- HARNESS:BEGIN -->
 ## Harness

@@ -11,7 +11,12 @@
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
-    "quality": "bun run typecheck && bun run lint:strict && bun run format:check && bun run build"
+    "react-doctor": "npm exec --yes --package react-doctor@latest -- react-doctor . --no-telemetry --fail-on error",
+    "react-doctor:verbose": "npm exec --yes --package react-doctor@latest -- react-doctor . --verbose --no-telemetry --fail-on error",
+    "react-doctor:staged": "npm exec --yes --package react-doctor@latest -- react-doctor . --staged --no-telemetry --fail-on error",
+    "react-doctor:diff": "npm exec --yes --package react-doctor@latest -- react-doctor . --diff --no-telemetry --fail-on error",
+    "test:react-doctor-cleanup": "node scripts/verify-react-doctor-cleanup.mjs",
+    "quality": "bun run typecheck && bun run lint:strict && bun run format:check && bun run react-doctor && bun run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

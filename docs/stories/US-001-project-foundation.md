@@ -20,7 +20,7 @@ endpoint.
 - [x] ESLint configured with strict rules (no-explicit-any: error)
 - [x] tsconfig strict mode enabled
 - [x] Quality gate scripts in package.json (typecheck, lint:strict, format:check, build, quality)
-- [x] Dashboard shell layout with responsive sidebar + topbar
+- [x] Dashboard shell layout with desktop header navbar and mobile bottom navbar
 - [x] Health check endpoint at /api/health returning 200
 - [x] `bun run quality` passes
 - [x] No `any` in new code
@@ -38,8 +38,8 @@ endpoint.
 | lab-kit-app/app/(dashboard)/layout.tsx | NEW |
 | lab-kit-app/app/(dashboard)/page.tsx | NEW |
 | lab-kit-app/app/api/health/route.ts | NEW |
-| lab-kit-app/components/layout/sidebar.tsx | NEW |
 | lab-kit-app/components/layout/topbar.tsx | NEW |
+| lab-kit-app/components/layout/bottom-nav.tsx | NEW |
 
 ## Validation
 

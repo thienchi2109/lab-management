@@ -14,6 +14,16 @@ Principles:
 - Progress indicators per group
 - Primary CTA always accessible
 
+## Dashboard Navigation
+
+Dashboard navigation is viewport-specific:
+
+- Mobile/tablet viewports use a bottom navbar.
+- Desktop viewports use the header navbar.
+- The dashboard shell does not render a sidebar in any viewport.
+
+Navigation changes must preserve this split before adding new shell primitives.
+
 ## Form Zones (Sample Entry)
 
 1. Thông tin mẫu (sample metadata)

@@ -1,45 +1,13 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import {
-  LayoutDashboard,
-  FlaskConical,
-  Package,
-  BarChart3,
-  Settings,
-} from "lucide-react";
-
+  isNavItemActive,
+  mobileNavItems,
+} from "@/components/layout/navigation-items";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  {
-    title: "Tổng quan",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Mẫu",
-    url: "/dashboard/samples",
-    icon: FlaskConical,
-  },
-  {
-    title: "Kho KIT",
-    url: "/dashboard/kits",
-    icon: Package,
-  },
-  {
-    title: "Báo cáo",
-    url: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Cài đặt",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
-];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -47,10 +15,8 @@ export function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 block border-t border-border/50 bg-background/90 pb-safe backdrop-blur-md md:hidden">
       <nav className="flex h-16 items-center justify-around px-2">
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.url ||
-            (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"));
+        {mobileNavItems.map((item) => {
+          const isActive = isNavItemActive(pathname, item.url);
 
           return (
             <Link

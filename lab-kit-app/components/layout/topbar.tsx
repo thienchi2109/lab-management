@@ -1,41 +1,63 @@
 "use client";
 
-import * as React from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Plus, Search, Sun } from "lucide-react";
 
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  desktopNavItems,
+  isNavItemActive,
+} from "@/components/layout/navigation-items";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+function getPageTitle(path: string) {
+  if (path.startsWith("/dashboard/samples")) return "Quản lý mẫu xét nghiệm";
+  if (path.startsWith("/dashboard/kits")) return "Quản lý lô KIT & Tồn kho";
+  if (path.startsWith("/dashboard/analytics"))
+    return "Báo cáo thống kê & Pivot";
+  if (path.startsWith("/dashboard/result-config"))
+    return "Cấu hình chỉ tiêu động";
+  if (path.startsWith("/dashboard/settings")) return "Cài đặt hệ thống";
+  return "Tổng quan hệ thống";
+}
 
 export function Topbar() {
   const pathname = usePathname();
 
-  // Simple title mapper based on pathname
-  const getPageTitle = (path: string) => {
-    if (path.startsWith("/dashboard/samples")) return "Quản lý mẫu xét nghiệm";
-    if (path.startsWith("/dashboard/kits")) return "Quản lý lô KIT & Tồn kho";
-    if (path.startsWith("/dashboard/analytics"))
-      return "Báo cáo thống kê & Pivot";
-    if (path.startsWith("/dashboard/result-config"))
-      return "Cấu hình chỉ tiêu động";
-    if (path.startsWith("/dashboard/settings")) return "Cài đặt hệ thống";
-    return "Tổng quan hệ thống";
-  };
-
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border/50 bg-background px-4 md:px-6">
-      {/* Left side: Sidebar Toggle & Title */}
-      <div className="flex items-center gap-4">
-        <SidebarTrigger className="hidden md:inline-flex h-9 w-9 border border-border/50" />
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-border/50 bg-background px-4 md:px-6">
+      <div className="flex min-w-0 items-center gap-4">
         <h1 className="text-base font-semibold tracking-tight text-foreground md:text-lg">
           {getPageTitle(pathname)}
         </h1>
       </div>
 
-      {/* Center/Right side actions */}
-      <div className="flex items-center gap-3">
-        {/* Quick Search */}
+      <nav
+        className="hidden min-w-0 flex-1 items-center gap-1 md:flex"
+        aria-label="Điều hướng chính"
+      >
+        {desktopNavItems.map((item) => {
+          const isActive = isNavItemActive(pathname, item.url);
+
+          return (
+            <Link
+              key={item.title}
+              href={item.url}
+              className={cn(
+                "inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+                isActive && "bg-accent text-foreground"
+              )}
+            >
+              <item.icon className="size-4" />
+              <span>{item.title}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="ml-auto flex items-center gap-3">
         <div className="relative hidden w-60 sm:block">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
@@ -45,28 +67,25 @@ export function Topbar() {
           />
         </div>
 
-        {/* Notifications */}
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-9 w-9 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground"
+          className="relative size-9 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground"
         >
           <Bell className="size-4" />
           <span className="absolute right-1 top-1 flex size-2 rounded-full bg-destructive" />
           <span className="sr-only">Thông báo</span>
         </Button>
 
-        {/* Theme Toggle (Visual) */}
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground"
+          className="size-9 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground"
         >
           <Sun className="size-4" />
           <span className="sr-only">Chế độ sáng/tối</span>
         </Button>
 
-        {/* Quick Add Button */}
         <Button size="sm" className="h-9 gap-1.5 px-3 font-medium text-xs">
           <Plus className="size-4" />
           <span className="hidden sm:inline">Thêm mẫu</span>

@@ -127,6 +127,7 @@ Chay trong `lab-kit-app/`:
 bun run typecheck
 bun run lint:strict
 bun run format:check
+bun run react-doctor
 bun run build
 ```
 
@@ -135,6 +136,16 @@ Hoac chay quality gate tong hop:
 ```bash
 bun run quality
 ```
+
+Enable tracked commit/push hooks once per clone:
+
+```bash
+scripts/setup-git-hooks.sh
+```
+
+Hooks run React Doctor in `lab-kit-app/`: `pre-commit` checks staged files and
+`pre-push` checks the diff. The gate fails on React Doctor errors and leaves
+current warnings as non-blocking diagnostics.
 
 Khi co tests:
 
