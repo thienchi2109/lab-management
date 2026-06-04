@@ -12,6 +12,10 @@ const advisorFixMigrationPath = path.join(
   root,
   "supabase/migrations/202606040002_advisor_fixes.sql",
 );
+const usernameAuthMigrationPath = path.join(
+  root,
+  "supabase/migrations/202606040003_username_auth_alias.sql",
+);
 const seedPath = path.join(root, "supabase/seed.sql");
 const envExamplePath = path.join(root, "lab-kit-app/.env.example");
 
@@ -66,6 +70,7 @@ function assertContains(content, pattern, message) {
 function main() {
   const migration = readFile(migrationPath);
   const advisorFixMigration = readFile(advisorFixMigrationPath);
+  const usernameAuthMigration = readFile(usernameAuthMigrationPath);
   const seed = readFile(seedPath);
   const envExample = readFile(envExamplePath);
 
@@ -132,6 +137,21 @@ function main() {
     advisorFixMigration,
     /for\s+insert\s+to\s+authenticated/i,
     "Advisor fix migration must replace manager policies with action-specific policies",
+  );
+  assertContains(
+    usernameAuthMigration,
+    /alter\s+table\s+public\.profiles\s+add\s+column\s+if\s+not\s+exists\s+username\s+text/i,
+    "Username auth migration must add public.profiles.username",
+  );
+  assertContains(
+    usernameAuthMigration,
+    /create\s+unique\s+index\s+if\s+not\s+exists\s+profiles_username_lower_key\s+on\s+public\.profiles\s*\(\s*lower\(username\)\s*\)/i,
+    "Username auth migration must add normalized unique username index",
+  );
+  assertContains(
+    usernameAuthMigration,
+    /check\s*\(\s*username\s+is\s+null\s+or\s+username\s*~\s*'\^\[a-z0-9_\]\{3,32\}\$'/i,
+    "Username auth migration must constrain normalized username format",
   );
 
   assertContains(seed, /Demo Lab/i, "Seed must include demo organization data");

@@ -130,7 +130,11 @@ Before implementation:
 
 Before final response:
 
+- Broad reads, searches, diffs, and verification summaries used context-mode.
+- Direct shell use was limited to short commands, process control, edits,
+  commits, browser automation, or commands whose raw output is intentionally
+  part of the proof.
 - Validation evidence has been read.
 - `docs/TRACE_SPEC.md` has been read for normal/high-risk tasks.
 - The final trace includes files read, files changed, outcome, and friction
-  when applicable.
+  when applicable, including any context-mode misses or intentional bypasses.
