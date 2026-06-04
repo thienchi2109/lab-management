@@ -4,6 +4,9 @@
 
 - Code files must not exceed 350 lines. Treat this as a hard limit and keep
   new or modified code split into focused files before crossing it.
+- All Vietnamese user-facing text, documentation, issue/PR text, comments, and
+  agent responses for this repo must use full Vietnamese diacritics. Do not
+  write Vietnamese without accents.
 - Always prefer context-mode tools first for gathering, searching, reading, or
   summarizing context. Use `rtk` as the fallback or for short shell commands
   when context-mode is not appropriate.

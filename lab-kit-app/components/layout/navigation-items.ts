@@ -30,7 +30,7 @@ const mobileNavItems = [
     icon: BarChart3,
   },
   {
-    title: "Users",
+    title: "Người dùng",
     url: "/dashboard/users",
     icon: Users,
   },

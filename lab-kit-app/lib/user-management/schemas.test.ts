@@ -35,7 +35,7 @@ describe("parseCreateUserInput", () => {
         role: "owner",
         isActive: "on",
       })
-    ).toThrow("Thong tin nguoi dung khong hop le.");
+    ).toThrow("Thông tin người dùng không hợp lệ.");
   });
 });
 
@@ -70,6 +70,6 @@ describe("parseUpdateUserInput", () => {
         role: "viewer",
         isActive: "true",
       })
-    ).toThrow("Thong tin nguoi dung khong hop le.");
+    ).toThrow("Thông tin người dùng không hợp lệ.");
   });
 });

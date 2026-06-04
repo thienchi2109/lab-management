@@ -12,14 +12,14 @@ export default async function UsersPage() {
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center gap-3 text-center">
       <div className="rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
-        Khong co quyen truy cap
+        Không có quyền truy cập
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">
-        Chi Admin moi quan ly nguoi dung
+        Chỉ Admin mới quản lý người dùng
       </h1>
       <p className="text-sm text-muted-foreground">
         Tai khoan hien tai khong co quyen xem danh sach, tao user hoac thay doi
-        vai tro trong he thong.
+        vai trò trong hệ thống.
       </p>
     </div>
   );

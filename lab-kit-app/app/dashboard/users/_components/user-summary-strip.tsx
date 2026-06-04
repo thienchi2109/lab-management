@@ -7,15 +7,15 @@ type UserSummaryStripProps = {
   summary: ManagedUserSummary;
 };
 
-const items = [
+export const userSummaryItems = [
   {
     key: "total",
-    label: "Tong user",
+    label: "Tổng người dùng",
     icon: Users,
   },
   {
     key: "active",
-    label: "Dang hoat dong",
+    label: "Đang hoạt động",
     icon: UserCheck,
   },
   {
@@ -25,7 +25,7 @@ const items = [
   },
   {
     key: "inactive",
-    label: "Tam khoa",
+    label: "Tạm khóa",
     icon: UserRoundX,
   },
 ] as const;
@@ -33,7 +33,7 @@ const items = [
 export function UserSummaryStrip({ summary }: UserSummaryStripProps) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {items.map((item) => (
+      {userSummaryItems.map((item) => (
         <Card key={item.key} size="sm" className="rounded-lg bg-background">
           <CardContent className="flex items-center justify-between gap-3">
             <div>

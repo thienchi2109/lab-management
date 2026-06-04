@@ -27,9 +27,9 @@ export function UserTable({ users, onEdit }: UserTableProps) {
   if (users.length === 0) {
     return (
       <div className="rounded-lg border border-dashed bg-background p-8 text-center">
-        <p className="font-medium">Khong co user phu hop</p>
+        <p className="font-medium">Không có người dùng phù hợp</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Thu doi tu khoa tim kiem hoac bo loc vai tro/trang thai.
+          Thử đổi từ khóa tìm kiếm hoặc bộ lọc vai trò/trạng thái.
         </p>
       </div>
     );
@@ -41,11 +41,11 @@ export function UserTable({ users, onEdit }: UserTableProps) {
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 font-medium">Nguoi dung</th>
-              <th className="px-4 py-3 font-medium">Vai tro</th>
-              <th className="px-4 py-3 font-medium">Trang thai</th>
-              <th className="px-4 py-3 font-medium">Cap nhat</th>
-              <th className="px-4 py-3 text-right font-medium">Tac vu</th>
+              <th className="px-4 py-3 font-medium">Người dùng</th>
+              <th className="px-4 py-3 font-medium">Vai trò</th>
+              <th className="px-4 py-3 font-medium">Trạng thái</th>
+              <th className="px-4 py-3 font-medium">Cập nhật</th>
+              <th className="px-4 py-3 text-right font-medium">Tác vụ</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -61,7 +61,7 @@ export function UserTable({ users, onEdit }: UserTableProps) {
                   <StatusBadge isActive={user.isActive} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {formatDate(user.updatedAt)}
+                  {formatUserUpdatedDate(user.updatedAt)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Button
@@ -71,7 +71,7 @@ export function UserTable({ users, onEdit }: UserTableProps) {
                     onClick={() => onEdit(user)}
                   >
                     <Edit3 className="size-3.5" />
-                    Sua
+                    Sửa
                   </Button>
                 </td>
               </tr>
@@ -99,7 +99,7 @@ export function UserTable({ users, onEdit }: UserTableProps) {
               <RoleBadge role={user.role} />
               <StatusBadge isActive={user.isActive} />
               <span className="text-xs text-muted-foreground">
-                {formatDate(user.updatedAt)}
+                {formatUserUpdatedDate(user.updatedAt)}
               </span>
             </div>
           </div>
@@ -118,7 +118,8 @@ function UserIdentity({ user }: { user: ManagedUser }) {
       <div className="min-w-0">
         <div className="truncate font-medium">{user.displayName}</div>
         <div className="truncate text-xs text-muted-foreground">
-          @{user.username ?? "chua-co-username"} · {user.email}
+          {user.username ? `@${user.username}` : "Chưa có username"} ·{" "}
+          {user.email}
         </div>
       </div>
     </div>
@@ -137,11 +138,17 @@ function RoleBadge({ role }: { role: ManagedUser["role"] }) {
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <Badge variant={isActive ? "outline" : "destructive"}>
-      {isActive ? "Hoat dong" : "Tam khoa"}
+      {isActive ? "Hoạt động" : "Tạm khóa"}
     </Badge>
   );
 }
 
-function formatDate(value: string) {
-  return userDateFormatter.format(new Date(value));
+export function formatUserUpdatedDate(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Chưa rõ";
+  }
+
+  return userDateFormatter.format(date);
 }

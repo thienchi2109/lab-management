@@ -32,19 +32,19 @@ export function CreateUserDialog({ open, onClose }: CreateUserDialogProps) {
   if (!open) return null;
 
   return (
-    <DialogFrame title="Them nguoi dung" onClose={onClose}>
+    <DialogFrame title="Thêm người dùng" onClose={onClose}>
       <form action={action} className="space-y-4">
         <UserFields />
         <Field label="Email" name="email" type="email" required />
         <Field
-          label="Mat khau tam"
+          label="Mật khẩu tạm"
           name="temporaryPassword"
           type="password"
           required
         />
         <RoleStatusFields />
         <ActionMessage state={state} />
-        <DialogActions pending={pending} onClose={onClose} submitLabel="Tao" />
+        <DialogActions pending={pending} onClose={onClose} submitLabel="Tạo" />
       </form>
     </DialogFrame>
   );
@@ -59,7 +59,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
   if (!user) return null;
 
   return (
-    <DialogFrame title={`Sua ${user.displayName}`} onClose={onClose}>
+    <DialogFrame title={`Sửa ${user.displayName}`} onClose={onClose}>
       <form action={action} className="space-y-4">
         <input type="hidden" name="userId" value={user.id} />
         <input type="hidden" name="membershipId" value={user.membershipId} />
@@ -69,7 +69,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
         <DialogActions
           pending={pending}
           onClose={onClose}
-          submitLabel="Luu thay doi"
+          submitLabel="Lưu thay đổi"
         />
       </form>
     </DialogFrame>
@@ -95,7 +95,7 @@ function DialogFrame({
             variant="ghost"
             size="icon-sm"
             onClick={onClose}
-            aria-label="Dong"
+            aria-label="Đóng"
           >
             <X className="size-4" />
           </Button>
@@ -110,7 +110,7 @@ function UserFields({ user }: { user?: ManagedUser }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Field
-        label="Ten hien thi"
+        label="Tên hiển thị"
         name="displayName"
         defaultValue={user?.displayName}
         required
@@ -129,7 +129,7 @@ function RoleStatusFields({ user }: { user?: ManagedUser }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="space-y-1.5 text-sm font-medium">
-        <span>Vai tro</span>
+        <span>Vai trò</span>
         <select
           name="role"
           defaultValue={user?.role ?? "viewer"}
@@ -141,14 +141,14 @@ function RoleStatusFields({ user }: { user?: ManagedUser }) {
         </select>
       </label>
       <label className="space-y-1.5 text-sm font-medium">
-        <span>Trang thai</span>
+        <span>Trạng thái</span>
         <select
           name="isActive"
           defaultValue={String(user?.isActive ?? true)}
           className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <option value="true">Hoat dong</option>
-          <option value="false">Tam khoa</option>
+          <option value="true">Hoạt động</option>
+          <option value="false">Tạm khóa</option>
         </select>
       </label>
     </div>
@@ -213,10 +213,10 @@ function DialogActions({
   return (
     <div className="flex justify-end gap-2 pt-2">
       <Button type="button" variant="outline" onClick={onClose}>
-        Huy
+        Hủy
       </Button>
       <Button type="submit" disabled={pending}>
-        {pending ? "Dang luu..." : submitLabel}
+        {pending ? "Đang lưu..." : submitLabel}
       </Button>
     </div>
   );

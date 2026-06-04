@@ -144,6 +144,6 @@ describe("updateManagedUser", () => {
         actor,
         port
       )
-    ).rejects.toThrow("Khong the thay doi admin hoat dong cuoi cung.");
+    ).rejects.toThrow("Không thể thay đổi admin hoạt động cuối cùng.");
   });
 });

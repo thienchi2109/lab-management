@@ -4,7 +4,7 @@ import { normalizeUsername } from "@/lib/auth/login-schema";
 import { APP_ROLES } from "@/lib/auth/permissions";
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,32}$/;
-const INVALID_USER_MESSAGE = "Thong tin nguoi dung khong hop le.";
+const INVALID_USER_MESSAGE = "Thông tin người dùng không hợp lệ.";
 
 const activeStateSchema = z.preprocess((value) => {
   if (value === true || value === "true" || value === "on") return true;

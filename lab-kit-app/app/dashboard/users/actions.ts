@@ -67,12 +67,12 @@ export async function createUserAction(
 
     return {
       status: "success",
-      message: "Da tao nguoi dung moi.",
+      message: "Đã tạo người dùng mới.",
     };
   } catch {
     return {
       status: "error",
-      message: "Khong the tao nguoi dung. Kiem tra thong tin va thu lai.",
+      message: "Không thể tạo người dùng. Kiểm tra thông tin và thử lại.",
     };
   }
 }
@@ -102,12 +102,12 @@ export async function updateUserAction(
 
     return {
       status: "success",
-      message: "Da cap nhat nguoi dung.",
+      message: "Đã cập nhật người dùng.",
     };
   } catch {
     return {
       status: "error",
-      message: "Khong the cap nhat nguoi dung. Kiem tra quyen va thu lai.",
+      message: "Không thể cập nhật người dùng. Kiểm tra quyền và thử lại.",
     };
   }
 }

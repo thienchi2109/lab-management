@@ -45,10 +45,10 @@ export function UserManagementClient({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            Quan ly nguoi dung
+            Quản lý người dùng
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Quan ly tai khoan, vai tro va trang thai truy cap tren app layer.
+            Quản lý tài khoản, vai trò và trạng thái truy cập trên ứng dụng.
           </p>
         </div>
         <Button
@@ -57,7 +57,7 @@ export function UserManagementClient({
           onClick={() => dispatch({ type: "openCreate" })}
         >
           <Plus className="size-4" />
-          Them nguoi dung
+          Thêm người dùng
         </Button>
       </div>
 
@@ -73,12 +73,12 @@ export function UserManagementClient({
                 dispatch({ type: "setSearch", value: event.target.value })
               }
               className="pl-8"
-              placeholder="Tim theo ten, username, email"
+              placeholder="Tìm theo tên, username, email"
             />
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <FilterSelect
-              label="Vai tro"
+              label="Vai trò"
               value={state.role}
               onChange={(value) =>
                 dispatch({
@@ -87,14 +87,14 @@ export function UserManagementClient({
                 })
               }
               options={[
-                ["all", "Tat ca vai tro"],
+                ["all", "Tất cả vai trò"],
                 ["admin", "Admin"],
                 ["editor", "Editor"],
                 ["viewer", "Viewer"],
               ]}
             />
             <FilterSelect
-              label="Trang thai"
+              label="Trạng thái"
               value={state.status}
               onChange={(value) =>
                 dispatch({
@@ -103,9 +103,9 @@ export function UserManagementClient({
                 })
               }
               options={[
-                ["all", "Tat ca trang thai"],
-                ["active", "Hoat dong"],
-                ["inactive", "Tam khoa"],
+                ["all", "Tất cả trạng thái"],
+                ["active", "Hoạt động"],
+                ["inactive", "Tạm khóa"],
               ]}
             />
           </div>
@@ -115,7 +115,7 @@ export function UserManagementClient({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <SlidersHorizontal className="size-4" />
-          Dang hien thi {filteredUsers.length}/{users.length} user
+          Đang hiển thị {filteredUsers.length}/{users.length} người dùng
         </div>
       </div>
 

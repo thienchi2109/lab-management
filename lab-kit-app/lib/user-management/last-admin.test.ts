@@ -17,7 +17,7 @@ describe("assertCanChangeMembership", () => {
         nextRole: "editor",
         nextIsActive: true,
       })
-    ).toThrow("Khong the thay doi admin hoat dong cuoi cung.");
+    ).toThrow("Không thể thay đổi admin hoạt động cuối cùng.");
   });
 
   test("blocks deactivating the final active admin", () => {
@@ -27,7 +27,7 @@ describe("assertCanChangeMembership", () => {
         nextRole: "admin",
         nextIsActive: false,
       })
-    ).toThrow("Khong the thay doi admin hoat dong cuoi cung.");
+    ).toThrow("Không thể thay đổi admin hoạt động cuối cùng.");
   });
 
   test("allows demoting an admin when another active admin remains", () => {

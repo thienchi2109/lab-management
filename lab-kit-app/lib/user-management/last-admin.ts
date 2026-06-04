@@ -1,6 +1,6 @@
 import type { AppRole } from "@/lib/auth/permissions";
 
-const LAST_ADMIN_ERROR = "Khong the thay doi admin hoat dong cuoi cung.";
+const LAST_ADMIN_ERROR = "Không thể thay đổi admin hoạt động cuối cùng.";
 
 export type ManagedMembership = {
   id: string;
