@@ -3,7 +3,8 @@
 Stories are work packets. They turn product intent into bounded implementation
 and validation work.
 
-No story packets are active yet.
+No story packet is active right now. Implemented story packets remain in this
+directory as historical contract and validation evidence.
 
 ## Normal Story
 

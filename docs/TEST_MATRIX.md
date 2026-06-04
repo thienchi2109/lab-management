@@ -40,6 +40,7 @@ test:platform
 bun run typecheck      # tsc --noEmit
 bun run lint:strict    # eslint --max-warnings=0
 bun run format:check   # prettier --check .
+bun run react-doctor   # React Doctor, fails on errors
 bun run build          # next build
 
 # Combined
@@ -47,7 +48,7 @@ bun run quality        # all of the above
 
 # Phase-specific
 bun test               # when tests exist
-bun run react:doctor   # for complex UI phases
+bun run react-doctor   # repeat manually for complex UI phases when needed
 ```
 
 ## No-Any Check

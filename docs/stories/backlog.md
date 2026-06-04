@@ -8,7 +8,7 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 1 — Database
 
-- US-002 — Database Schema, Migrations & Seed (planned)
+- [US-002](US-002-supabase-schema/overview.md) — Supabase Schema, Migrations & Seed (implemented)
 
 ## Phase 2 — Auth & Shell
 
