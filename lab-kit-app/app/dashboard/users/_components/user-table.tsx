@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ManagedUser } from "@/lib/user-management/users";
 
+import { formatUserUpdatedDate } from "./user-table.utils";
+
 type UserTableProps = {
   users: ManagedUser[];
   onEdit: (user: ManagedUser) => void;
@@ -16,12 +18,6 @@ const roleLabels: Record<ManagedUser["role"], string> = {
   editor: "Editor",
   viewer: "Viewer",
 };
-
-const userDateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
 
 export function UserTable({ users, onEdit }: UserTableProps) {
   if (users.length === 0) {
@@ -90,7 +86,7 @@ export function UserTable({ users, onEdit }: UserTableProps) {
                 variant="outline"
                 size="icon-sm"
                 onClick={() => onEdit(user)}
-                aria-label={`Sua ${user.displayName}`}
+                aria-label={`Sửa ${user.displayName}`}
               >
                 <Edit3 className="size-3.5" />
               </Button>
@@ -141,14 +137,4 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
       {isActive ? "Hoạt động" : "Tạm khóa"}
     </Badge>
   );
-}
-
-export function formatUserUpdatedDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Chưa rõ";
-  }
-
-  return userDateFormatter.format(date);
 }

@@ -5,8 +5,8 @@ import { describe, expect, test } from "vitest";
 
 import { mobileNavItems } from "@/components/layout/navigation-items";
 
-import { userSummaryItems } from "./user-summary-strip";
-import { formatUserUpdatedDate } from "./user-table";
+import { userSummaryItems } from "./user-summary-strip.data";
+import { formatUserUpdatedDate } from "./user-table.utils";
 
 describe("US-014 review fixes", () => {
   test("uses consistent Vietnamese copy for the total user summary", () => {
@@ -59,6 +59,7 @@ describe("US-014 review fixes", () => {
       "bo loc",
       "Cap nhat",
       "Tac vu",
+      "Sua",
       "Mat khau",
       "Ten hien thi",
       "Dong",

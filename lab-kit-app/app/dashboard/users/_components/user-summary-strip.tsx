@@ -1,34 +1,11 @@
-import { ShieldCheck, UserCheck, UserRoundX, Users } from "lucide-react";
-
 import { Card, CardContent } from "@/components/ui/card";
 import type { ManagedUserSummary } from "@/lib/user-management/users";
+
+import { userSummaryItems } from "./user-summary-strip.data";
 
 type UserSummaryStripProps = {
   summary: ManagedUserSummary;
 };
-
-export const userSummaryItems = [
-  {
-    key: "total",
-    label: "Tổng người dùng",
-    icon: Users,
-  },
-  {
-    key: "active",
-    label: "Đang hoạt động",
-    icon: UserCheck,
-  },
-  {
-    key: "admins",
-    label: "Admin",
-    icon: ShieldCheck,
-  },
-  {
-    key: "inactive",
-    label: "Tạm khóa",
-    icon: UserRoundX,
-  },
-] as const;
 
 export function UserSummaryStrip({ summary }: UserSummaryStripProps) {
   return (
