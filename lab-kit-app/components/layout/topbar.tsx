@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Plus, Search, Sun } from "lucide-react";
+import { Bell, LogOut, Plus, Search, Sun } from "lucide-react";
 
 import {
   desktopNavItems,
@@ -23,8 +23,14 @@ function getPageTitle(path: string) {
   return "Tổng quan hệ thống";
 }
 
-export function Topbar() {
+type TopbarProps = {
+  displayName: string;
+  username: string | null;
+};
+
+export function Topbar({ displayName, username }: TopbarProps) {
   const pathname = usePathname();
+  const accountLabel = username ?? displayName;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-border/50 bg-background px-4 md:px-6">
@@ -90,6 +96,27 @@ export function Topbar() {
           <Plus className="size-4" />
           <span className="hidden sm:inline">Thêm mẫu</span>
         </Button>
+
+        <div className="hidden min-w-0 flex-col items-end leading-tight lg:flex">
+          <span className="max-w-32 truncate text-xs font-medium text-foreground">
+            {accountLabel}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            Đang hoạt động
+          </span>
+        </div>
+
+        <form action="/auth/signout" method="post">
+          <Button
+            type="submit"
+            variant="ghost"
+            size="icon"
+            className="size-9 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="size-4" />
+            <span className="sr-only">Đăng xuất</span>
+          </Button>
+        </form>
       </div>
     </header>
   );

@@ -201,4 +201,7 @@ Before the final response, check:
 - `errors` names real blockers or is `none` for Detailed traces when the
   current CLI is used.
 - `harness_friction` either names a concrete issue or is intentionally `none`.
+- If context-mode was skipped for broad reading, searching, diff review, or
+  verification aggregation, `harness_friction` records the miss and how the
+  agent corrected course.
 - Any friction that should become future work is recorded in the backlog.
