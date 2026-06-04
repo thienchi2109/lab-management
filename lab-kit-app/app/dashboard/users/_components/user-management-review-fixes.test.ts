@@ -38,7 +38,13 @@ describe("US-014 review fixes", () => {
     ];
     const bannedPhrases = [
       "Quan ly",
+      "Tai khoan",
+      "hien tai",
       "nguoi dung",
+      "danh sach",
+      "tao user",
+      "hoac",
+      "thay doi",
       "vai tro",
       "trang thai",
       "Them",

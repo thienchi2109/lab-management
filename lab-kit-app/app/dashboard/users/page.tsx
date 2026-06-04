@@ -18,8 +18,8 @@ export default async function UsersPage() {
         Chỉ Admin mới quản lý người dùng
       </h1>
       <p className="text-sm text-muted-foreground">
-        Tai khoan hien tai khong co quyen xem danh sach, tao user hoac thay doi
-        vai trò trong hệ thống.
+        Tài khoản hiện tại không có quyền xem danh sách, tạo người dùng hoặc
+        thay đổi vai trò trong hệ thống.
       </p>
     </div>
   );
