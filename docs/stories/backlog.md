@@ -13,7 +13,7 @@ Stories derived from SPEC-001 MVP roadmap.
 ## Phase 2 — Auth & Shell
 
 - [US-003](US-003-auth-session-rbac-shell/overview.md) — Auth, Session, RBAC & App Shell (implemented)
-- US-014 — User Management & Role Administration (planned)
+- [US-014](US-014-user-management-role-administration/overview.md) — User Management & Role Administration (planned)
 
 ## Phase 3 — Result Config
 

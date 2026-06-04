@@ -5,6 +5,7 @@ import {
   Package,
   Settings,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 
 const mobileNavItems = [
@@ -27,6 +28,11 @@ const mobileNavItems = [
     title: "Báo cáo",
     url: "/dashboard/analytics",
     icon: BarChart3,
+  },
+  {
+    title: "Users",
+    url: "/dashboard/users",
+    icon: Users,
   },
   {
     title: "Cài đặt",
@@ -60,6 +66,11 @@ const desktopNavItems = [
     title: "Chỉ tiêu",
     url: "/dashboard/result-config",
     icon: ShieldCheck,
+  },
+  {
+    title: "Người dùng",
+    url: "/dashboard/users",
+    icon: Users,
   },
   {
     title: "Cài đặt",
