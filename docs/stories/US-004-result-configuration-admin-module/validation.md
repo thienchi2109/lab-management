@@ -71,6 +71,32 @@ cd lab-kit-app && bun run react-doctor
   `result_templates`, `result_template_metrics`, `sample_types`, and
   `audit_events` exist with RLS enabled. The MVP keeps metric settings in
   `result_metrics.metric_settings` JSON; no migration was added or applied.
+- Follow-up Issue #6 hoàn tất phần transaction/audit boundary cho
+  result-configuration: các mutation nhóm kết quả, chỉ số, biểu mẫu, và thay
+  assignment biểu mẫu gọi RPC `*_with_audit` để mutation nghiệp vụ và
+  `audit_events` cùng commit hoặc cùng rollback. Hai migration live
+  `result_configuration_audit_transaction_rpcs` và
+  `result_template_audit_transaction_rpcs` đã áp dụng trên Supabase ngày
+  2026-06-05, PostgREST schema cache đã reload, và live rollback smoke cố tình
+  làm audit insert fail bằng `actor_id` không tồn tại đã chứng minh
+  `result_groups` không bị commit một phần.
+- Issue #6 cũng rà soát `lib/user-management/operations.ts`: file này vẫn có
+  mutation và audit tách rời, nhưng create user đi qua Supabase Auth Admin ngoài
+  transaction Postgres nên được giữ ngoài phạm vi sửa hẹp của US-004 follow-up.
+  Nên tách follow-up riêng nếu cần thiết kế transaction/saga cho
+  user-management.
+- Regression proof cho Issue #6: `lib/result-configuration/operations.test.ts`
+  khóa contract domain chỉ gọi một mutation boundary có `actorId`, không gọi
+  audit port riêng; `lib/result-configuration/server.test.ts` khóa toàn bộ
+  write port dùng RPC atomic thay vì PostgREST `.from(...)` mutation cộng audit
+  insert tách rời.
+- Verification cuối cho Issue #6: `node scripts/validate-supabase-schema.mjs`
+  pass; `cd lab-kit-app && bun run test` pass 27 files / 73 tests; `bun run
+quality` pass typecheck, ESLint strict, Prettier, React Doctor không có error,
+  và Next.js 16.2.7 build; `bun run docstring:check` pass; `scripts/bin/harness-cli
+story verify US-004` pass. Supabase advisors sau DDL chỉ còn baseline
+  `auth_leaked_password_protection` WARN và các unused-index INFO của fresh
+  project.
 - `node scripts/validate-supabase-schema.mjs` passed.
 - `cd lab-kit-app && bun run test` passed with 17 files and 49 tests after
   adding the login redirect/session regression.

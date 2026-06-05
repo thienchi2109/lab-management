@@ -17,6 +17,14 @@ const usernameAuthMigrationPath = path.join(
   root,
   "supabase/migrations/202606040003_username_auth_alias.sql",
 );
+const resultConfigAuditMigrationPath = path.join(
+  root,
+  "supabase/migrations/202606050007_result_configuration_audit_transaction_rpcs.sql",
+);
+const resultTemplateAuditMigrationPath = path.join(
+  root,
+  "supabase/migrations/202606050008_result_template_audit_transaction_rpcs.sql",
+);
 const seedPath = path.join(root, "supabase/seed.sql");
 const envExamplePath = path.join(root, "lab-kit-app/.env.example");
 
@@ -84,6 +92,10 @@ function main() {
   const allMigrations = readAllMigrations();
   const advisorFixMigration = readFile(advisorFixMigrationPath);
   const usernameAuthMigration = readFile(usernameAuthMigrationPath);
+  const resultConfigAuditMigration = readFile(resultConfigAuditMigrationPath);
+  const resultTemplateAuditMigration = readFile(
+    resultTemplateAuditMigrationPath,
+  );
   const seed = readFile(seedPath);
   const envExample = readFile(envExamplePath);
 
@@ -175,6 +187,46 @@ function main() {
     usernameAuthMigration,
     /check\s*\(\s*username\s+is\s+null\s+or\s+username\s*~\s*'\^\[a-z0-9_\]\{3,32\}\$'/i,
     "Username auth migration must constrain normalized username format",
+  );
+  assertContains(
+    resultConfigAuditMigration,
+    /create\s+or\s+replace\s+function\s+public\.insert_result_configuration_audit/i,
+    "Result configuration audit migration must add a shared audit helper",
+  );
+  assertContains(
+    resultConfigAuditMigration,
+    /create\s+or\s+replace\s+function\s+public\.create_result_group_with_audit/i,
+    "Result configuration audit migration must add group create RPC",
+  );
+  assertContains(
+    resultConfigAuditMigration,
+    /create\s+or\s+replace\s+function\s+public\.update_result_metric_with_audit/i,
+    "Result configuration audit migration must add metric update RPC",
+  );
+  assertContains(
+    resultTemplateAuditMigration,
+    /create\s+or\s+replace\s+function\s+public\.replace_result_template_metrics_with_audit/i,
+    "Template assignment migration must add audited replacement RPC",
+  );
+  assertContains(
+    `${resultConfigAuditMigration}\n${resultTemplateAuditMigration}`,
+    /security\s+definer/is,
+    "Result configuration audit RPCs must use security definer",
+  );
+  assertContains(
+    `${resultConfigAuditMigration}\n${resultTemplateAuditMigration}`,
+    /set\s+search_path\s*=\s*public/is,
+    "Result configuration audit RPCs must pin search_path",
+  );
+  assertContains(
+    `${resultConfigAuditMigration}\n${resultTemplateAuditMigration}`,
+    /revoke\s+all\s+on\s+function\s+public\.create_result_group_with_audit[\s\S]+from\s+authenticated/i,
+    "Result configuration write RPCs must not be exposed to authenticated clients",
+  );
+  assertContains(
+    `${resultConfigAuditMigration}\n${resultTemplateAuditMigration}`,
+    /grant\s+execute\s+on\s+function\s+public\.replace_result_template_metrics_with_audit[\s\S]+to\s+service_role/i,
+    "Result configuration write RPCs must be callable by service_role",
   );
 
   assertContains(seed, /Demo Lab/i, "Seed must include demo organization data");
