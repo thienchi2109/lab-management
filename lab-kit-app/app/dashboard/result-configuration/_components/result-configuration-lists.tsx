@@ -113,7 +113,7 @@ function TemplateList({ templates }: { templates: ResultTemplate[] }) {
             <div>
               <h2 className="font-semibold">{template.name}</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                {template.code} · {template.sampleTypeName}
+                {template.code} · {template.sampleTypeName ?? "Khác"}
               </p>
             </div>
             <StatusBadge isActive={template.isActive} />

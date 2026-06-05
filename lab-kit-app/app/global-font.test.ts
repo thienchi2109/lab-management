@@ -12,6 +12,7 @@ describe("global font configuration", () => {
     expect(layout).toContain("Be_Vietnam_Pro");
     expect(layout).toContain('variable: "--font-be-vietnam-pro"');
     expect(globals).toContain('"Be Vietnam Pro"');
+    expect(globals).toContain("--font-heading: var(--font-sans)");
     expect(globals).not.toContain("--font-sans: var(--font-sans)");
   });
 });

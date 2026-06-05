@@ -117,6 +117,34 @@ describe("mapResultConfigurationRows", () => {
       "PCR_REALTIME",
     ]);
   });
+
+  test("keeps missing sample-type fallback neutral in mapped data", () => {
+    const config = mapResultConfigurationRows({
+      ...rows,
+      templates: [
+        {
+          ...rows.templates[0],
+          sample_type_id: "missing-sample-type",
+        },
+      ],
+    });
+
+    expect(config.templates[0]?.sampleTypeName).toBeNull();
+  });
+
+  test("falls back to text input type for unknown database values", () => {
+    const config = mapResultConfigurationRows({
+      ...rows,
+      metrics: [
+        {
+          ...rows.metrics[0],
+          input_type: "legacy_unknown",
+        },
+      ],
+    });
+
+    expect(config.metrics[0]?.inputType).toBe("text");
+  });
 });
 
 describe("getResultConfigurationSummary", () => {

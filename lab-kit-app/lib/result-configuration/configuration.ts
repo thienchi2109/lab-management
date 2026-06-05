@@ -108,7 +108,7 @@ export type ResultTemplate = {
   id: string;
   organizationId: string;
   sampleTypeId: string;
-  sampleTypeName: string;
+  sampleTypeName: string | null;
   code: string;
   name: string;
   isActive: boolean;
@@ -191,7 +191,7 @@ export function mapResultConfigurationRows(rows: {
         organizationId: template.organization_id,
         sampleTypeId: template.sample_type_id,
         sampleTypeName:
-          sampleTypeById.get(template.sample_type_id)?.name ?? "Khác",
+          sampleTypeById.get(template.sample_type_id)?.name ?? null,
         code: template.code,
         name: template.name,
         isActive: template.is_active,
@@ -236,9 +236,7 @@ export function filterResultConfiguration(
 }
 
 function mapMetricRow(row: ResultMetricRow): ResultMetric {
-  if (!isResultInputType(row.input_type)) {
-    throw new Error("Unknown result input type.");
-  }
+  const inputType = isResultInputType(row.input_type) ? row.input_type : "text";
 
   return {
     id: row.id,
@@ -246,7 +244,7 @@ function mapMetricRow(row: ResultMetricRow): ResultMetric {
     resultGroupId: row.result_group_id,
     code: row.code,
     name: row.name,
-    inputType: row.input_type,
+    inputType,
     unit: row.unit,
     options: Array.isArray(row.options) ? row.options : [],
     metricSettings: row.metric_settings,
