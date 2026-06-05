@@ -32,27 +32,38 @@ export type ResultConfigurationAuditInput = {
 
 export type ResultConfigurationPort = {
   createGroup(
-    input: GroupInput & { organizationId: string }
+    input: GroupInput & { organizationId: string; actorId: string }
   ): Promise<{ groupId: string }>;
   updateGroup(
-    input: GroupInput & { groupId: string; organizationId: string }
+    input: GroupInput & {
+      groupId: string;
+      organizationId: string;
+      actorId: string;
+    }
   ): Promise<void>;
   createMetric(
-    input: MetricInput & { organizationId: string }
+    input: MetricInput & { organizationId: string; actorId: string }
   ): Promise<{ metricId: string }>;
   updateMetric(
-    input: MetricInput & { metricId: string; organizationId: string }
+    input: MetricInput & {
+      metricId: string;
+      organizationId: string;
+      actorId: string;
+    }
   ): Promise<void>;
   createTemplate(
-    input: TemplateInput & { organizationId: string }
+    input: TemplateInput & { organizationId: string; actorId: string }
   ): Promise<{ templateId: string }>;
   updateTemplate(
-    input: TemplateInput & { templateId: string; organizationId: string }
+    input: TemplateInput & {
+      templateId: string;
+      organizationId: string;
+      actorId: string;
+    }
   ): Promise<void>;
   replaceTemplateMetrics(
-    input: TemplateMetricInput & { organizationId: string }
+    input: TemplateMetricInput & { organizationId: string; actorId: string }
   ): Promise<void>;
-  insertAuditEvent(input: ResultConfigurationAuditInput): Promise<void>;
 };
 
 export async function createResultGroup(
@@ -63,15 +74,7 @@ export async function createResultGroup(
   const result = await port.createGroup({
     ...input,
     organizationId: actor.organizationId,
-  });
-
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_group.created",
-    entityTable: "result_groups",
-    entityId: result.groupId,
-    eventPayload: input,
   });
 
   return result;
@@ -87,14 +90,7 @@ export async function updateResultGroup(
     ...input,
     groupId,
     organizationId: actor.organizationId,
-  });
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_group.updated",
-    entityTable: "result_groups",
-    entityId: groupId,
-    eventPayload: input,
   });
 }
 
@@ -106,15 +102,7 @@ export async function createResultMetric(
   const result = await port.createMetric({
     ...input,
     organizationId: actor.organizationId,
-  });
-
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_metric.created",
-    entityTable: "result_metrics",
-    entityId: result.metricId,
-    eventPayload: input,
   });
 
   return result;
@@ -130,14 +118,7 @@ export async function updateResultMetric(
     ...input,
     metricId,
     organizationId: actor.organizationId,
-  });
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_metric.updated",
-    entityTable: "result_metrics",
-    entityId: metricId,
-    eventPayload: input,
   });
 }
 
@@ -149,15 +130,7 @@ export async function createResultTemplate(
   const result = await port.createTemplate({
     ...input,
     organizationId: actor.organizationId,
-  });
-
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_template.created",
-    entityTable: "result_templates",
-    entityId: result.templateId,
-    eventPayload: input,
   });
 
   return result;
@@ -173,14 +146,7 @@ export async function updateResultTemplate(
     ...input,
     templateId,
     organizationId: actor.organizationId,
-  });
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_template.updated",
-    entityTable: "result_templates",
-    entityId: templateId,
-    eventPayload: input,
   });
 }
 
@@ -192,13 +158,6 @@ export async function replaceTemplateMetrics(
   await port.replaceTemplateMetrics({
     ...input,
     organizationId: actor.organizationId,
-  });
-  await port.insertAuditEvent({
-    organizationId: actor.organizationId,
     actorId: actor.profileId,
-    action: "result_template_metrics.replaced",
-    entityTable: "result_template_metrics",
-    entityId: input.resultTemplateId,
-    eventPayload: { metricIds: input.metricIds },
   });
 }

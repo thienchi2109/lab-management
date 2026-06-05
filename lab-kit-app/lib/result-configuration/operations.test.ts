@@ -9,41 +9,44 @@ import {
 
 function createFakePort(): ResultConfigurationPort & {
   calls: string[];
-  auditPayloads: unknown[];
+  inputs: unknown[];
 } {
   const calls: string[] = [];
-  const auditPayloads: unknown[] = [];
+  const inputs: unknown[] = [];
 
   return {
     calls,
-    auditPayloads,
-    async createGroup() {
+    inputs,
+    async createGroup(input) {
       calls.push("createGroup");
+      inputs.push(input);
       return { groupId: "group-created" };
     },
-    async updateGroup() {
+    async updateGroup(input) {
       calls.push("updateGroup");
+      inputs.push(input);
     },
-    async createMetric() {
+    async createMetric(input) {
       calls.push("createMetric");
+      inputs.push(input);
       return { metricId: "metric-created" };
     },
-    async updateMetric() {
+    async updateMetric(input) {
       calls.push("updateMetric");
+      inputs.push(input);
     },
-    async createTemplate() {
+    async createTemplate(input) {
       calls.push("createTemplate");
+      inputs.push(input);
       return { templateId: "template-created" };
     },
-    async updateTemplate() {
+    async updateTemplate(input) {
       calls.push("updateTemplate");
+      inputs.push(input);
     },
-    async replaceTemplateMetrics() {
+    async replaceTemplateMetrics(input) {
       calls.push("replaceTemplateMetrics");
-    },
-    async insertAuditEvent(event) {
-      calls.push("insertAuditEvent");
-      auditPayloads.push(event.eventPayload);
+      inputs.push(input);
     },
   };
 }
@@ -64,12 +67,11 @@ describe("createResultGroup", () => {
         port
       )
     ).resolves.toEqual({ groupId: "group-created" });
-    expect(port.calls).toEqual(["createGroup", "insertAuditEvent"]);
-    expect(port.auditPayloads[0]).toMatchObject({
+    expect(port.calls).toEqual(["createGroup"]);
+    expect(port.inputs[0]).toMatchObject({
+      organizationId: "org-1",
+      actorId: "user-admin",
       code: "PCR",
-      name: "PCR",
-      sortOrder: 10,
-      isActive: true,
     });
   });
 });
@@ -96,13 +98,14 @@ describe("updateResultMetric", () => {
       port
     );
 
-    expect(port.calls).toEqual(["updateMetric", "insertAuditEvent"]);
-    expect(JSON.stringify(port.auditPayloads)).not.toContain("service_role");
-    expect(port.auditPayloads[0]).toMatchObject({
+    expect(port.calls).toEqual(["updateMetric"]);
+    expect(port.inputs[0]).toMatchObject({
+      organizationId: "org-1",
+      actorId: "user-admin",
+      metricId: "metric-1",
       code: "CT",
-      inputType: "pcr_realtime",
-      metricSettings: { positive_threshold: 35 },
     });
+    expect(JSON.stringify(port.inputs)).not.toContain("service_role");
   });
 });
 
@@ -122,8 +125,10 @@ describe("replaceTemplateMetrics", () => {
       port
     );
 
-    expect(port.calls).toEqual(["replaceTemplateMetrics", "insertAuditEvent"]);
-    expect(port.auditPayloads[0]).toMatchObject({
+    expect(port.calls).toEqual(["replaceTemplateMetrics"]);
+    expect(port.inputs[0]).toMatchObject({
+      organizationId: "org-1",
+      actorId: "user-admin",
       metricIds: [
         "3ef1b5ee-83c4-4a0e-a0fd-aae5af7a8bf9",
         "1f153c76-8744-4c1e-a80b-397a2d8dc84d",

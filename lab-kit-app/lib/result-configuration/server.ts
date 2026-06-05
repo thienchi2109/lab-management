@@ -17,7 +17,6 @@ import {
 } from "./configuration";
 import type {
   ResultConfigurationActor,
-  ResultConfigurationAuditInput,
   ResultConfigurationPort,
 } from "./operations";
 
@@ -125,145 +124,135 @@ export function createSupabaseResultConfigurationPort(): ResultConfigurationPort
 
   return {
     async createGroup(input) {
-      const { data, error } = await supabase
-        .from("result_groups")
-        .insert({
-          organization_id: input.organizationId,
-          code: input.code,
-          name: input.name,
-          sort_order: input.sortOrder,
-          is_active: input.isActive,
-        })
-        .select("id")
-        .single<{ id: string }>();
+      const { data, error } = await supabase.rpc(
+        "create_result_group_with_audit",
+        {
+          p_organization_id: input.organizationId,
+          p_actor_id: input.actorId,
+          p_code: input.code,
+          p_name: input.name,
+          p_sort_order: input.sortOrder,
+          p_is_active: input.isActive,
+        }
+      );
 
-      if (error || !data) {
+      if (error || typeof data !== "string") {
         throw new Error("Could not create result group.");
       }
 
-      return { groupId: data.id };
+      return { groupId: data };
     },
     async updateGroup(input) {
-      const { error } = await supabase
-        .from("result_groups")
-        .update({
-          code: input.code,
-          name: input.name,
-          sort_order: input.sortOrder,
-          is_active: input.isActive,
-        })
-        .eq("id", input.groupId)
-        .eq("organization_id", input.organizationId);
+      const { error } = await supabase.rpc("update_result_group_with_audit", {
+        p_organization_id: input.organizationId,
+        p_actor_id: input.actorId,
+        p_group_id: input.groupId,
+        p_code: input.code,
+        p_name: input.name,
+        p_sort_order: input.sortOrder,
+        p_is_active: input.isActive,
+      });
 
       if (error) {
         throw new Error("Could not update result group.");
       }
     },
     async createMetric(input) {
-      const { data, error } = await supabase
-        .from("result_metrics")
-        .insert({
-          organization_id: input.organizationId,
-          result_group_id: input.resultGroupId,
-          code: input.code,
-          name: input.name,
-          input_type: input.inputType,
-          unit: input.unit,
-          options: input.options,
-          metric_settings: input.metricSettings,
-          sort_order: input.sortOrder,
-          is_required: input.isRequired,
-          is_active: input.isActive,
-        })
-        .select("id")
-        .single<{ id: string }>();
+      const { data, error } = await supabase.rpc(
+        "create_result_metric_with_audit",
+        {
+          p_organization_id: input.organizationId,
+          p_actor_id: input.actorId,
+          p_result_group_id: input.resultGroupId,
+          p_code: input.code,
+          p_name: input.name,
+          p_input_type: input.inputType,
+          p_unit: input.unit,
+          p_options: input.options,
+          p_metric_settings: input.metricSettings,
+          p_sort_order: input.sortOrder,
+          p_is_required: input.isRequired,
+          p_is_active: input.isActive,
+        }
+      );
 
-      if (error || !data) {
+      if (error || typeof data !== "string") {
         throw new Error("Could not create result metric.");
       }
 
-      return { metricId: data.id };
+      return { metricId: data };
     },
     async updateMetric(input) {
-      const { error } = await supabase
-        .from("result_metrics")
-        .update({
-          result_group_id: input.resultGroupId,
-          code: input.code,
-          name: input.name,
-          input_type: input.inputType,
-          unit: input.unit,
-          options: input.options,
-          metric_settings: input.metricSettings,
-          sort_order: input.sortOrder,
-          is_required: input.isRequired,
-          is_active: input.isActive,
-        })
-        .eq("id", input.metricId)
-        .eq("organization_id", input.organizationId);
+      const { error } = await supabase.rpc("update_result_metric_with_audit", {
+        p_organization_id: input.organizationId,
+        p_actor_id: input.actorId,
+        p_metric_id: input.metricId,
+        p_result_group_id: input.resultGroupId,
+        p_code: input.code,
+        p_name: input.name,
+        p_input_type: input.inputType,
+        p_unit: input.unit,
+        p_options: input.options,
+        p_metric_settings: input.metricSettings,
+        p_sort_order: input.sortOrder,
+        p_is_required: input.isRequired,
+        p_is_active: input.isActive,
+      });
 
       if (error) {
         throw new Error("Could not update result metric.");
       }
     },
     async createTemplate(input) {
-      const { data, error } = await supabase
-        .from("result_templates")
-        .insert({
-          organization_id: input.organizationId,
-          sample_type_id: input.sampleTypeId,
-          code: input.code,
-          name: input.name,
-          is_active: input.isActive,
-        })
-        .select("id")
-        .single<{ id: string }>();
+      const { data, error } = await supabase.rpc(
+        "create_result_template_with_audit",
+        {
+          p_organization_id: input.organizationId,
+          p_actor_id: input.actorId,
+          p_sample_type_id: input.sampleTypeId,
+          p_code: input.code,
+          p_name: input.name,
+          p_is_active: input.isActive,
+        }
+      );
 
-      if (error || !data) {
+      if (error || typeof data !== "string") {
         throw new Error("Could not create result template.");
       }
 
-      return { templateId: data.id };
+      return { templateId: data };
     },
     async updateTemplate(input) {
-      const { error } = await supabase
-        .from("result_templates")
-        .update({
-          sample_type_id: input.sampleTypeId,
-          code: input.code,
-          name: input.name,
-          is_active: input.isActive,
-        })
-        .eq("id", input.templateId)
-        .eq("organization_id", input.organizationId);
+      const { error } = await supabase.rpc(
+        "update_result_template_with_audit",
+        {
+          p_organization_id: input.organizationId,
+          p_actor_id: input.actorId,
+          p_template_id: input.templateId,
+          p_sample_type_id: input.sampleTypeId,
+          p_code: input.code,
+          p_name: input.name,
+          p_is_active: input.isActive,
+        }
+      );
 
       if (error) {
         throw new Error("Could not update result template.");
       }
     },
     async replaceTemplateMetrics(input) {
-      const { error } = await supabase.rpc("replace_result_template_metrics", {
-        p_organization_id: input.organizationId,
-        p_result_template_id: input.resultTemplateId,
-        p_metric_ids: input.metricIds,
-      });
+      const { error } = await supabase.rpc(
+        "replace_result_template_metrics_with_audit",
+        {
+          p_organization_id: input.organizationId,
+          p_actor_id: input.actorId,
+          p_result_template_id: input.resultTemplateId,
+          p_metric_ids: input.metricIds,
+        }
+      );
 
       if (error) {
         throw new Error("Could not replace template metrics.");
-      }
-    },
-    async insertAuditEvent(input: ResultConfigurationAuditInput) {
-      const { error } = await supabase.from("audit_events").insert({
-        organization_id: input.organizationId,
-        actor_id: input.actorId,
-        action: input.action,
-        entity_table: input.entityTable,
-        entity_id: input.entityId,
-        event_payload: input.eventPayload,
-      });
-
-      if (error) {
-        throw new Error("Could not record audit event.");
       }
     },
   };
