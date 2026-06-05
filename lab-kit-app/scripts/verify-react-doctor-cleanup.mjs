@@ -50,8 +50,9 @@ check(
 );
 check(
   "topbar title mapper is module scoped",
-  /function getPageTitle\(path: string\)/.test(topbar) &&
-    !/export function Topbar\(\)[\s\S]*const getPageTitle/.test(topbar)
+  topbar.includes('from "@/components/layout/page-title"') &&
+    !topbar.includes("export function getPageTitle") &&
+    exists("components/layout/page-title.ts")
 );
 check(
   "topbar uses size-9 for square icon controls",
@@ -88,6 +89,33 @@ check(
   "dashboard page delegates to focused component",
   dashboardPage.includes("DashboardPageContent") &&
     dashboardPage.split("\n").length <= 20
+);
+
+const formFields = file("components/dashboard/form-fields.tsx");
+check(
+  "dashboard form field barrel keeps one component per file",
+  !/export function (TextAreaField|SelectField)\(/.test(formFields) &&
+    exists("components/dashboard/text-area-field.tsx") &&
+    exists("components/dashboard/select-field.tsx")
+);
+
+const resultConfigurationDialogs = file(
+  "app/dashboard/result-configuration/_components/result-configuration-dialogs.tsx"
+);
+check(
+  "result configuration dialog barrel keeps one component per file",
+  !/export function Create(Metric|Template)Dialog\(/.test(
+    resultConfigurationDialogs
+  ) &&
+    exists(
+      "app/dashboard/result-configuration/_components/create-group-dialog.tsx"
+    ) &&
+    exists(
+      "app/dashboard/result-configuration/_components/create-metric-dialog.tsx"
+    ) &&
+    exists(
+      "app/dashboard/result-configuration/_components/create-template-dialog.tsx"
+    )
 );
 
 const failures = checks.filter(([, passed]) => !passed).map(([name]) => name);
