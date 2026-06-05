@@ -1,0 +1,291 @@
+"use client";
+
+import { useMemo, useReducer } from "react";
+import { PackagePlus, Search, SlidersHorizontal } from "lucide-react";
+
+import { DashboardDataTable } from "@/components/dashboard/data-table";
+import { FilterSelect } from "@/components/dashboard/filter-select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import type { KitInventory, KitUnit } from "@/lib/kit-inventory/inventory";
+import type { KitStatus } from "@/lib/kit-inventory/schemas";
+
+import {
+  CreateBatchDialog,
+  CreateKitTypeDialog,
+  CreateKitUnitsDialog,
+  type KitInventoryDialogAction,
+  UpdateKitStatusDialog,
+} from "./kit-inventory-dialogs";
+
+type KitInventoryClientProps = {
+  inventory: KitInventory;
+  actions: {
+    createKitType: KitInventoryDialogAction;
+    createKitBatch: KitInventoryDialogAction;
+    createKitUnits: KitInventoryDialogAction;
+    updateKitStatus: KitInventoryDialogAction;
+  };
+};
+
+const statusLabels: Record<KitStatus, string> = {
+  in_stock: "Còn tồn",
+  assigned: "Đã gán",
+  used: "Đã dùng",
+  void: "Hủy",
+  expired: "Hết hạn",
+  lost: "Thất lạc",
+};
+
+export function KitInventoryClient({
+  inventory,
+  actions,
+}: KitInventoryClientProps) {
+  const [state, dispatch] = useReducer(kitInventoryReducer, {
+    search: "",
+    status: "all",
+    kitTypeId: "all",
+    creatingType: false,
+    creatingBatch: false,
+    creatingUnits: false,
+    statusKit: null,
+  });
+  const filteredKits = useMemo(() => {
+    return inventory.kits.filter((kit) => {
+      const search = state.search.trim().toLowerCase();
+      const matchesSearch =
+        search.length === 0 ||
+        kit.kitCode.toLowerCase().includes(search) ||
+        kit.lotNumber.toLowerCase().includes(search) ||
+        kit.kitTypeName.toLowerCase().includes(search);
+      const matchesStatus =
+        state.status === "all" || kit.status === state.status;
+      const matchesType =
+        state.kitTypeId === "all" ||
+        inventory.batches.some((batch) => {
+          return (
+            batch.id === kit.batchId && batch.kitTypeId === state.kitTypeId
+          );
+        });
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [
+    inventory.batches,
+    inventory.kits,
+    state.kitTypeId,
+    state.search,
+    state.status,
+  ]);
+
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+            Kho KIT
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Quản lý loại KIT, lô KIT, mã KIT, tồn kho và hạn dùng phục vụ vận
+            hành xét nghiệm.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => dispatch({ type: "openType" })}
+          >
+            <PackagePlus className="size-4" />
+            Tạo loại KIT
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => dispatch({ type: "openBatch" })}
+          >
+            Tạo lô KIT
+          </Button>
+          <Button type="button" onClick={() => dispatch({ type: "openUnits" })}>
+            Thêm KIT
+          </Button>
+        </div>
+      </div>
+
+      <SummaryStrip inventory={inventory} />
+
+      <section className="rounded-lg border bg-background p-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
+          <label className="space-y-1.5 text-sm font-medium">
+            <span>Tìm kiếm</span>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+              <Input
+                value={state.search}
+                onChange={(event) =>
+                  dispatch({ type: "setSearch", value: event.target.value })
+                }
+                className="pl-8"
+                placeholder="Mã KIT, lô hoặc loại KIT"
+              />
+            </div>
+          </label>
+          <FilterSelect
+            label="Trạng thái"
+            value={state.status}
+            onChange={(value) =>
+              dispatch({ type: "setStatus", value: value as State["status"] })
+            }
+            options={[["all", "Tất cả"], ...Object.entries(statusLabels)]}
+          />
+          <FilterSelect
+            label="Loại KIT"
+            value={state.kitTypeId}
+            onChange={(value) => dispatch({ type: "setKitType", value })}
+            options={[
+              ["all", "Tất cả"],
+              ...inventory.kitTypes.map(
+                (type) => [type.id, type.name] as [string, string]
+              ),
+            ]}
+          />
+        </div>
+      </section>
+
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <SlidersHorizontal className="size-4" />
+        Đang hiển thị {filteredKits.length}/{inventory.kits.length} KIT
+      </div>
+
+      <DashboardDataTable
+        caption="Danh sách KIT trong kho"
+        emptyTitle="Không có KIT phù hợp"
+        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+        rows={filteredKits.map((kit) => ({
+          id: kit.id,
+          cells: [
+            { header: "Mã KIT", content: kit.kitCode, primary: true },
+            { header: "Loại KIT", content: kit.kitTypeName },
+            { header: "Lô", content: kit.lotNumber },
+            { header: "Hạn dùng", content: kit.expiresOn ?? "Chưa có" },
+            {
+              header: "Trạng thái",
+              content: <StatusBadge status={kit.status} />,
+            },
+          ],
+          actions: (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => dispatch({ type: "openStatus", kit })}
+            >
+              Cập nhật
+            </Button>
+          ),
+        }))}
+      />
+
+      <CreateKitTypeDialog
+        open={state.creatingType}
+        formAction={actions.createKitType}
+        onClose={() => dispatch({ type: "closeDialog" })}
+      />
+      <CreateBatchDialog
+        open={state.creatingBatch}
+        kitTypes={inventory.kitTypes}
+        formAction={actions.createKitBatch}
+        onClose={() => dispatch({ type: "closeDialog" })}
+      />
+      <CreateKitUnitsDialog
+        open={state.creatingUnits}
+        batches={inventory.batches}
+        formAction={actions.createKitUnits}
+        onClose={() => dispatch({ type: "closeDialog" })}
+      />
+      <UpdateKitStatusDialog
+        kit={state.statusKit}
+        formAction={actions.updateKitStatus}
+        onClose={() => dispatch({ type: "closeDialog" })}
+      />
+    </div>
+  );
+}
+
+function SummaryStrip({ inventory }: { inventory: KitInventory }) {
+  const items = [
+    ["Tổng KIT", inventory.summary.totalKits],
+    ["Còn tồn", inventory.summary.inStockKits],
+    ["Gần hết hạn", inventory.summary.nearExpiryKits],
+    ["Loại sắp thiếu", inventory.summary.lowStockTypes],
+  ];
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map(([label, value]) => (
+        <div key={label} className="rounded-lg border bg-background p-4">
+          <div className="text-sm text-muted-foreground">{label}</div>
+          <div className="mt-1 text-2xl font-semibold">{value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: KitStatus }) {
+  const destructive = ["void", "expired", "lost"].includes(status);
+
+  return (
+    <Badge variant={destructive ? "destructive" : "secondary"}>
+      {statusLabels[status]}
+    </Badge>
+  );
+}
+
+type State = {
+  search: string;
+  status: "all" | KitStatus;
+  kitTypeId: string;
+  creatingType: boolean;
+  creatingBatch: boolean;
+  creatingUnits: boolean;
+  statusKit: KitUnit | null;
+};
+
+type Action =
+  | { type: "setSearch"; value: string }
+  | { type: "setStatus"; value: State["status"] }
+  | { type: "setKitType"; value: string }
+  | { type: "openType" }
+  | { type: "openBatch" }
+  | { type: "openUnits" }
+  | { type: "openStatus"; kit: KitUnit }
+  | { type: "closeDialog" };
+
+function kitInventoryReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "setSearch":
+      return { ...state, search: action.value };
+    case "setStatus":
+      return { ...state, status: action.value };
+    case "setKitType":
+      return { ...state, kitTypeId: action.value };
+    case "openType":
+      return { ...state, creatingType: true };
+    case "openBatch":
+      return { ...state, creatingBatch: true };
+    case "openUnits":
+      return { ...state, creatingUnits: true };
+    case "openStatus":
+      return { ...state, statusKit: action.kit };
+    case "closeDialog":
+      return {
+        ...state,
+        creatingType: false,
+        creatingBatch: false,
+        creatingUnits: false,
+        statusKit: null,
+      };
+  }
+}

@@ -8,6 +8,7 @@ const migrationPath = path.join(
   root,
   "supabase/migrations/202606030001_initial_schema.sql",
 );
+const migrationsDir = path.join(root, "supabase/migrations");
 const advisorFixMigrationPath = path.join(
   root,
   "supabase/migrations/202606040002_advisor_fixes.sql",
@@ -26,6 +27,7 @@ const requiredTables = [
   "sample_types",
   "kit_types",
   "kit_batches",
+  "kits",
   "samples",
   "sample_images",
   "result_groups",
@@ -42,6 +44,7 @@ const tenantScopedTables = [
   "sample_types",
   "kit_types",
   "kit_batches",
+  "kits",
   "samples",
   "sample_images",
   "result_groups",
@@ -61,6 +64,15 @@ function readFile(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
+function readAllMigrations() {
+  return fs
+    .readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort()
+    .map((file) => readFile(path.join(migrationsDir, file)))
+    .join("\n");
+}
+
 function assertContains(content, pattern, message) {
   if (!pattern.test(content)) {
     throw new Error(message);
@@ -69,6 +81,7 @@ function assertContains(content, pattern, message) {
 
 function main() {
   const migration = readFile(migrationPath);
+  const allMigrations = readAllMigrations();
   const advisorFixMigration = readFile(advisorFixMigrationPath);
   const usernameAuthMigration = readFile(usernameAuthMigrationPath);
   const seed = readFile(seedPath);
@@ -76,7 +89,7 @@ function main() {
 
   for (const table of requiredTables) {
     assertContains(
-      migration,
+      table === "kits" ? allMigrations : migration,
       new RegExp(`create\\s+table\\s+public\\.${table}\\b`, "i"),
       `Missing table public.${table}`,
     );
@@ -84,7 +97,7 @@ function main() {
 
   for (const table of tenantScopedTables) {
     assertContains(
-      migration,
+      table === "kits" ? allMigrations : migration,
       new RegExp(
         `alter\\s+table\\s+public\\.${table}\\s+enable\\s+row\\s+level\\s+security`,
         "i",
@@ -92,12 +105,22 @@ function main() {
       `Missing RLS enablement for public.${table}`,
     );
     assertContains(
-      migration,
+      table === "kits" ? allMigrations : migration,
       new RegExp(`create\\s+policy\\s+[^;]+\\s+on\\s+public\\.${table}\\b`, "is"),
       `Missing policy for public.${table}`,
     );
   }
 
+  assertContains(
+    allMigrations,
+    /create\s+type\s+public\.kit_status/i,
+    "Kit inventory migration must add public.kit_status",
+  );
+  assertContains(
+    allMigrations,
+    /create\s+unique\s+index\s+if\s+not\s+exists\s+kits_org_code_key\s+on\s+public\.kits\s*\(\s*organization_id\s*,\s*kit_code\s*\)/i,
+    "Kit inventory migration must enforce unique kit codes per organization",
+  );
   assertContains(
     migration,
     /create\s+schema\s+if\s+not\s+exists\s+private/i,
