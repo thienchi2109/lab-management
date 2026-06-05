@@ -21,7 +21,8 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 4 — Kit Inventory
 
-- US-005 — Kit Inventory Module (planned)
+- [US-005](US-005-kit-inventory-module/overview.md) — Kit Inventory Module
+  (implemented)
 
 ## Phase 5 — Sample CRUD
 
