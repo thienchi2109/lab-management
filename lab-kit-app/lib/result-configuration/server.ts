@@ -24,9 +24,9 @@ import type {
 export function getResultConfigurationActor(
   session: CurrentSession
 ): ResultConfigurationActor | null {
-  const membership = session.memberships.find((item) => {
-    return item.role === "admin" && item.isActive;
-  });
+  const membership = session.memberships.find(
+    (item) => item.role === "admin" && item.isActive
+  );
 
   if (!membership) {
     return null;
@@ -100,13 +100,14 @@ export async function getResultConfiguration(): Promise<ResultConfiguration> {
         .returns<ResultTemplateMetricRow[]>(),
     ]);
 
-  if (
+  const primaryError =
     groups.error ||
     metrics.error ||
     sampleTypes.error ||
     templates.error ||
-    templateMetrics.error
-  ) {
+    templateMetrics.error;
+  if (primaryError) {
+    console.error("Failed to fetch result configuration:", primaryError);
     throw new Error("Could not load result configuration.");
   }
 

@@ -119,7 +119,7 @@ function parseWithMessage<T extends z.ZodType>(
   const result = schema.safeParse(input);
 
   if (!result.success) {
-    throw new Error(INVALID_CONFIGURATION_MESSAGE);
+    throw new Error(INVALID_CONFIGURATION_MESSAGE, { cause: result.error });
   }
 
   return result.data;
@@ -128,7 +128,7 @@ function parseWithMessage<T extends z.ZodType>(
 function parseJson(value: string): unknown {
   try {
     return JSON.parse(value);
-  } catch {
-    throw new Error(INVALID_CONFIGURATION_MESSAGE);
+  } catch (cause) {
+    throw new Error(INVALID_CONFIGURATION_MESSAGE, { cause });
   }
 }

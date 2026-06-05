@@ -35,7 +35,7 @@ export function CreateUserDialog({ open, onClose }: CreateUserDialogProps) {
   if (!open) return null;
 
   return (
-    <DialogFrame title="Thêm người dùng" onClose={onClose}>
+    <DialogFrame title="Thêm người dùng" closeLabel="Đóng" onClose={onClose}>
       <form action={action} className="space-y-4">
         <UserFields />
         <Field label="Email" name="email" type="email" required />
@@ -47,7 +47,13 @@ export function CreateUserDialog({ open, onClose }: CreateUserDialogProps) {
         />
         <RoleStatusFields />
         <ActionMessage state={state} />
-        <DialogActions pending={pending} onClose={onClose} submitLabel="Tạo" />
+        <DialogActions
+          pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
+          onClose={onClose}
+          submitLabel="Tạo"
+        />
       </form>
     </DialogFrame>
   );
@@ -62,7 +68,11 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
   if (!user) return null;
 
   return (
-    <DialogFrame title={`Sửa ${user.displayName}`} onClose={onClose}>
+    <DialogFrame
+      title={`Sửa ${user.displayName}`}
+      closeLabel="Đóng"
+      onClose={onClose}
+    >
       <form action={action} className="space-y-4">
         <input type="hidden" name="userId" value={user.id} />
         <input type="hidden" name="membershipId" value={user.membershipId} />
@@ -71,6 +81,8 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
         <ActionMessage state={state} />
         <DialogActions
           pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
           onClose={onClose}
           submitLabel="Lưu thay đổi"
         />

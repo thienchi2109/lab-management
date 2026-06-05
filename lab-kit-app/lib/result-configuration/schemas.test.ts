@@ -63,6 +63,32 @@ describe("parseMetricInput", () => {
       })
     ).toThrow("Thông tin cấu hình chỉ tiêu không hợp lệ.");
   });
+
+  test("keeps validation details available for diagnostics", () => {
+    let error: unknown;
+
+    try {
+      parseMetricInput({
+        resultGroupId: "not-a-uuid",
+        code: "BAD",
+        name: "Bad",
+        inputType: "text",
+        optionsJson: "[]",
+        settingsJson: "{}",
+        sortOrder: "1",
+        isRequired: "false",
+        isActive: "true",
+      });
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe(
+      "Thông tin cấu hình chỉ tiêu không hợp lệ."
+    );
+    expect((error as Error).cause).toBeDefined();
+  });
 });
 
 describe("parseTemplateInput", () => {

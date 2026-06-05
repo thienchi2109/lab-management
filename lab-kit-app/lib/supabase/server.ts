@@ -21,7 +21,11 @@ export async function createSupabaseServerClient(
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options: cookieOptions }) => {
-          cookieStore.set(name, value, cookieOptions);
+          try {
+            cookieStore.set(name, value, cookieOptions);
+          } catch {
+            // Server Components dùng cookie chỉ đọc; Route Handlers vẫn set cookie phản hồi bên dưới.
+          }
           options.response?.cookies.set(name, value, cookieOptions);
         });
       },

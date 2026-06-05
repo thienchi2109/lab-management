@@ -39,7 +39,7 @@ export function CreateGroupDialog({ open, onClose }: DialogProps) {
   if (!open) return null;
 
   return (
-    <DialogFrame title="Thêm nhóm chỉ tiêu" onClose={onClose}>
+    <DialogFrame title="Thêm nhóm chỉ tiêu" closeLabel="Đóng" onClose={onClose}>
       <form action={action} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Mã nhóm" name="code" required />
@@ -61,7 +61,13 @@ export function CreateGroupDialog({ open, onClose }: DialogProps) {
           />
         </div>
         <ActionMessage state={state} />
-        <DialogActions pending={pending} onClose={onClose} submitLabel="Tạo" />
+        <DialogActions
+          pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
+          onClose={onClose}
+          submitLabel="Tạo"
+        />
       </form>
     </DialogFrame>
   );
@@ -80,7 +86,7 @@ export function CreateMetricDialog({
   if (!open) return null;
 
   return (
-    <DialogFrame title="Thêm chỉ tiêu" onClose={onClose}>
+    <DialogFrame title="Thêm chỉ tiêu" closeLabel="Đóng" onClose={onClose}>
       <form action={action} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <SelectField
@@ -133,7 +139,13 @@ export function CreateMetricDialog({
           defaultValue="{}"
         />
         <ActionMessage state={state} />
-        <DialogActions pending={pending} onClose={onClose} submitLabel="Tạo" />
+        <DialogActions
+          pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
+          onClose={onClose}
+          submitLabel="Tạo"
+        />
       </form>
     </DialogFrame>
   );
@@ -152,7 +164,7 @@ export function CreateTemplateDialog({
   if (!open) return null;
 
   return (
-    <DialogFrame title="Thêm mẫu cấu hình" onClose={onClose}>
+    <DialogFrame title="Thêm mẫu cấu hình" closeLabel="Đóng" onClose={onClose}>
       <form action={action} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <SelectField
@@ -176,7 +188,13 @@ export function CreateTemplateDialog({
           <Field label="Tên mẫu cấu hình" name="name" required />
         </div>
         <ActionMessage state={state} />
-        <DialogActions pending={pending} onClose={onClose} submitLabel="Tạo" />
+        <DialogActions
+          pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
+          onClose={onClose}
+          submitLabel="Tạo"
+        />
       </form>
     </DialogFrame>
   );
