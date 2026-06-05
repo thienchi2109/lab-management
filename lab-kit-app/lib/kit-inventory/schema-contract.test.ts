@@ -31,4 +31,15 @@ describe("kit inventory schema contract", () => {
     );
     expect(migrations).toMatch(/create\s+policy\s+[\s\S]+on\s+public\.kits\b/i);
   });
+
+  test("keeps kit updated_at current on row updates", () => {
+    const migrations = readMigrations();
+
+    expect(migrations).toMatch(
+      /create\s+(or\s+replace\s+)?function\s+private\.set_updated_at\b/i
+    );
+    expect(migrations).toMatch(
+      /create\s+trigger\s+set_kits_updated_at\s+before\s+update\s+on\s+public\.kits/i
+    );
+  });
 });
