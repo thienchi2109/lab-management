@@ -30,6 +30,11 @@ const mobileNavItems = [
     icon: BarChart3,
   },
   {
+    title: "Chỉ tiêu",
+    url: "/dashboard/result-configuration",
+    icon: ShieldCheck,
+  },
+  {
     title: "Người dùng",
     url: "/dashboard/users",
     icon: Users,
@@ -64,7 +69,7 @@ const desktopNavItems = [
   },
   {
     title: "Chỉ tiêu",
-    url: "/dashboard/result-config",
+    url: "/dashboard/result-configuration",
     icon: ShieldCheck,
   },
   {

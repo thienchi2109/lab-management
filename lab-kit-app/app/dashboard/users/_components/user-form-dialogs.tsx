@@ -1,10 +1,13 @@
 "use client";
 
-import { useActionState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { useActionState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ActionMessage } from "@/components/dashboard/action-message";
+import {
+  DialogActions,
+  DialogFrame,
+} from "@/components/dashboard/dialog-frame";
+import { Field } from "@/components/dashboard/form-fields";
 import type { ManagedUser } from "@/lib/user-management/users";
 
 import {
@@ -32,7 +35,7 @@ export function CreateUserDialog({ open, onClose }: CreateUserDialogProps) {
   if (!open) return null;
 
   return (
-    <DialogFrame title="Thêm người dùng" onClose={onClose}>
+    <DialogFrame title="Thêm người dùng" closeLabel="Đóng" onClose={onClose}>
       <form action={action} className="space-y-4">
         <UserFields />
         <Field label="Email" name="email" type="email" required />
@@ -44,7 +47,13 @@ export function CreateUserDialog({ open, onClose }: CreateUserDialogProps) {
         />
         <RoleStatusFields />
         <ActionMessage state={state} />
-        <DialogActions pending={pending} onClose={onClose} submitLabel="Tạo" />
+        <DialogActions
+          pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
+          onClose={onClose}
+          submitLabel="Tạo"
+        />
       </form>
     </DialogFrame>
   );
@@ -59,7 +68,11 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
   if (!user) return null;
 
   return (
-    <DialogFrame title={`Sửa ${user.displayName}`} onClose={onClose}>
+    <DialogFrame
+      title={`Sửa ${user.displayName}`}
+      closeLabel="Đóng"
+      onClose={onClose}
+    >
       <form action={action} className="space-y-4">
         <input type="hidden" name="userId" value={user.id} />
         <input type="hidden" name="membershipId" value={user.membershipId} />
@@ -68,41 +81,13 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
         <ActionMessage state={state} />
         <DialogActions
           pending={pending}
+          cancelLabel="Hủy"
+          savingLabel="Đang lưu..."
           onClose={onClose}
           submitLabel="Lưu thay đổi"
         />
       </form>
     </DialogFrame>
-  );
-}
-
-function DialogFrame({
-  title,
-  children,
-  onClose,
-}: {
-  title: string;
-  children: ReactNode;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/30 p-3 backdrop-blur-sm md:items-center md:justify-center">
-      <section className="w-full rounded-lg bg-background shadow-2xl ring-1 ring-border md:max-w-lg">
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            aria-label="Đóng"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-        <div className="p-5">{children}</div>
-      </section>
-    </div>
   );
 }
 
@@ -151,73 +136,6 @@ function RoleStatusFields({ user }: { user?: ManagedUser }) {
           <option value="false">Tạm khóa</option>
         </select>
       </label>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  defaultValue,
-  required,
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  defaultValue?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="space-y-1.5 text-sm font-medium">
-      <span>{label}</span>
-      <Input
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        required={required}
-      />
-    </label>
-  );
-}
-
-function ActionMessage({
-  state,
-}: {
-  state: { status: "idle" | "success" | "error"; message: string };
-}) {
-  if (state.status === "idle") return null;
-
-  return (
-    <p
-      className={
-        state.status === "success"
-          ? "text-sm font-medium text-emerald-600"
-          : "text-sm font-medium text-destructive"
-      }
-    >
-      {state.message}
-    </p>
-  );
-}
-
-function DialogActions({
-  pending,
-  onClose,
-  submitLabel,
-}: {
-  pending: boolean;
-  onClose: () => void;
-  submitLabel: string;
-}) {
-  return (
-    <div className="flex justify-end gap-2 pt-2">
-      <Button type="button" variant="outline" onClick={onClose}>
-        Hủy
-      </Button>
-      <Button type="submit" disabled={pending}>
-        {pending ? "Đang lưu..." : submitLabel}
-      </Button>
     </div>
   );
 }
