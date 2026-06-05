@@ -145,8 +145,8 @@ export async function createKitUnits(
   await audit(port, actor, {
     action: "kit_units.created",
     entityTable: "kits",
-    entityId: input.batchId,
-    eventPayload: input,
+    entityId: result.kitIds[0],
+    eventPayload: { ...input, kitIds: result.kitIds },
   });
 
   return result;

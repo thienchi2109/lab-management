@@ -92,7 +92,12 @@ describe("kit inventory operations", () => {
       expect.objectContaining({
         action: "kit_units.created",
         entityTable: "kits",
-        eventPayload: { batchId: "batch-1", kitCodes: ["KIT-001", "KIT-002"] },
+        entityId: "kit-1",
+        eventPayload: {
+          batchId: "batch-1",
+          kitCodes: ["KIT-001", "KIT-002"],
+          kitIds: ["kit-1", "kit-2"],
+        },
       })
     );
   });
