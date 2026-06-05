@@ -242,7 +242,15 @@ export function createSupabaseResultConfigurationPort(): ResultConfigurationPort
       }
     },
     async replaceTemplateMetrics(input) {
-      await replaceTemplateMetricRows(supabase, input);
+      const { error } = await supabase.rpc("replace_result_template_metrics", {
+        p_organization_id: input.organizationId,
+        p_result_template_id: input.resultTemplateId,
+        p_metric_ids: input.metricIds,
+      });
+
+      if (error) {
+        throw new Error("Could not replace template metrics.");
+      }
     },
     async insertAuditEvent(input: ResultConfigurationAuditInput) {
       const { error } = await supabase.from("audit_events").insert({
@@ -259,42 +267,4 @@ export function createSupabaseResultConfigurationPort(): ResultConfigurationPort
       }
     },
   };
-}
-
-async function replaceTemplateMetricRows(
-  supabase: ReturnType<typeof getSupabaseAdminClient>,
-  input: {
-    resultTemplateId: string;
-    metricIds: string[];
-    organizationId: string;
-  }
-) {
-  const { error: deleteError } = await supabase
-    .from("result_template_metrics")
-    .delete()
-    .eq("result_template_id", input.resultTemplateId)
-    .eq("organization_id", input.organizationId);
-
-  if (deleteError) {
-    throw new Error("Could not replace template metrics.");
-  }
-
-  if (input.metricIds.length === 0) {
-    return;
-  }
-
-  const { error: insertError } = await supabase
-    .from("result_template_metrics")
-    .insert(
-      input.metricIds.map((metricId, index) => ({
-        organization_id: input.organizationId,
-        result_template_id: input.resultTemplateId,
-        result_metric_id: metricId,
-        sort_order: (index + 1) * 10,
-      }))
-    );
-
-  if (insertError) {
-    throw new Error("Could not replace template metrics.");
-  }
 }
