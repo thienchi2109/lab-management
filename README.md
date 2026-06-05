@@ -128,6 +128,7 @@ bun run typecheck
 bun run lint:strict
 bun run format:check
 bun run react-doctor
+bun run docstring:check
 bun run build
 ```
 
@@ -143,9 +144,9 @@ Enable tracked commit/push hooks once per clone:
 scripts/setup-git-hooks.sh
 ```
 
-Hooks run React Doctor in `lab-kit-app/`: `pre-commit` checks staged files and
-`pre-push` checks the diff. The gate fails on React Doctor errors and leaves
-current warnings as non-blocking diagnostics.
+Hooks run from `lab-kit-app/`. `pre-commit` checks staged files with React
+Doctor. `pre-push` checks the React Doctor diff and runs `bun run
+docstring:check`, which requires JSDoc blocks for changed named TS/TSX exports.
 
 Khi co tests:
 

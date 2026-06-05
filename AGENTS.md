@@ -24,6 +24,9 @@
   tracked hooks once with `scripts/setup-git-hooks.sh`; hooks run from
   `lab-kit-app/` and call `bun run react-doctor:staged` on pre-commit and
   `bun run react-doctor:diff` on pre-push.
+- The pre-push hook also runs `bun run docstring:check`. The docstring gate
+  checks changed TS/TSX source files against `origin/main...HEAD` and requires
+  JSDoc blocks for changed named exports. Barrel re-exports are ignored.
 - Run React Doctor through the package scripts, not `bunx` or `bun x`.
   The scripts intentionally use
   `npm exec --yes --package react-doctor@latest -- react-doctor ...` because

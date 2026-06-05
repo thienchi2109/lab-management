@@ -15,7 +15,9 @@
     "react-doctor:verbose": "npm exec --yes --package react-doctor@latest -- react-doctor . --verbose --no-telemetry --fail-on error",
     "react-doctor:staged": "npm exec --yes --package react-doctor@latest -- react-doctor . --staged --no-telemetry --fail-on error",
     "react-doctor:diff": "npm exec --yes --package react-doctor@latest -- react-doctor . --diff --no-telemetry --fail-on error",
+    "docstring:check": "node scripts/verify-docstrings.mjs",
     "test": "vitest run",
+    "test:docstring-gate": "node --test scripts/docstring-gate-lib.node-test.mjs",
     "test:react-doctor-cleanup": "node scripts/verify-react-doctor-cleanup.mjs",
     "quality": "bun run typecheck && bun run lint:strict && bun run format:check && bun run react-doctor && bun run build"
   },

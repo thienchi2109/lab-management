@@ -6,3 +6,6 @@ cd "$repo_root/lab-kit-app"
 
 echo "Running React Doctor diff gate..."
 bun run react-doctor:diff
+
+echo "Running docstring gate..."
+bun run docstring:check
