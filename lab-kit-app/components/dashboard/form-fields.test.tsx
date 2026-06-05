@@ -1,19 +1,24 @@
-import { isValidElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 
 import { SelectField } from "./form-fields";
 
 describe("SelectField", () => {
-  test("uses an empty default value when no default is provided", () => {
-    const field = SelectField({
-      label: "Trạng thái",
-      name: "status",
-      options: [["", "Chọn trạng thái"]],
-    });
+  test("renders a shadcn selector while preserving form submission name and value", () => {
+    const html = renderToStaticMarkup(
+      <SelectField
+        label="Trạng thái"
+        name="status"
+        defaultValue={false}
+        options={[
+          ["true", "Hoạt động"],
+          ["false", "Tạm khóa"],
+        ]}
+      />
+    );
 
-    expect(isValidElement(field)).toBe(true);
-    const [, select] = field.props.children;
-
-    expect(select.props.defaultValue).toBe("");
+    expect(html).toContain('name="status"');
+    expect(html).toContain('value="false"');
+    expect(html).not.toContain("<select");
   });
 });

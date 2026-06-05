@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/input";
 
+import { AppSelect } from "./app-select";
+
 type FieldProps = {
   label: string;
   name: string;
@@ -59,19 +61,14 @@ export function SelectField({
   options,
 }: SelectFieldProps) {
   return (
-    <label className="space-y-1.5 text-sm font-medium">
-      <span>{label}</span>
-      <select
-        name={name}
-        defaultValue={defaultValue !== undefined ? String(defaultValue) : ""}
-        className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        {options.map(([value, optionLabel]) => (
-          <option key={value} value={value}>
-            {optionLabel}
-          </option>
-        ))}
-      </select>
-    </label>
+    <AppSelect
+      label={label}
+      name={name}
+      defaultValue={defaultValue !== undefined ? String(defaultValue) : ""}
+      options={options.map(([value, optionLabel]) => ({
+        value,
+        label: optionLabel,
+      }))}
+    />
   );
 }
