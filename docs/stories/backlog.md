@@ -13,11 +13,11 @@ Stories derived from SPEC-001 MVP roadmap.
 ## Phase 2 — Auth & Shell
 
 - [US-003](US-003-auth-session-rbac-shell/overview.md) — Auth, Session, RBAC & App Shell (implemented)
-- [US-014](US-014-user-management-role-administration/overview.md) — User Management & Role Administration (planned)
+- [US-014](US-014-user-management-role-administration/overview.md) — User Management & Role Administration (implemented)
 
 ## Phase 3 — Result Config
 
-- US-004 — Result Configuration Admin Module (planned)
+- [US-004](US-004-result-configuration-admin-module/overview.md) — Result Configuration Admin Module (implemented)
 
 ## Phase 4 — Kit Inventory
 

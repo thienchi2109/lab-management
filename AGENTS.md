@@ -13,6 +13,11 @@
 - Before modifying code, read Code Review Graph first for a compact map of
   relevant files, symbols, flows, and impact. Use GitNexus/`rg` only after the
   graph narrows the blast radius.
+- Always prefer shared components and shared helpers over local duplication.
+  Before adding reusable UI, utilities, services, hooks, or helpers, invoke the
+  `code-deduplication` skill, search for existing equivalent behavior, and
+  centralize repeated code when the shared contract is clear and issue scope
+  permits it.
 - Do not edit migration files after they have been applied to a live database.
   Any correction must use a follow-up, forward-only migration.
 - React Doctor is a mandatory quality gate before commit and push. Enable the

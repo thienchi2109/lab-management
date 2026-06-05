@@ -1,9 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { NextResponse } from "next/server";
 
 import { getSupabasePublicEnv } from "@/lib/env";
 
-export async function createSupabaseServerClient() {
+type SupabaseServerClientOptions = {
+  response?: NextResponse;
+};
+
+export async function createSupabaseServerClient(
+  options: SupabaseServerClientOptions = {}
+) {
   const env = getSupabasePublicEnv();
   const cookieStore = await cookies();
 
@@ -13,8 +20,9 @@ export async function createSupabaseServerClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options);
+        cookiesToSet.forEach(({ name, value, options: cookieOptions }) => {
+          cookieStore.set(name, value, cookieOptions);
+          options.response?.cookies.set(name, value, cookieOptions);
         });
       },
     },

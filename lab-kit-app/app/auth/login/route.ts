@@ -6,8 +6,25 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const LOGIN_ERROR_PATH = "/login?error=invalid";
 
+function createRedirectUrl(path: string, request: NextRequest): URL {
+  const url = new URL(path, request.url);
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const protocol = request.headers.get("x-forwarded-proto");
+
+  if (host) {
+    url.host = host;
+  }
+
+  if (protocol) {
+    url.protocol = `${protocol}:`;
+  }
+
+  return url;
+}
+
 function redirectToLoginError(request: NextRequest): NextResponse {
-  return NextResponse.redirect(new URL(LOGIN_ERROR_PATH, request.url), {
+  return NextResponse.redirect(createRedirectUrl(LOGIN_ERROR_PATH, request), {
     status: 303,
   });
 }
@@ -25,7 +42,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return redirectToLoginError(request);
     }
 
-    const supabase = await createSupabaseServerClient();
+    const dashboardResponse = NextResponse.redirect(
+      createRedirectUrl("/dashboard", request),
+      {
+        status: 303,
+      }
+    );
+    const supabase = await createSupabaseServerClient({
+      response: dashboardResponse,
+    });
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password: parsedCredentials.password,
@@ -34,11 +59,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (error) {
       return redirectToLoginError(request);
     }
+
+    return dashboardResponse;
   } catch {
     return redirectToLoginError(request);
   }
-
-  return NextResponse.redirect(new URL("/dashboard", request.url), {
-    status: 303,
-  });
 }
