@@ -33,6 +33,8 @@ const requiredTables = [
   "profiles",
   "tenant_memberships",
   "sample_types",
+  "companies",
+  "customers",
   "kit_types",
   "kit_batches",
   "kits",
@@ -50,6 +52,8 @@ const requiredTables = [
 const tenantScopedTables = [
   "tenant_memberships",
   "sample_types",
+  "companies",
+  "customers",
   "kit_types",
   "kit_batches",
   "kits",
@@ -87,6 +91,12 @@ function assertContains(content, pattern, message) {
   }
 }
 
+function tableContractSource(table, migration, allMigrations) {
+  return ["companies", "customers", "kits"].includes(table)
+    ? allMigrations
+    : migration;
+}
+
 function main() {
   const migration = readFile(migrationPath);
   const allMigrations = readAllMigrations();
@@ -101,7 +111,7 @@ function main() {
 
   for (const table of requiredTables) {
     assertContains(
-      table === "kits" ? allMigrations : migration,
+      tableContractSource(table, migration, allMigrations),
       new RegExp(`create\\s+table\\s+public\\.${table}\\b`, "i"),
       `Missing table public.${table}`,
     );
@@ -109,7 +119,7 @@ function main() {
 
   for (const table of tenantScopedTables) {
     assertContains(
-      table === "kits" ? allMigrations : migration,
+      tableContractSource(table, migration, allMigrations),
       new RegExp(
         `alter\\s+table\\s+public\\.${table}\\s+enable\\s+row\\s+level\\s+security`,
         "i",
@@ -117,12 +127,37 @@ function main() {
       `Missing RLS enablement for public.${table}`,
     );
     assertContains(
-      table === "kits" ? allMigrations : migration,
+      tableContractSource(table, migration, allMigrations),
       new RegExp(`create\\s+policy\\s+[^;]+\\s+on\\s+public\\.${table}\\b`, "is"),
       `Missing policy for public.${table}`,
     );
   }
 
+  assertContains(
+    allMigrations,
+    /create\s+type\s+public\.sample_billing_status/i,
+    "Sample metadata migration must add public.sample_billing_status",
+  );
+  assertContains(
+    allMigrations,
+    /create\s+table\s+public\.companies\b/i,
+    "Sample metadata migration must add public.companies",
+  );
+  assertContains(
+    allMigrations,
+    /create\s+table\s+public\.customers\b/i,
+    "Sample metadata migration must add public.customers",
+  );
+  assertContains(
+    allMigrations,
+    /alter\s+table\s+public\.samples[\s\S]+add\s+column\s+if\s+not\s+exists\s+customer_id/i,
+    "Sample metadata migration must add samples.customer_id",
+  );
+  assertContains(
+    allMigrations,
+    /alter\s+table\s+public\.samples[\s\S]+add\s+column\s+if\s+not\s+exists\s+billing_status\s+public\.sample_billing_status\b/i,
+    "Sample metadata migration must add samples.billing_status",
+  );
   assertContains(
     allMigrations,
     /create\s+type\s+public\.kit_status/i,

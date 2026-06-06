@@ -1,0 +1,141 @@
+import type { CreateSampleInput, UpdateSampleInput } from "./schemas";
+
+/** Người thao tác metadata mẫu đã được xác thực và gắn tổ chức. */
+export type SampleMetadataActor = {
+  profileId: string;
+  organizationId: string;
+};
+
+/** Payload audit an toàn cho thao tác tạo hoặc cập nhật metadata mẫu. */
+export type SampleMetadataAuditInput = {
+  organizationId: string;
+  actorId: string;
+  action: "sample.created" | "sample.updated";
+  entityTable: "samples";
+  entityId: string;
+  eventPayload: Record<string, unknown>;
+};
+
+/** Cổng hạ tầng cần thiết để lưu metadata mẫu và audit theo tenant. */
+export type SampleMetadataPort = {
+  sampleCodeExists(input: {
+    organizationId: string;
+    sampleCode: string;
+    excludeSampleId?: string;
+  }): Promise<boolean>;
+  referencesBelongToOrganization(input: {
+    organizationId: string;
+    sampleTypeId: string;
+    customerId: string | null;
+    companyId: string | null;
+    kitBatchId: string | null;
+  }): Promise<boolean>;
+  createSample(
+    input: CreateSampleInput & { organizationId: string; createdBy: string }
+  ): Promise<{ sampleId: string }>;
+  updateSample(
+    input: UpdateSampleInput & { organizationId: string }
+  ): Promise<void>;
+  insertAuditEvent(input: SampleMetadataAuditInput): Promise<void>;
+};
+
+const submittedFields = [
+  "sampleCode",
+  "sampleTypeId",
+  "customerId",
+  "companyId",
+  "kitBatchId",
+  "customerName",
+  "collectedAt",
+  "receivedAt",
+  "status",
+  "billingStatus",
+  "note",
+];
+
+/** Create sample metadata after duplicate-code and reference ownership checks. */
+export async function createSampleMetadata(
+  input: CreateSampleInput,
+  actor: SampleMetadataActor,
+  port: SampleMetadataPort
+) {
+  await ensureSampleCanBeSaved(input, actor, port);
+  const result = await port.createSample({
+    ...input,
+    organizationId: actor.organizationId,
+    createdBy: actor.profileId,
+  });
+
+  await audit(port, actor, {
+    action: "sample.created",
+    entityTable: "samples",
+    entityId: result.sampleId,
+    eventPayload: {
+      sampleCode: input.sampleCode,
+      submittedFields,
+    },
+  });
+
+  return result;
+}
+
+/** Update editable sample metadata without touching result-entry tables. */
+export async function updateSampleMetadata(
+  input: UpdateSampleInput,
+  actor: SampleMetadataActor,
+  port: SampleMetadataPort
+) {
+  await ensureSampleCanBeSaved(input, actor, port, input.sampleId);
+  await port.updateSample({ ...input, organizationId: actor.organizationId });
+
+  await audit(port, actor, {
+    action: "sample.updated",
+    entityTable: "samples",
+    entityId: input.sampleId,
+    eventPayload: {
+      sampleCode: input.sampleCode,
+      submittedFields,
+    },
+  });
+}
+
+async function ensureSampleCanBeSaved(
+  input: CreateSampleInput,
+  actor: SampleMetadataActor,
+  port: SampleMetadataPort,
+  excludeSampleId?: string
+) {
+  const duplicate = await port.sampleCodeExists({
+    organizationId: actor.organizationId,
+    sampleCode: input.sampleCode,
+    excludeSampleId,
+  });
+
+  if (duplicate) {
+    throw new Error("Mã mẫu đã tồn tại.");
+  }
+
+  const referencesOk = await port.referencesBelongToOrganization({
+    organizationId: actor.organizationId,
+    sampleTypeId: input.sampleTypeId,
+    customerId: input.customerId,
+    companyId: input.companyId,
+    kitBatchId: input.kitBatchId,
+  });
+
+  if (!referencesOk) {
+    throw new Error("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.");
+  }
+}
+
+function audit(
+  port: SampleMetadataPort,
+  actor: SampleMetadataActor,
+  input: Omit<SampleMetadataAuditInput, "organizationId" | "actorId">
+) {
+  return port.insertAuditEvent({
+    organizationId: actor.organizationId,
+    actorId: actor.profileId,
+    ...input,
+  });
+}

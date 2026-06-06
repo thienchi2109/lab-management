@@ -72,6 +72,8 @@ Requirements:
 
 - Create or update one story file from `docs/templates/story.md`.
 - Link relevant product docs.
+- Fill in frontend, reuse, and caching constraints when the story touches UI,
+  shared code, table/list surfaces, or server state.
 - Add or update validation expectations.
 - Implement the smallest vertical slice when implementation exists.
 - Record or update proof status with `scripts/bin/harness-cli story add` and
@@ -86,6 +88,8 @@ Requirements:
 
 - Create a story folder using `docs/templates/high-risk-story/`.
 - Fill in `execplan.md`, `overview.md`, `design.md`, and `validation.md`.
+- Fill in frontend, reuse, and caching constraints when the story touches UI,
+  shared code, table/list surfaces, or server state.
 - Ask for human confirmation before implementation if direction is ambiguous.
 - Record a durable decision when behavior, architecture, authorization, data
   ownership, API shape, or validation requirements change meaningfully. Use a
@@ -106,9 +110,31 @@ Mark one flag for each item that applies:
 | External systems | email, payments, cloud services, provider SDKs, queues, webhooks |
 | Public contracts | API shape, response envelope, client-visible behavior |
 | Cross-platform | desktop/mobile/browser split, native shell behavior, deep links |
+| Frontend/UI | UI structure, frontend design, responsive layout, visual polish, browser verification |
+| Shared code | reusable UI, hooks, services, helpers, shared logic, table/list primitives |
+| Server state | cache strategy, revalidation, client-side server-state synchronization |
 | Existing behavior | already implemented or test-covered behavior changes |
 | Weak proof | unclear or missing tests around the affected area |
 | Multi-domain | more than one product domain changes at once |
+
+## Frontend, Reuse, And Caching Defaults
+
+Every normal or high-risk story packet inherits these defaults unless it
+documents a reviewed exception:
+
+- Any UI/frontend design, responsive layout, visual polish, dashboard
+  interaction state, or browser verification work must invoke the Build Web Apps
+  plugin capability before implementation.
+- Before creating reusable UI, hooks, services, helpers, or shared logic, invoke
+  the code-deduplication workflow and prove no suitable existing contract
+  already exists.
+- Use all suitable shared dashboard components by default, including forms,
+  dialogs, filters, selects, messages, layout primitives, and tables. Table/list
+  surfaces must use `DashboardDataTable` unless the story documents a reviewed
+  exception.
+- Default server-state strategy is Server Components, server actions,
+  `useActionState`, and `revalidatePath`. Do not add TanStack Query unless the
+  story documents a concrete client-cache requirement.
 
 ## Classification
 
