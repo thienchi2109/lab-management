@@ -150,7 +150,9 @@ function toFieldErrors(
   return fieldErrors;
 }
 
-function isSampleMetadataField(value: string): value is keyof UpdateSampleInput {
+function isSampleMetadataField(
+  value: string
+): value is keyof UpdateSampleInput {
   return Object.prototype.hasOwnProperty.call(
     sampleMetadataFieldMessages,
     value
