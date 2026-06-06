@@ -14,24 +14,14 @@ import {
 } from "@/components/dashboard/form-fields";
 import type { KitBatch, KitType, KitUnit } from "@/lib/kit-inventory/inventory";
 
+import {
+  initialDialogState,
+  type KitInventoryDialogAction,
+} from "./kit-inventory-dialog-state";
+
 type DialogProps = {
   open: boolean;
   onClose: () => void;
-};
-
-export type KitInventoryDialogActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-};
-
-export type KitInventoryDialogAction = (
-  previousState: KitInventoryDialogActionState,
-  formData: FormData
-) => Promise<KitInventoryDialogActionState>;
-
-export const initialDialogState: KitInventoryDialogActionState = {
-  status: "idle",
-  message: "",
 };
 
 export function CreateKitTypeDialog({
@@ -71,10 +61,12 @@ export function CreateKitTypeDialog({
 export function CreateBatchDialog({
   open,
   kitTypes,
+  defaultReceivedAt,
   onClose,
   formAction,
 }: DialogProps & {
   kitTypes: KitType[];
+  defaultReceivedAt: string;
   formAction: KitInventoryDialogAction;
 }) {
   const [state, action, pending] = useActionState(
@@ -98,7 +90,7 @@ export function CreateBatchDialog({
             label="Ngày nhận"
             name="receivedAt"
             type="date"
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={defaultReceivedAt}
             required
           />
           <Field

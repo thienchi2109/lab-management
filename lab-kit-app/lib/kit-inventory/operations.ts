@@ -73,25 +73,6 @@ export async function createKitType(
   return result;
 }
 
-export async function updateKitType(
-  kitTypeId: string,
-  input: KitTypeInput,
-  actor: KitInventoryActor,
-  port: KitInventoryPort
-) {
-  await port.updateKitType({
-    ...input,
-    kitTypeId,
-    organizationId: actor.organizationId,
-  });
-  await audit(port, actor, {
-    action: "kit_type.updated",
-    entityTable: "kit_types",
-    entityId: kitTypeId,
-    eventPayload: input,
-  });
-}
-
 export async function createKitBatch(
   input: KitBatchInput,
   actor: KitInventoryActor,
@@ -110,25 +91,6 @@ export async function createKitBatch(
   });
 
   return result;
-}
-
-export async function updateKitBatch(
-  batchId: string,
-  input: KitBatchInput,
-  actor: KitInventoryActor,
-  port: KitInventoryPort
-) {
-  await port.updateBatch({
-    ...input,
-    batchId,
-    organizationId: actor.organizationId,
-  });
-  await audit(port, actor, {
-    action: "kit_batch.updated",
-    entityTable: "kit_batches",
-    entityId: batchId,
-    eventPayload: input,
-  });
 }
 
 export async function createKitUnits(

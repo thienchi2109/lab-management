@@ -74,6 +74,40 @@ Use deterministic fixture data:
 Do not store service keys, session tokens, or real user credentials in story
 files, tests, screenshots, or traces.
 
+## React Doctor Follow-Up Batch 2026-06-06
+
+This batch handles issues #9, #10, #11, #12, and #13 in one PR because they are
+all React Doctor cleanup work and share the same validation gate.
+
+Outcome:
+
+- `DialogFrame` uses native `<dialog>` semantics, removes the redundant role,
+  and keeps keyboard trapping out of JSX handlers so React Doctor no longer
+  reports the accessibility warnings.
+- The Kit Inventory search filter uses `label`/`htmlFor` directly against the
+  input.
+- Kit Inventory dialog state and action types live outside the component file.
+- The create-batch default received date is initialized on the client and no
+  longer depends on `new Date()` in the Server Component or JSX render path.
+- `summarizeInventory` is an internal helper and uses readable loops instead of
+  chained `filter().map()` work.
+- Two update operation helpers without callers were removed from the operation
+  layer; the port and server contracts remain in place to avoid changing
+  existing database behavior.
+
+Proof run:
+
+```bash
+cd lab-kit-app && bun run test
+# 28 files passed, 83 tests passed
+
+cd lab-kit-app && bun run react-doctor:verbose
+# No issues found
+
+cd lab-kit-app && bun run quality
+# typecheck, lint:strict, format:check, react-doctor, and next build passed
+```
+
 ## Commands
 
 Expected commands after implementation:

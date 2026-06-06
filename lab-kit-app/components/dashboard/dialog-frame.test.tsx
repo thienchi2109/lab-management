@@ -15,10 +15,34 @@ describe("DialogFrame", () => {
       </DialogFrame>
     );
 
-    expect(html).toContain('role="dialog"');
+    expect(html).toContain("<dialog");
+    expect(html).not.toContain("open=");
+    expect(html).not.toContain('role="dialog"');
     expect(html).toContain('aria-modal="true"');
     expect(html).toContain("aria-labelledby=");
     expect(html).toContain('aria-label="Đóng biểu mẫu"');
+  });
+
+  test("keeps keyboard handling out of dialog JSX attributes", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(new URL("./dialog-frame.tsx", import.meta.url), {
+        encoding: "utf8",
+      })
+    );
+
+    expect(source).not.toContain("onKeyDown={handleKeyDown}");
+  });
+
+  test("uses showModal instead of a static open attribute", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(new URL("./dialog-frame.tsx", import.meta.url), {
+        encoding: "utf8",
+      })
+    );
+
+    expect(source).toContain(".showModal()");
+    expect(source).toContain(".close()");
+    expect(source).not.toContain("\n        open\n");
   });
 });
 

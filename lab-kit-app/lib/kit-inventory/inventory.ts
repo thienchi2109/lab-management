@@ -121,26 +121,40 @@ export function mapKitInventoryRows(input: {
   };
 }
 
-export function summarizeInventory(
+function summarizeInventory(
   kits: KitUnit[],
   batches: KitBatch[]
 ): KitInventorySummary {
-  const nearExpiryBatchIds = new Set(
-    batches
-      .filter((batch) => batch.expiresOn && daysUntil(batch.expiresOn) <= 30)
-      .map((batch) => batch.id)
-  );
-  const lowStockTypes = new Set(
-    batches
-      .filter((batch) => batch.remainingQuantity <= 5)
-      .map((batch) => batch.kitTypeId)
-  );
+  const nearExpiryBatchIds = new Set<string>();
+  const lowStockTypes = new Set<string>();
+
+  for (const batch of batches) {
+    if (batch.expiresOn && daysUntil(batch.expiresOn) <= 30) {
+      nearExpiryBatchIds.add(batch.id);
+    }
+
+    if (batch.remainingQuantity <= 5) {
+      lowStockTypes.add(batch.kitTypeId);
+    }
+  }
+
+  let inStockKits = 0;
+  let nearExpiryKits = 0;
+
+  for (const kit of kits) {
+    if (kit.status === "in_stock") {
+      inStockKits += 1;
+    }
+
+    if (nearExpiryBatchIds.has(kit.batchId)) {
+      nearExpiryKits += 1;
+    }
+  }
 
   return {
     totalKits: kits.length,
-    inStockKits: kits.filter((kit) => kit.status === "in_stock").length,
-    nearExpiryKits: kits.filter((kit) => nearExpiryBatchIds.has(kit.batchId))
-      .length,
+    inStockKits,
+    nearExpiryKits,
     lowStockTypes: lowStockTypes.size,
   };
 }
