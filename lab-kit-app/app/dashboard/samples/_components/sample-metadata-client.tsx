@@ -156,11 +156,14 @@ function FilterPanel({
   return (
     <section className="rounded-lg border bg-background p-4">
       <div className="grid gap-3 md:grid-cols-[1fr_160px_180px_180px]">
-        <label className="space-y-1.5 text-sm font-medium">
-          <span>Tìm kiếm</span>
+        <div className="space-y-1.5">
+          <label htmlFor="sample-search" className="text-sm font-medium">
+            Tìm kiếm
+          </label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
+              id="sample-search"
               value={state.search}
               onChange={(event) =>
                 dispatch({ type: "setSearch", value: event.target.value })
@@ -169,7 +172,7 @@ function FilterPanel({
               placeholder="Mã mẫu, khách hàng hoặc công ty"
             />
           </div>
-        </label>
+        </div>
         <FilterSelect
           label="Trạng thái"
           value={state.status}
