@@ -1,0 +1,56 @@
+name: OCR Review on PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ocr-review-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ocr-review:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    name: Run OCR review on Oracle VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run OCR review remotely
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_VPS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.ORACLE_VPS_SSH_KEY }}
+          port: 22
+          command_timeout: 60m
+          script: |
+            set -euo pipefail
+
+            REPO_DIR="$HOME/${{ github.event.repository.name }}"
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+            LOCAL_PR_BRANCH="pr-${PR_NUMBER}"
+
+            echo "Repository dir: $REPO_DIR"
+            echo "PR number: $PR_NUMBER"
+            echo "Base branch: $BASE_BRANCH"
+            echo "Local PR branch: $LOCAL_PR_BRANCH"
+
+            cd "$REPO_DIR"
+
+            git fetch origin --prune
+            git fetch origin "pull/${PR_NUMBER}/head:${LOCAL_PR_BRANCH}" --force
+
+            git checkout "$LOCAL_PR_BRANCH"
+
+            echo "Current branch:"
+            git branch --show-current
+
+            echo "Current commit:"
+            git rev-parse --short HEAD
+
+            ocr-pr-review "origin/${BASE_BRANCH}" "HEAD"
