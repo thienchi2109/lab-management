@@ -237,6 +237,25 @@ For every task:
 9. If harness friction was found, either fix it directly or record it with
    `scripts/bin/harness-cli backlog add`.
 
+## Story Packet Defaults
+
+Normal and high-risk story packets inherit these defaults unless the packet
+documents a reviewed exception:
+
+- Any UI/frontend design, responsive layout, visual polish, dashboard
+  interaction state, or browser verification work must invoke the Build Web Apps
+  plugin capability before implementation.
+- Before creating reusable UI, hooks, services, helpers, or shared logic, invoke
+  the code-deduplication workflow and prove no suitable existing contract
+  already exists.
+- Use all suitable shared dashboard components by default, including forms,
+  dialogs, filters, selects, messages, layout primitives, and tables. Table/list
+  surfaces must use `DashboardDataTable` unless the story documents a reviewed
+  exception.
+- Default server-state strategy is Server Components, server actions,
+  `useActionState`, and `revalidatePath`. Do not add TanStack Query unless the
+  story documents a concrete client-cache requirement.
+
 ## Story Verification
 
 Stories may carry a mechanical proof command:
