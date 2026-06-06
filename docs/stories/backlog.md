@@ -27,7 +27,7 @@ Stories derived from SPEC-001 MVP roadmap.
 ## Phase 5 — Sample CRUD
 
 - [US-006](US-006-sample-metadata-crud/overview.md) — Sample Metadata CRUD
-  (planned)
+  (implemented)
 
 ## Phase 6 — Result Entry
 
