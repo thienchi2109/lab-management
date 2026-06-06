@@ -31,7 +31,8 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 6 — Result Entry
 
-- US-007 — Dynamic Result Entry Engine (planned)
+- [US-007](US-007-dynamic-result-entry-engine.md) — Dynamic Result Entry Engine
+  (planned)
 
 ## Phase 7 — Upload
 
