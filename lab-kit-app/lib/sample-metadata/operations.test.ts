@@ -123,6 +123,38 @@ describe("sample metadata operations", () => {
     expect(port.writes).toEqual([]);
   });
 
+  test("starts independent save guards before waiting for either result", async () => {
+    let resolveDuplicate!: (value: boolean) => void;
+    let resolveReferences!: (value: boolean) => void;
+    const calls: string[] = [];
+    const duplicateDone = new Promise<boolean>((resolve) => {
+      resolveDuplicate = resolve;
+    });
+    const referencesDone = new Promise<boolean>((resolve) => {
+      resolveReferences = resolve;
+    });
+    const port = createPort({
+      async sampleCodeExists() {
+        calls.push("duplicate");
+        return duplicateDone;
+      },
+      async referencesBelongToOrganization() {
+        calls.push("references");
+        return referencesDone;
+      },
+    });
+
+    const result = createSampleMetadata(createInput, actor, port);
+    await Promise.resolve();
+
+    expect(calls).toEqual(["duplicate", "references"]);
+
+    resolveDuplicate(false);
+    resolveReferences(true);
+
+    await expect(result).resolves.toEqual({ sampleId: "sample-1" });
+  });
+
   test("updates only sample metadata and audits changed fields", async () => {
     const port = createPort();
 

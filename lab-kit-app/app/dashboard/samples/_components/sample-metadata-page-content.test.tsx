@@ -63,4 +63,45 @@ describe("SampleMetadataPageContent", () => {
     expect(html).toContain("md:hidden");
     expect(html).toContain("Công ty Minh Phú");
   });
+
+  test("reuses the sample date formatter across rendered rows", async () => {
+    vi.resetModules();
+    const originalFormatter = Intl.DateTimeFormat;
+    let formatterConstructs = 0;
+
+    vi.stubGlobal(
+      "Intl",
+      Object.create(Intl, {
+        DateTimeFormat: {
+          configurable: true,
+          value: function DateTimeFormatSpy(
+            ...args: ConstructorParameters<typeof Intl.DateTimeFormat>
+          ) {
+            formatterConstructs += 1;
+            return new originalFormatter(...args);
+          },
+        },
+      })
+    );
+
+    try {
+      const { SampleMetadataPageContent } =
+        await import("./sample-metadata-page-content");
+      const rowMetadata = {
+        ...metadata,
+        samples: [
+          metadata.samples[0],
+          { ...metadata.samples[0], id: "sample-2", sampleCode: "T6_00013" },
+        ],
+      };
+
+      renderToStaticMarkup(
+        <SampleMetadataPageContent metadata={rowMetadata} />
+      );
+
+      expect(formatterConstructs).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

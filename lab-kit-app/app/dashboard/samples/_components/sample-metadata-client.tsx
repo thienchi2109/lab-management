@@ -29,6 +29,11 @@ import {
   sampleStatusLabels,
 } from "./sample-metadata-labels";
 
+const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
+  dateStyle: "short",
+  timeStyle: "short",
+});
+
 type SampleMetadataClientProps = {
   metadata: SampleMetadata;
   actions: {
@@ -278,8 +283,5 @@ function matchesFilters(sample: SampleMetadataRow, state: State) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return sampleDateFormatter.format(new Date(value));
 }
