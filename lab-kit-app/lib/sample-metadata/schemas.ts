@@ -39,6 +39,18 @@ const INVALID_SAMPLE_MESSAGE = "Thông tin mẫu xét nghiệm không hợp lệ
 const SAMPLE_CODE_PATTERN = /^T\d{1,2}_[0-9]{5}$/;
 const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
+/** Lỗi validation metadata mẫu kèm thông báo an toàn theo từng field. */
+export class SampleMetadataValidationError extends Error {
+  constructor(
+    public readonly fieldErrors: Partial<
+      Record<keyof UpdateSampleInput, string>
+    >
+  ) {
+    super(INVALID_SAMPLE_MESSAGE);
+    this.name = "SampleMetadataValidationError";
+  }
+}
+
 const nullableUuidSchema = z.preprocess((value) => {
   if (value === "" || value === null || value === undefined) return null;
   return value;
@@ -106,8 +118,59 @@ function parseWithMessage<T>(schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);
 
   if (!result.success) {
-    throw new Error(INVALID_SAMPLE_MESSAGE);
+    throw new SampleMetadataValidationError(toFieldErrors(result.error));
   }
 
   return result.data;
 }
+
+function toFieldErrors(
+  error: z.ZodError
+): Partial<Record<keyof UpdateSampleInput, string>> {
+  const fieldErrors: Partial<Record<keyof UpdateSampleInput, string>> = {};
+
+  for (const issue of error.issues) {
+    const field = issue.path[0];
+
+    if (
+      typeof field !== "string" ||
+      !isSampleMetadataField(field) ||
+      field in fieldErrors
+    ) {
+      continue;
+    }
+
+    const message = sampleMetadataFieldMessages[field];
+
+    if (message) {
+      fieldErrors[field] = message;
+    }
+  }
+
+  return fieldErrors;
+}
+
+function isSampleMetadataField(value: string): value is keyof UpdateSampleInput {
+  return Object.prototype.hasOwnProperty.call(
+    sampleMetadataFieldMessages,
+    value
+  );
+}
+
+const sampleMetadataFieldMessages: Partial<
+  Record<keyof UpdateSampleInput, string>
+> = {
+  sampleId: "Mẫu cần cập nhật không hợp lệ.",
+  sampleCode: "Mã mẫu phải có dạng T6_00012.",
+  sampleTypeId: "Loại mẫu không hợp lệ.",
+  customerId: "Khách hàng không hợp lệ.",
+  companyId: "Công ty không hợp lệ.",
+  kitBatchId: "Lô KIT không hợp lệ.",
+  customerName: "Tên khách hàng snapshot là bắt buộc và tối đa 200 ký tự.",
+  collectedAt:
+    "Ngày lấy mẫu phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+  receivedAt: "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+  status: "Trạng thái mẫu không hợp lệ.",
+  billingStatus: "Trạng thái thanh toán không hợp lệ.",
+  note: "Ghi chú tối đa 500 ký tự.",
+};

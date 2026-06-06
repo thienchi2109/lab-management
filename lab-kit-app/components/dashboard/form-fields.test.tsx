@@ -1,7 +1,22 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 
-import { SelectField } from "./form-fields";
+import { Field, SelectField, TextAreaField } from "./form-fields";
+
+describe("Field", () => {
+  test("renders field-level error text and invalid state", () => {
+    const html = renderToStaticMarkup(
+      <Field
+        label="Mã mẫu"
+        name="sampleCode"
+        error="Mã mẫu phải có dạng T6_00012."
+      />
+    );
+
+    expect(html).toContain("Mã mẫu phải có dạng T6_00012.");
+    expect(html).toContain('aria-invalid="true"');
+  });
+});
 
 describe("SelectField", () => {
   test("renders a shadcn selector while preserving form submission name and value", () => {
@@ -20,5 +35,34 @@ describe("SelectField", () => {
     expect(html).toContain('name="status"');
     expect(html).toContain('value="false"');
     expect(html).not.toContain("<select");
+  });
+
+  test("renders field-level error text for the shadcn selector", () => {
+    const html = renderToStaticMarkup(
+      <SelectField
+        label="Trạng thái"
+        name="status"
+        error="Trạng thái mẫu không hợp lệ."
+        options={[["received", "Đã nhận"]]}
+      />
+    );
+
+    expect(html).toContain("Trạng thái mẫu không hợp lệ.");
+    expect(html).toContain('aria-invalid="true"');
+  });
+});
+
+describe("TextAreaField", () => {
+  test("renders field-level error text and invalid state", () => {
+    const html = renderToStaticMarkup(
+      <TextAreaField
+        label="Ghi chú"
+        name="note"
+        error="Ghi chú tối đa 500 ký tự."
+      />
+    );
+
+    expect(html).toContain("Ghi chú tối đa 500 ký tự.");
+    expect(html).toContain('aria-invalid="true"');
   });
 });

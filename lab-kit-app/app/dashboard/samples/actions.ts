@@ -11,6 +11,8 @@ import {
 import {
   parseCreateSampleInput,
   parseUpdateSampleInput,
+  type UpdateSampleInput,
+  SampleMetadataValidationError,
 } from "@/lib/sample-metadata/schemas";
 import {
   createSupabaseSampleMetadataPort,
@@ -21,6 +23,7 @@ import {
 export type SampleMetadataActionState = {
   status: "idle" | "success" | "error";
   message: string;
+  fieldErrors?: Partial<Record<keyof UpdateSampleInput, string>>;
 };
 
 /** Create a sample metadata record from the dashboard dialog. */
@@ -49,11 +52,9 @@ export async function createSampleMetadataAction(
     revalidatePath("/dashboard/samples");
     return success("Đã tạo mẫu xét nghiệm.");
   } catch (err) {
-    return error(
-      safeSampleMetadataErrorMessage(
-        err,
-        "Không thể tạo mẫu. Kiểm tra thông tin và thử lại."
-      )
+    return errorFromUnknown(
+      err,
+      "Không thể tạo mẫu. Kiểm tra thông tin và thử lại."
     );
   }
 }
@@ -87,11 +88,9 @@ export async function updateSampleMetadataAction(
     revalidatePath("/dashboard/samples");
     return success("Đã cập nhật mẫu xét nghiệm.");
   } catch (err) {
-    return error(
-      safeSampleMetadataErrorMessage(
-        err,
-        "Không thể cập nhật mẫu. Kiểm tra thông tin và thử lại."
-      )
+    return errorFromUnknown(
+      err,
+      "Không thể cập nhật mẫu. Kiểm tra thông tin và thử lại."
     );
   }
 }
@@ -118,6 +117,21 @@ function success(message: string): SampleMetadataActionState {
 
 function error(message: string): SampleMetadataActionState {
   return { status: "error", message };
+}
+
+function errorFromUnknown(
+  err: unknown,
+  fallback: string
+): SampleMetadataActionState {
+  if (err instanceof SampleMetadataValidationError) {
+    return {
+      status: "error",
+      message: err.message,
+      fieldErrors: err.fieldErrors,
+    };
+  }
+
+  return error(safeSampleMetadataErrorMessage(err, fallback));
 }
 
 function safeSampleMetadataErrorMessage(err: unknown, fallback: string) {

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import type { SampleBillingStatus, SampleStatus } from "./schemas";
 
 /** Công ty khách hàng dùng trong bộ lọc và biểu mẫu mẫu xét nghiệm. */
@@ -116,13 +118,16 @@ type SampleRow = {
   received_at: string;
   status: SampleStatus;
   billing_status: SampleBillingStatus;
-  metadata: Record<string, unknown>;
+  metadata: unknown;
   updated_at: string;
 };
 
 const UNKNOWN_SAMPLE_TYPE_LABEL = "Không rõ loại mẫu";
 const MISSING_CUSTOMER_LABEL = "Chưa có khách";
 const MISSING_KIT_LABEL = "Chưa gán KIT";
+const sampleMetadataJsonSchema = z.object({
+  note: z.string().nullable().optional(),
+});
 
 /** Map database sample metadata rows into the dashboard view model. */
 export function mapSampleMetadataRows(input: {
@@ -175,8 +180,8 @@ export function mapSampleMetadataRows(input: {
     const kitBatch = row.kit_batch_id
       ? kitBatchById.get(row.kit_batch_id)
       : null;
-    const note =
-      typeof row.metadata.note === "string" ? row.metadata.note : null;
+    const metadata = sampleMetadataJsonSchema.safeParse(row.metadata);
+    const note = metadata.success ? (metadata.data.note ?? null) : null;
 
     return {
       id: row.id,

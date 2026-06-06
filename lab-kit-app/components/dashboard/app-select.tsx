@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+import { FieldError } from "./field-error";
+
 export type AppSelectOption = {
   value: string;
   label: string;
@@ -29,8 +31,10 @@ type AppSelectProps = {
   className?: string;
   labelClassName?: string;
   triggerClassName?: string;
+  error?: string;
 };
 
+/** Render Base UI select theo kiểu dashboard, có hỗ trợ lỗi field-level. */
 export function AppSelect({
   label,
   options,
@@ -43,8 +47,10 @@ export function AppSelect({
   className,
   labelClassName,
   triggerClassName,
+  error,
 }: AppSelectProps) {
   const labelId = useId();
+  const errorId = useId();
   const [localValue, setLocalValue] = useState(defaultValue);
   const selectedValue = value ?? localValue;
   const optionLabels = useMemo(
@@ -73,6 +79,8 @@ export function AppSelect({
       <Select value={selectedValue} onValueChange={handleValueChange}>
         <SelectTrigger
           aria-labelledby={labelId}
+          aria-describedby={error ? errorId : undefined}
+          aria-invalid={error ? true : undefined}
           className={cn("w-full", triggerClassName)}
           size={size}
         >
@@ -92,6 +100,7 @@ export function AppSelect({
           </SelectGroup>
         </SelectContent>
       </Select>
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

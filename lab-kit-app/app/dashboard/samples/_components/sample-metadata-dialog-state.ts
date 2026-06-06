@@ -1,7 +1,10 @@
+import type { UpdateSampleInput } from "@/lib/sample-metadata/schemas";
+
 /** Trạng thái trả về từ server action của dialog mẫu xét nghiệm. */
 export type SampleMetadataDialogActionState = {
   status: "idle" | "success" | "error";
   message: string;
+  fieldErrors?: Partial<Record<keyof UpdateSampleInput, string>>;
 };
 
 /** Chữ ký server action dùng chung cho biểu mẫu mẫu xét nghiệm. */
