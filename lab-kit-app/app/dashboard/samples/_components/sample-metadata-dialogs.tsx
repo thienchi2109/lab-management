@@ -122,6 +122,8 @@ function SampleForm({
   submitLabel: string;
   savingLabel: string;
 }) {
+  const errors = actionState.fieldErrors ?? {};
+
   return (
     <form action={action} className="space-y-4">
       {sample ? (
@@ -133,30 +135,35 @@ function SampleForm({
           name="sampleCode"
           defaultValue={sample?.sampleCode}
           required
+          error={errors.sampleCode}
         />
         <SelectField
           label="Loại mẫu"
           name="sampleTypeId"
           defaultValue={sample?.sampleTypeId}
           options={sampleTypes.map((type) => [type.id, type.name])}
+          error={errors.sampleTypeId}
         />
         <SelectField
           label="Khách hàng"
           name="customerId"
           defaultValue={sample?.customerId ?? ""}
           options={[["", "Không chọn"], ...customers.map(optionLabel)]}
+          error={errors.customerId}
         />
         <SelectField
           label="Công ty"
           name="companyId"
           defaultValue={sample?.companyId ?? ""}
           options={[["", "Không chọn"], ...companies.map(optionLabel)]}
+          error={errors.companyId}
         />
         <Field
           label="Tên khách hàng snapshot"
           name="customerName"
           defaultValue={sample?.customerName}
           required
+          error={errors.customerName}
         />
         <SelectField
           label="Lô KIT"
@@ -172,12 +179,14 @@ function SampleForm({
                 ]
             ),
           ]}
+          error={errors.kitBatchId}
         />
         <Field
           label="Ngày lấy mẫu"
           name="collectedAt"
           type="datetime-local"
           defaultValue={toDateTimeInput(sample?.collectedAt)}
+          error={errors.collectedAt}
         />
         <Field
           label="Ngày nhận"
@@ -185,21 +194,29 @@ function SampleForm({
           type="datetime-local"
           defaultValue={toDateTimeInput(sample?.receivedAt) ?? defaultNow()}
           required
+          error={errors.receivedAt}
         />
         <SelectField
           label="Trạng thái"
           name="status"
           defaultValue={sample?.status ?? "received"}
           options={Object.entries(sampleStatusLabels)}
+          error={errors.status}
         />
         <SelectField
           label="Thanh toán"
           name="billingStatus"
           defaultValue={sample?.billingStatus ?? "unpaid"}
           options={Object.entries(billingStatusLabels)}
+          error={errors.billingStatus}
         />
       </div>
-      <TextAreaField label="Ghi chú" name="note" defaultValue={sample?.note} />
+      <TextAreaField
+        label="Ghi chú"
+        name="note"
+        defaultValue={sample?.note}
+        error={errors.note}
+      />
       <ActionMessage state={actionState} />
       <DialogActions
         pending={pending}

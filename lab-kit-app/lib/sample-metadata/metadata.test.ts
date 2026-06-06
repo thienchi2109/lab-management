@@ -139,4 +139,47 @@ describe("sample metadata mapping", () => {
       filterSpy.mockRestore();
     }
   });
+
+  test("normalizes malformed metadata JSON without leaking unknown fields", () => {
+    const metadata = mapSampleMetadataRows({
+      companies: [],
+      customers: [],
+      sampleTypes: [
+        {
+          id: "type-1",
+          code: "PCR",
+          name: "Mẫu PCR",
+          is_active: true,
+        },
+      ],
+      kitBatches: [],
+      samples: [
+        {
+          id: "sample-1",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00012",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T08:30:00.000Z",
+          status: "received",
+          billing_status: "unpaid",
+          metadata: {
+            note: ["không hợp lệ"],
+            ocrText: "không thuộc view model metadata mẫu",
+          },
+          updated_at: "2026-06-06T09:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(metadata.samples[0]).toEqual(
+      expect.objectContaining({
+        note: null,
+      })
+    );
+    expect(metadata.samples[0]).not.toHaveProperty("ocrText");
+  });
 });

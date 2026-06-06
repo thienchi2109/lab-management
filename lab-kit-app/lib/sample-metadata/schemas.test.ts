@@ -5,6 +5,7 @@ import {
   isSampleStatus,
   parseCreateSampleInput,
   parseUpdateSampleInput,
+  SampleMetadataValidationError,
 } from "./schemas";
 
 describe("sample metadata schemas", () => {
@@ -63,6 +64,64 @@ describe("sample metadata schemas", () => {
         billingStatus: "unpaid",
       })
     ).toThrow("Thông tin mẫu xét nghiệm không hợp lệ.");
+  });
+
+  test("keeps the action input contract on datetime-local values only", () => {
+    const validInput = {
+      sampleCode: "T6_00012",
+      sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+      customerName: "Công ty Minh Phú",
+      receivedAt: "2026-06-06T08:30",
+      status: "received",
+      billingStatus: "unpaid",
+    };
+
+    expect(parseCreateSampleInput(validInput).receivedAt).toBe(
+      "2026-06-06T08:30"
+    );
+
+    for (const receivedAt of [
+      "2026-06-06T08:30:00",
+      "2026-06-06T08:30:00.000Z",
+      "2026-06-06T08:30+07:00",
+    ]) {
+      expect(() =>
+        parseCreateSampleInput({ ...validInput, receivedAt })
+      ).toThrow(SampleMetadataValidationError);
+    }
+  });
+
+  test("exposes user-safe field errors for invalid form values", () => {
+    try {
+      parseCreateSampleInput({
+        sampleCode: "bad",
+        sampleTypeId: "not-a-uuid",
+        customerId: "not-a-uuid",
+        customerName: "",
+        collectedAt: "2026-06-06T08:30:00.000Z",
+        receivedAt: "2026-06-06T08:30:00",
+        status: "done",
+        billingStatus: "late",
+        note: "x".repeat(501),
+      });
+      throw new Error("expected validation failure");
+    } catch (err) {
+      expect(err).toBeInstanceOf(SampleMetadataValidationError);
+      expect((err as SampleMetadataValidationError).fieldErrors).toEqual({
+        billingStatus: "Trạng thái thanh toán không hợp lệ.",
+        collectedAt:
+          "Ngày lấy mẫu phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+        customerId: "Khách hàng không hợp lệ.",
+        customerName:
+          "Tên khách hàng snapshot là bắt buộc và tối đa 200 ký tự.",
+        note: "Ghi chú tối đa 500 ký tự.",
+        receivedAt:
+          "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+        sampleCode: "Mã mẫu phải có dạng T6_00012.",
+        sampleTypeId: "Loại mẫu không hợp lệ.",
+        status: "Trạng thái mẫu không hợp lệ.",
+      });
+    }
   });
 
   test("narrows sample status values before reducer state updates", () => {

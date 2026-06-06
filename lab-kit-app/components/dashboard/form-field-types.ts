@@ -4,6 +4,7 @@ export type FieldProps = {
   type?: string;
   defaultValue?: string | number | null;
   required?: boolean;
+  error?: string;
 };
 
 export type SelectFieldProps = {
@@ -11,4 +12,5 @@ export type SelectFieldProps = {
   name: string;
   defaultValue?: string | boolean;
   options: Array<[string, string]>;
+  error?: string;
 };

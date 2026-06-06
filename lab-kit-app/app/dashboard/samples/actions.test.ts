@@ -123,6 +123,29 @@ describe("createSampleMetadataAction", () => {
     expect(createSampleMetadata).not.toHaveBeenCalled();
   });
 
+  test("returns field-level validation errors for invalid create input", async () => {
+    const formData = createSampleForm();
+    formData.set("sampleCode", "bad");
+    formData.set("sampleTypeId", "not-a-uuid");
+    formData.set("receivedAt", "2026-06-06T08:30:00.000Z");
+    formData.set("status", "done");
+
+    const result = await createSampleMetadataAction(previousState, formData);
+
+    expect(result).toEqual({
+      status: "error",
+      message: "Thông tin mẫu xét nghiệm không hợp lệ.",
+      fieldErrors: {
+        receivedAt:
+          "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+        sampleCode: "Mã mẫu phải có dạng T6_00012.",
+        sampleTypeId: "Loại mẫu không hợp lệ.",
+        status: "Trạng thái mẫu không hợp lệ.",
+      },
+    });
+    expect(createSampleMetadata).not.toHaveBeenCalled();
+  });
+
   test("returns known update errors to the user", async () => {
     vi.mocked(updateSampleMetadata).mockRejectedValue(
       new Error("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.")

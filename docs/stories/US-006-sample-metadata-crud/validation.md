@@ -144,3 +144,27 @@ Implemented on 2026-06-06.
   leaked-password-protection WARN; performance advisor reports fresh-project
   unused-index INFO findings, including new sample metadata indexes before
   production traffic.
+
+## Follow-up PR 2 Evidence
+
+Validated on 2026-06-06 for Issues #21, #24, and #25.
+
+- TDD RED proof: focused Vitest first failed on missing
+  `SampleMetadataValidationError.fieldErrors`, missing field-level form error
+  rendering, and missing action-state `fieldErrors`.
+- Contract decision: sample metadata server actions continue to accept
+  `datetime-local` strings only (`YYYY-MM-DDTHH:mm`). ISO seconds, ISO UTC, and
+  timezone-offset strings stay rejected in this form-action path to avoid silent
+  timezone conversion.
+- JSON metadata boundary: database `metadata` remains an internal JSON boundary;
+  the dashboard mapper validates the UI-facing shape and exposes only a string
+  `note`, falling back to `null` for malformed or future metadata fields.
+- Field error proof: create/update action state can now carry user-safe
+  Vietnamese field errors, and shared dashboard `Field`, `SelectField`,
+  `TextAreaField`, and `AppSelect` render accessible `aria-invalid` messages.
+- Verification: `cd lab-kit-app && bun run test` passed 34 files / 108 tests;
+  `cd lab-kit-app && bun run quality` passed typecheck, ESLint strict,
+  Prettier, React Doctor with no blocking errors, and Next.js build; `cd
+  lab-kit-app && bun run react-doctor:diff` reported no issues for
+  `fix/sample-metadata-validation-contract -> main`.
+- No Supabase migration or live schema apply belongs to this follow-up.
