@@ -34,11 +34,13 @@ jobs:
             PR_NUMBER="${{ github.event.pull_request.number }}"
             BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
             LOCAL_PR_BRANCH="pr-${PR_NUMBER}"
+            OCR_REVIEW_BIN="/home/ubuntu/bin/ocr-pr-review"
 
             echo "Repository dir: $REPO_DIR"
             echo "PR number: $PR_NUMBER"
             echo "Base branch: $BASE_BRANCH"
             echo "Local PR branch: $LOCAL_PR_BRANCH"
+            echo "OCR review binary: $OCR_REVIEW_BIN"
 
             cd "$REPO_DIR"
 
@@ -58,4 +60,5 @@ jobs:
             echo "Current commit:"
             git rev-parse --short HEAD
 
-            ocr-pr-review "origin/${BASE_BRANCH}" "HEAD"
+            test -x "$OCR_REVIEW_BIN"
+            "$OCR_REVIEW_BIN" "origin/${BASE_BRANCH}" "HEAD"
