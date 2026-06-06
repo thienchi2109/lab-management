@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import { PackagePlus, Search, SlidersHorizontal } from "lucide-react";
 
 import { DashboardDataTable } from "@/components/dashboard/data-table";
@@ -15,9 +15,9 @@ import {
   CreateBatchDialog,
   CreateKitTypeDialog,
   CreateKitUnitsDialog,
-  type KitInventoryDialogAction,
   UpdateKitStatusDialog,
 } from "./kit-inventory-dialogs";
+import type { KitInventoryDialogAction } from "./kit-inventory-dialog-state";
 
 type KitInventoryClientProps = {
   inventory: KitInventory;
@@ -42,12 +42,14 @@ export function KitInventoryClient({
   inventory,
   actions,
 }: KitInventoryClientProps) {
+  const todayDateInputValueRef = useRef("");
   const [state, dispatch] = useReducer(kitInventoryReducer, {
     search: "",
     status: "all",
     kitTypeId: "all",
     creatingType: false,
     creatingBatch: false,
+    batchReceivedAt: "",
     creatingUnits: false,
     statusKit: null,
   });
@@ -79,6 +81,10 @@ export function KitInventoryClient({
     state.status,
   ]);
 
+  useEffect(() => {
+    todayDateInputValueRef.current = getLocalDateInputValue(new Date());
+  }, []);
+
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -103,7 +109,12 @@ export function KitInventoryClient({
           <Button
             type="button"
             variant="outline"
-            onClick={() => dispatch({ type: "openBatch" })}
+            onClick={() =>
+              dispatch({
+                type: "openBatch",
+                receivedAt: todayDateInputValueRef.current,
+              })
+            }
           >
             Tạo lô KIT
           </Button>
@@ -117,11 +128,12 @@ export function KitInventoryClient({
 
       <section className="rounded-lg border bg-background p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Tìm kiếm</span>
+          <div className="space-y-1.5 text-sm font-medium">
+            <label htmlFor="kit-inventory-search">Tìm kiếm</label>
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
               <Input
+                id="kit-inventory-search"
                 value={state.search}
                 onChange={(event) =>
                   dispatch({ type: "setSearch", value: event.target.value })
@@ -130,7 +142,7 @@ export function KitInventoryClient({
                 placeholder="Mã KIT, lô hoặc loại KIT"
               />
             </div>
-          </label>
+          </div>
           <FilterSelect
             label="Trạng thái"
             value={state.status}
@@ -195,6 +207,7 @@ export function KitInventoryClient({
       <CreateBatchDialog
         open={state.creatingBatch}
         kitTypes={inventory.kitTypes}
+        defaultReceivedAt={state.batchReceivedAt}
         formAction={actions.createKitBatch}
         onClose={() => dispatch({ type: "closeDialog" })}
       />
@@ -249,6 +262,7 @@ type State = {
   kitTypeId: string;
   creatingType: boolean;
   creatingBatch: boolean;
+  batchReceivedAt: string;
   creatingUnits: boolean;
   statusKit: KitUnit | null;
 };
@@ -258,7 +272,7 @@ type Action =
   | { type: "setStatus"; value: State["status"] }
   | { type: "setKitType"; value: string }
   | { type: "openType" }
-  | { type: "openBatch" }
+  | { type: "openBatch"; receivedAt: string }
   | { type: "openUnits" }
   | { type: "openStatus"; kit: KitUnit }
   | { type: "closeDialog" };
@@ -274,7 +288,11 @@ function kitInventoryReducer(state: State, action: Action): State {
     case "openType":
       return { ...state, creatingType: true };
     case "openBatch":
-      return { ...state, creatingBatch: true };
+      return {
+        ...state,
+        creatingBatch: true,
+        batchReceivedAt: action.receivedAt,
+      };
     case "openUnits":
       return { ...state, creatingUnits: true };
     case "openStatus":
@@ -284,8 +302,14 @@ function kitInventoryReducer(state: State, action: Action): State {
         ...state,
         creatingType: false,
         creatingBatch: false,
+        batchReceivedAt: "",
         creatingUnits: false,
         statusKit: null,
       };
   }
+}
+
+function getLocalDateInputValue(date: Date) {
+  const localTime = date.getTime() - date.getTimezoneOffset() * 60_000;
+  return new Date(localTime).toISOString().slice(0, 10);
 }

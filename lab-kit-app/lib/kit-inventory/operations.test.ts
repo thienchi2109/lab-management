@@ -43,6 +43,19 @@ function createPort(): KitInventoryPort & {
 }
 
 describe("kit inventory operations", () => {
+  test("does not keep unused update operation helpers before an update UI exists", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(new URL("./operations.ts", import.meta.url), {
+        encoding: "utf8",
+      })
+    );
+
+    expect(source).not.toContain("export async function updateKitType");
+    expect(source).not.toContain("export async function updateKitBatch");
+    expect(source).not.toContain("function updateKitType");
+    expect(source).not.toContain("function updateKitBatch");
+  });
+
   test("creates a batch within the actor organization and audits the write", async () => {
     const port = createPort();
 
