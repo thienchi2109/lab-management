@@ -59,6 +59,7 @@ export async function createSampleMetadata(
   actor: SampleMetadataActor,
   port: SampleMetadataPort
 ) {
+  // react-doctor-disable-next-line react-doctor/async-parallel -- Phải xác thực trước khi ghi mẫu.
   await ensureSampleCanBeSaved(input, actor, port);
   const result = await port.createSample({
     ...input,
@@ -85,6 +86,7 @@ export async function updateSampleMetadata(
   actor: SampleMetadataActor,
   port: SampleMetadataPort
 ) {
+  // react-doctor-disable-next-line react-doctor/async-parallel -- Phải xác thực trước khi cập nhật mẫu.
   await ensureSampleCanBeSaved(input, actor, port, input.sampleId);
   await port.updateSample({ ...input, organizationId: actor.organizationId });
 
@@ -105,23 +107,24 @@ async function ensureSampleCanBeSaved(
   port: SampleMetadataPort,
   excludeSampleId?: string
 ) {
-  const duplicate = await port.sampleCodeExists({
-    organizationId: actor.organizationId,
-    sampleCode: input.sampleCode,
-    excludeSampleId,
-  });
+  const [duplicate, referencesOk] = await Promise.all([
+    port.sampleCodeExists({
+      organizationId: actor.organizationId,
+      sampleCode: input.sampleCode,
+      excludeSampleId,
+    }),
+    port.referencesBelongToOrganization({
+      organizationId: actor.organizationId,
+      sampleTypeId: input.sampleTypeId,
+      customerId: input.customerId,
+      companyId: input.companyId,
+      kitBatchId: input.kitBatchId,
+    }),
+  ]);
 
   if (duplicate) {
     throw new Error("Mã mẫu đã tồn tại.");
   }
-
-  const referencesOk = await port.referencesBelongToOrganization({
-    organizationId: actor.organizationId,
-    sampleTypeId: input.sampleTypeId,
-    customerId: input.customerId,
-    companyId: input.companyId,
-    kitBatchId: input.kitBatchId,
-  });
 
   if (!referencesOk) {
     throw new Error("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.");

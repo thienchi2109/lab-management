@@ -222,14 +222,28 @@ export function mapSampleMetadataRows(input: {
 }
 
 function summarizeSamples(samples: SampleMetadataRow[]) {
-  return {
-    totalSamples: samples.length,
-    receivedSamples: samples.filter((sample) => sample.status === "received")
-      .length,
-    inProgressSamples: samples.filter(
-      (sample) => sample.status === "in_progress"
-    ).length,
-    unpaidSamples: samples.filter((sample) => sample.billingStatus === "unpaid")
-      .length,
+  const summary = {
+    totalSamples: 0,
+    receivedSamples: 0,
+    inProgressSamples: 0,
+    unpaidSamples: 0,
   };
+
+  for (const sample of samples) {
+    summary.totalSamples += 1;
+
+    if (sample.status === "received") {
+      summary.receivedSamples += 1;
+    }
+
+    if (sample.status === "in_progress") {
+      summary.inProgressSamples += 1;
+    }
+
+    if (sample.billingStatus === "unpaid") {
+      summary.unpaidSamples += 1;
+    }
+  }
+
+  return summary;
 }
