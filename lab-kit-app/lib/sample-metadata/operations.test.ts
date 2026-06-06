@@ -77,6 +77,7 @@ describe("sample metadata operations", () => {
         entityTable: "samples",
         entityId: "sample-1",
         eventPayload: {
+          metadataPolicy: "field-names-only",
           sampleCode: "T6_00012",
           submittedFields: [
             "sampleCode",
@@ -94,6 +95,10 @@ describe("sample metadata operations", () => {
         },
       })
     );
+    expect(JSON.stringify(port.audits)).not.toContain("Nguyễn Văn A");
+    expect(JSON.stringify(port.audits)).not.toContain("Ưu tiên");
+    expect(JSON.stringify(port.audits)).not.toContain("2026-06-06T08:30");
+    expect(JSON.stringify(port.audits)).not.toContain("customer-1");
   });
 
   test("rejects duplicate sample codes before writing", async () => {
@@ -155,7 +160,7 @@ describe("sample metadata operations", () => {
     await expect(result).resolves.toEqual({ sampleId: "sample-1" });
   });
 
-  test("updates only sample metadata and audits changed fields", async () => {
+  test("updates only sample metadata and audits updated field names", async () => {
     const port = createPort();
 
     await updateSampleMetadata(
@@ -176,7 +181,28 @@ describe("sample metadata operations", () => {
         action: "sample.updated",
         entityTable: "samples",
         entityId: "sample-1",
+        eventPayload: {
+          metadataPolicy: "field-names-only",
+          sampleCode: "T6_00012",
+          updatedFields: [
+            "sampleCode",
+            "sampleTypeId",
+            "customerId",
+            "companyId",
+            "kitBatchId",
+            "customerName",
+            "collectedAt",
+            "receivedAt",
+            "status",
+            "billingStatus",
+            "note",
+          ],
+        },
       })
     );
+    expect(JSON.stringify(port.audits)).not.toContain("Nguyễn Văn A");
+    expect(JSON.stringify(port.audits)).not.toContain("Ưu tiên");
+    expect(JSON.stringify(port.audits)).not.toContain("2026-06-06T08:30");
+    expect(JSON.stringify(port.audits)).not.toContain("customer-1");
   });
 });

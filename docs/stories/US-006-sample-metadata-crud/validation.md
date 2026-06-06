@@ -168,3 +168,22 @@ Validated on 2026-06-06 for Issues #21, #24, and #25.
   lab-kit-app && bun run react-doctor:diff` reported no issues for
   `fix/sample-metadata-validation-contract -> main`.
 - No Supabase migration or live schema apply belongs to this follow-up.
+
+## Follow-up PR 3 Evidence
+
+Validated on 2026-06-06 for Issue #23.
+
+- Audit payload policy: sample metadata audit events keep diagnostic value with
+  `sampleCode`, `metadataPolicy: "field-names-only"`, and field-name lists only.
+  They do not store full submitted values.
+- Create events use `submittedFields`; update events use `updatedFields` for
+  the editable metadata contract. No before/after diff is claimed because this
+  follow-up does not read the previous sample row. This avoids logging
+  `customerName`, `note`, received/collected timestamps, or reference IDs in
+  audit payloads.
+- TDD RED proof: focused Vitest first failed because sample metadata audit
+  payloads lacked `metadataPolicy` and update events did not expose a dedicated
+  update field-name list.
+- Verification: `cd lab-kit-app && bun run test --
+  lib/sample-metadata/operations.test.ts` passed after the policy change.
+- No Supabase migration or live schema apply belongs to this follow-up.

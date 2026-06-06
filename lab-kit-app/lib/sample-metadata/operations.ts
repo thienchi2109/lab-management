@@ -52,6 +52,7 @@ const submittedFields = [
   "billingStatus",
   "note",
 ];
+const SAMPLE_METADATA_AUDIT_POLICY = "field-names-only";
 
 /** Create sample metadata after duplicate-code and reference ownership checks. */
 export async function createSampleMetadata(
@@ -71,10 +72,7 @@ export async function createSampleMetadata(
     action: "sample.created",
     entityTable: "samples",
     entityId: result.sampleId,
-    eventPayload: {
-      sampleCode: input.sampleCode,
-      submittedFields,
-    },
+    eventPayload: createSampleAuditPayload(input, "submittedFields"),
   });
 
   return result;
@@ -94,10 +92,7 @@ export async function updateSampleMetadata(
     action: "sample.updated",
     entityTable: "samples",
     entityId: input.sampleId,
-    eventPayload: {
-      sampleCode: input.sampleCode,
-      submittedFields,
-    },
+    eventPayload: createSampleAuditPayload(input, "updatedFields"),
   });
 }
 
@@ -141,4 +136,15 @@ function audit(
     actorId: actor.profileId,
     ...input,
   });
+}
+
+function createSampleAuditPayload(
+  input: { sampleCode: string },
+  fieldListName: "submittedFields" | "updatedFields"
+) {
+  return {
+    metadataPolicy: SAMPLE_METADATA_AUDIT_POLICY,
+    sampleCode: input.sampleCode,
+    [fieldListName]: submittedFields,
+  };
 }
