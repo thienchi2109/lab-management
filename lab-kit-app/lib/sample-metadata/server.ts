@@ -1,0 +1,292 @@
+import "server-only";
+
+import { hasAnyRole, type AppRole } from "@/lib/auth/permissions";
+import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+
+import { mapSampleMetadataRows, type SampleMetadata } from "./metadata";
+import type { SampleMetadataActor, SampleMetadataPort } from "./operations";
+import type {
+  CreateSampleInput,
+  SampleBillingStatus,
+  SampleStatus,
+  UpdateSampleInput,
+} from "./schemas";
+
+type CompanyRow = {
+  id: string;
+  code: string;
+  name: string;
+  is_active: boolean;
+};
+
+type CustomerRow = {
+  id: string;
+  company_id: string | null;
+  code: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  is_active: boolean;
+};
+
+type SampleTypeRow = CompanyRow;
+
+type KitBatchRow = {
+  id: string;
+  kit_type_name: string;
+  lot_number: string;
+};
+
+type SampleRow = {
+  id: string;
+  sample_type_id: string;
+  customer_id: string | null;
+  company_id: string | null;
+  kit_batch_id: string | null;
+  sample_code: string;
+  customer_name: string | null;
+  collected_at: string | null;
+  received_at: string;
+  status: SampleStatus;
+  billing_status: SampleBillingStatus;
+  metadata: Record<string, unknown>;
+  updated_at: string;
+};
+
+/** Resolve the active sample metadata actor for read or write operations. */
+export function getSampleMetadataActor(
+  session: CurrentSession,
+  roles: AppRole[] = ["admin", "editor"]
+): SampleMetadataActor | null {
+  const membership = session.memberships.find((item) => {
+    return item.isActive && roles.includes(item.role);
+  });
+
+  if (!membership) {
+    return null;
+  }
+
+  return {
+    profileId: session.profile.id,
+    organizationId: membership.organizationId,
+  };
+}
+
+/** Load tenant-scoped sample metadata rows and reference options. */
+export async function getSampleMetadata(): Promise<SampleMetadata> {
+  const actor = await requireSampleMetadataActor(["admin", "editor", "viewer"]);
+  const supabase = getSupabaseAdminClient();
+
+  const [companies, customers, sampleTypes, kitBatches, samples] =
+    await Promise.all([
+      supabase
+        .from("companies")
+        .select("id, code, name, is_active")
+        .eq("organization_id", actor.organizationId)
+        .order("name", { ascending: true })
+        .returns<CompanyRow[]>(),
+      supabase
+        .from("customers")
+        .select("id, company_id, code, name, phone, email, is_active")
+        .eq("organization_id", actor.organizationId)
+        .order("name", { ascending: true })
+        .returns<CustomerRow[]>(),
+      supabase
+        .from("sample_types")
+        .select("id, code, name, is_active")
+        .eq("organization_id", actor.organizationId)
+        .order("name", { ascending: true })
+        .returns<SampleTypeRow[]>(),
+      supabase
+        .from("kit_batches")
+        .select("id, lot_number, kit_types!inner(name)")
+        .eq("organization_id", actor.organizationId)
+        .order("received_at", { ascending: false }),
+      supabase
+        .from("samples")
+        .select(
+          "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, collected_at, received_at, status, billing_status, metadata, updated_at"
+        )
+        .eq("organization_id", actor.organizationId)
+        .order("received_at", { ascending: false })
+        .returns<SampleRow[]>(),
+    ]);
+
+  if (
+    companies.error ||
+    customers.error ||
+    sampleTypes.error ||
+    kitBatches.error ||
+    samples.error
+  ) {
+    throw new Error("Không thể tải danh sách mẫu xét nghiệm.");
+  }
+
+  return mapSampleMetadataRows({
+    companies: companies.data ?? [],
+    customers: customers.data ?? [],
+    sampleTypes: sampleTypes.data ?? [],
+    kitBatches: mapKitBatchRows(kitBatches.data ?? []),
+    samples: samples.data ?? [],
+  });
+}
+
+/** Create the Supabase-backed sample metadata port. */
+export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
+  const supabase = getSupabaseAdminClient();
+
+  return {
+    async sampleCodeExists(input) {
+      let query = supabase
+        .from("samples")
+        .select("id")
+        .eq("organization_id", input.organizationId)
+        .eq("sample_code", input.sampleCode)
+        .limit(1);
+
+      if (input.excludeSampleId) {
+        query = query.neq("id", input.excludeSampleId);
+      }
+
+      const { data, error } = await query.maybeSingle<{ id: string }>();
+      if (error) throw new Error("Không thể kiểm tra mã mẫu.");
+      return Boolean(data);
+    },
+    async referencesBelongToOrganization(input) {
+      const checks = await Promise.all([
+        existsInOrg("sample_types", input.sampleTypeId, input.organizationId),
+        existsNullableInOrg(
+          "customers",
+          input.customerId,
+          input.organizationId
+        ),
+        existsNullableInOrg("companies", input.companyId, input.organizationId),
+        existsNullableInOrg(
+          "kit_batches",
+          input.kitBatchId,
+          input.organizationId
+        ),
+      ]);
+
+      return checks.every(Boolean);
+    },
+    async createSample(input) {
+      const { data, error } = await supabase
+        .from("samples")
+        .insert(toSampleInsert(input))
+        .select("id")
+        .single<{ id: string }>();
+
+      if (error || !data) throw new Error("Không thể tạo mẫu xét nghiệm.");
+      return { sampleId: data.id };
+    },
+    async updateSample(input) {
+      const { error } = await supabase
+        .from("samples")
+        .update(toSampleUpdate(input))
+        .eq("id", input.sampleId)
+        .eq("organization_id", input.organizationId);
+
+      if (error) throw new Error("Không thể cập nhật mẫu xét nghiệm.");
+    },
+    async insertAuditEvent(input) {
+      const { error } = await supabase.from("audit_events").insert({
+        organization_id: input.organizationId,
+        actor_id: input.actorId,
+        action: input.action,
+        entity_table: input.entityTable,
+        entity_id: input.entityId,
+        event_payload: input.eventPayload,
+      });
+
+      if (error) throw new Error("Không thể ghi audit cho mẫu xét nghiệm.");
+    },
+  };
+}
+
+async function requireSampleMetadataActor(roles: AppRole[]) {
+  const session = await getCurrentSession();
+
+  if (!session || !hasAnyRole(session.memberships, roles)) {
+    throw new Error("Sample metadata access required.");
+  }
+
+  const actor = getSampleMetadataActor(session, roles);
+
+  if (!actor) {
+    throw new Error("Sample metadata access required.");
+  }
+
+  return actor;
+}
+
+async function existsInOrg(table: string, id: string, organizationId: string) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(table)
+    .select("id")
+    .eq("id", id)
+    .eq("organization_id", organizationId)
+    .maybeSingle<{ id: string }>();
+
+  if (error) throw new Error("Không thể kiểm tra dữ liệu tham chiếu.");
+  return Boolean(data);
+}
+
+function existsNullableInOrg(
+  table: string,
+  id: string | null,
+  organizationId: string
+) {
+  return id ? existsInOrg(table, id, organizationId) : Promise.resolve(true);
+}
+
+function toSampleInsert(
+  input: CreateSampleInput & { organizationId: string; createdBy: string }
+) {
+  return {
+    ...toSampleUpdateFields(input),
+    organization_id: input.organizationId,
+    created_by: input.createdBy,
+  };
+}
+
+function toSampleUpdate(input: UpdateSampleInput & { organizationId: string }) {
+  return toSampleUpdateFields(input);
+}
+
+function toSampleUpdateFields(input: CreateSampleInput) {
+  return {
+    sample_type_id: input.sampleTypeId,
+    customer_id: input.customerId,
+    company_id: input.companyId,
+    kit_batch_id: input.kitBatchId,
+    sample_code: input.sampleCode,
+    customer_name: input.customerName,
+    collected_at: input.collectedAt,
+    received_at: input.receivedAt,
+    status: input.status,
+    billing_status: input.billingStatus,
+    metadata: { note: input.note },
+  };
+}
+
+function mapKitBatchRows(rows: unknown[]): KitBatchRow[] {
+  return rows.map((row) => {
+    const value = row as {
+      id: string;
+      lot_number: string;
+      kit_types?: { name?: string } | Array<{ name?: string }>;
+    };
+    const kitType = Array.isArray(value.kit_types)
+      ? value.kit_types[0]
+      : value.kit_types;
+
+    return {
+      id: value.id,
+      lot_number: value.lot_number,
+      kit_type_name: kitType?.name ?? "Không rõ loại KIT",
+    };
+  });
+}

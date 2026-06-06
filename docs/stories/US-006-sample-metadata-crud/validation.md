@@ -109,4 +109,38 @@ Do not use `bunx` or `bun x` for React Doctor.
 
 ## Acceptance Evidence
 
-Add results after verification.
+Implemented on 2026-06-06.
+
+- TDD proof: focused RED initially failed because `lib/sample-metadata/*` and
+  `/dashboard/samples` modules did not exist; GREEN passed with
+  `cd lab-kit-app && bun run test lib/sample-metadata/schemas.test.ts
+  lib/sample-metadata/metadata.test.ts lib/sample-metadata/operations.test.ts
+  app/dashboard/samples/_components/sample-metadata-page-content.test.tsx`
+  (4 files / 9 tests).
+- Full unit/UI proof: `cd lab-kit-app && bun run test` passed 32 files / 92
+  tests.
+- Schema proof: live Supabase migration `202606060009
+  sample_metadata_references` applied; live inspection confirmed
+  `public.companies`, `public.customers`, `samples.customer_id`,
+  `samples.company_id`, `samples.billing_status`, RLS enabled on
+  `companies/customers/samples`, and role-scoped select/insert/update policies
+  for companies/customers.
+- Schema contract proof: `node scripts/validate-supabase-schema.mjs` passed.
+- Platform proof: `cd lab-kit-app && bun run quality` passed typecheck, ESLint
+  strict, Prettier, React Doctor with no errors, and Next.js build; build output
+  includes dynamic route `/dashboard/samples`.
+- Browser proof: anonymous `/dashboard/samples` was checked once and redirected
+  to `/login?next=%2Fdashboard%2Fsamples` with no framework error overlay.
+  Authenticated browser E2E create/edit flow was explicitly skipped by the owner
+  on 2026-06-06 and should not block marking US-006 complete.
+- Shared UI proof: the sample page imports and uses `DashboardDataTable`,
+  `FilterSelect`, `DialogFrame`, `Field`, `SelectField`, `TextAreaField`,
+  `ActionMessage`, `Badge`, `Button`, and `Input`; no local data-table
+  abstraction or TanStack Query provider was added.
+- Caching proof: implementation uses Server Components, server actions,
+  `useActionState`, and `revalidatePath("/dashboard/samples")`; TanStack Query
+  remains out of scope for this first slice.
+- Advisor proof: Supabase security advisor still reports the pre-existing
+  leaked-password-protection WARN; performance advisor reports fresh-project
+  unused-index INFO findings, including new sample metadata indexes before
+  production traffic.
