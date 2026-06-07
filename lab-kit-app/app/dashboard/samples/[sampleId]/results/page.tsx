@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 
 import { hasAnyRole, type AppRole } from "@/lib/auth/permissions";
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
+import { getSampleImages } from "@/lib/sample-images/operations";
+import { createSupabaseSampleImagesPort } from "@/lib/sample-images/server";
 import {
   getSampleResultEntry,
   type SampleResultActor,
@@ -26,13 +28,22 @@ export default async function SampleResultsPage({
     notFound();
   }
 
-  const entry = await loadEntryOrNull(routeParams.sampleId, actor);
+  const [entry, images] = await Promise.all([
+    loadEntryOrNull(routeParams.sampleId, actor),
+    loadImagesOrEmpty(routeParams.sampleId, actor),
+  ]);
 
   if (!entry) {
     notFound();
   }
 
-  return <SampleResultsClient entry={entry} canWrite={actor.canWrite} />;
+  return (
+    <SampleResultsClient
+      canWrite={actor.canWrite}
+      entry={entry}
+      initialImages={images}
+    />
+  );
 }
 
 async function loadEntryOrNull(sampleId: string, actor: SampleResultActor) {
@@ -44,6 +55,18 @@ async function loadEntryOrNull(sampleId: string, actor: SampleResultActor) {
     );
   } catch {
     return null;
+  }
+}
+
+async function loadImagesOrEmpty(sampleId: string, actor: SampleResultActor) {
+  try {
+    return await getSampleImages(
+      sampleId,
+      actor,
+      createSupabaseSampleImagesPort()
+    );
+  } catch {
+    return [];
   }
 }
 
