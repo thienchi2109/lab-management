@@ -19,7 +19,7 @@ describe("Field", () => {
 });
 
 describe("SelectField", () => {
-  test("renders a shadcn selector while preserving form submission name and value", () => {
+  test("renders a Radix selector while preserving form submission name and value", () => {
     const html = renderToStaticMarkup(
       <SelectField
         label="Trạng thái"
@@ -34,7 +34,8 @@ describe("SelectField", () => {
 
     expect(html).toContain('name="status"');
     expect(html).toContain('value="false"');
-    expect(html).not.toContain("<select");
+    expect(html).toContain('role="combobox"');
+    expect(html).toContain('aria-hidden="true"');
   });
 
   test("renders field-level error text for the shadcn selector", () => {
@@ -49,6 +50,20 @@ describe("SelectField", () => {
 
     expect(html).toContain("Trạng thái mẫu không hợp lệ.");
     expect(html).toContain('aria-invalid="true"');
+  });
+
+  test("renders placeholder text when no select value is selected", () => {
+    const html = renderToStaticMarkup(
+      <SelectField
+        label="Trạng thái"
+        name="status"
+        options={[["received", "Đã nhận"]]}
+      />
+    );
+
+    expect(html).toContain("Chọn");
+    expect(html).toContain('name="status"');
+    expect(html).toContain('value=""');
   });
 });
 

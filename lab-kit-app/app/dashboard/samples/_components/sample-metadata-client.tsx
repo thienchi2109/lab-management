@@ -106,15 +106,10 @@ export function SampleMetadataClient({
               >
                 Cập nhật
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                nativeButton={false}
-                render={
-                  <Link href={`/dashboard/samples/${sample.id}/results`} />
-                }
-              >
-                Nhập kết quả
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/dashboard/samples/${sample.id}/results`}>
+                  Nhập kết quả
+                </Link>
               </Button>
             </div>
           ),

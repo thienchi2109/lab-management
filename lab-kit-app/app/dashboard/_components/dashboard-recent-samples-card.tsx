@@ -83,10 +83,11 @@ function DashboardRecentSamplesCard() {
           variant="ghost"
           size="sm"
           className="h-8 gap-1.5 text-xs text-primary"
-          render={<Link href="/dashboard/samples" />}
-          nativeButton={false}
+          asChild
         >
-          Xem tất cả <ArrowRight className="size-3" />
+          <Link href="/dashboard/samples">
+            Xem tất cả <ArrowRight className="size-3" />
+          </Link>
         </Button>
       </CardHeader>
       <CardContent className="p-0">

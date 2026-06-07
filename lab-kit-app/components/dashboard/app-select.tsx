@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 
 import {
   Select,
@@ -34,7 +34,7 @@ type AppSelectProps = {
   error?: string;
 };
 
-/** Render Base UI select theo kiểu dashboard, có hỗ trợ lỗi field-level. */
+/** Render Radix select theo kiểu dashboard, có hỗ trợ lỗi field-level. */
 export function AppSelect({
   label,
   options,
@@ -53,21 +53,13 @@ export function AppSelect({
   const errorId = useId();
   const [localValue, setLocalValue] = useState(defaultValue);
   const selectedValue = value ?? localValue;
-  const optionLabels = useMemo(
-    () => new Map(options.map((option) => [option.value, option.label])),
-    [options]
-  );
 
-  function handleValueChange(nextValue: string | string[] | null) {
-    const normalizedValue = Array.isArray(nextValue)
-      ? (nextValue[0] ?? "")
-      : (nextValue ?? "");
-
+  function handleValueChange(nextValue: string) {
     if (value === undefined) {
-      setLocalValue(normalizedValue);
+      setLocalValue(nextValue);
     }
 
-    onValueChange?.(normalizedValue);
+    onValueChange?.(nextValue);
   }
 
   return (
@@ -84,11 +76,7 @@ export function AppSelect({
           className={cn("w-full", triggerClassName)}
           size={size}
         >
-          <SelectValue placeholder={placeholder}>
-            {(currentValue: string | null) =>
-              optionLabels.get(currentValue ?? "") ?? placeholder
-            }
-          </SelectValue>
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

@@ -18,13 +18,8 @@ function DashboardHero() {
         <Button variant="outline" size="sm" className="h-9 text-xs">
           Xuất báo cáo ngày
         </Button>
-        <Button
-          size="sm"
-          className="h-9 text-xs"
-          render={<Link href="/dashboard/samples" />}
-          nativeButton={false}
-        >
-          Nhập kết quả mới
+        <Button size="sm" className="h-9 text-xs" asChild>
+          <Link href="/dashboard/samples">Nhập kết quả mới</Link>
         </Button>
       </div>
     </div>
