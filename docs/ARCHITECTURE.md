@@ -1,8 +1,10 @@
 # Architecture
 
-Stack selected: Next.js App Router + Bun + Supabase Postgres + Cloudflare R2.
+Stack selected: Next.js App Router + Bun + Supabase Postgres + Cloudinary.
 
 See `docs/decisions/0006-nextjs-bun-supabase-stack.md` for the decision record.
+See `docs/decisions/0007-cloudinary-media-upload-provider.md` for the storage
+provider update that supersedes the R2 part of decision 0006.
 See `docs/product/tech-stack.md` for the full stack reference.
 
 ## Product Surfaces
@@ -19,7 +21,7 @@ See `docs/product/tech-stack.md` for the full stack reference.
 | Package manager | Bun |
 | Database | Supabase Postgres with RLS |
 | Auth | Auth.js / NextAuth |
-| File storage | Cloudflare R2 (S3-compatible, presigned upload) |
+| File storage | Cloudinary signed image upload |
 | UI | Tailwind CSS + shadcn/ui |
 | Deploy | Vercel |
 
@@ -56,7 +58,7 @@ lib/                 application + infrastructure
   permissions/       RBAC helpers
   audit/             audit log writer
   result-engine/     KQ_CHUNG computation
-  r2/                R2 presigned URL generation
+  media/             Cloudinary signature, asset metadata, and deletion helpers
 app/api/             interface: route handlers
 app/(dashboard)/     surface: browser UI
 components/          UI components
@@ -84,7 +86,7 @@ Boundaries:
 - Session payloads and identity claims → typed session helper
 - Environment variables → validated env config
 - Database rows → typed query results
-- R2 presigned URL requests → validated upload params
+- Cloudinary signature and asset metadata requests → validated upload params
 
 Target flow:
 

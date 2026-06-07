@@ -36,7 +36,8 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 7 — Upload
 
-- US-008 — Upload Images/Files via R2 (planned)
+- [US-008](US-008-cloudinary-sample-image-upload/overview.md) — Upload Images
+  via Cloudinary (planned)
 
 ## Phase 8 — Data Grid
 

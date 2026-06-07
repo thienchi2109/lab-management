@@ -5,7 +5,7 @@
 | Role | Description |
 | --- | --- |
 | Admin | System admin: configure groups/metrics/templates/settings, manage users |
-| Editor | Create/edit samples, enter results, upload images/files, export |
+| Editor | Create/edit samples, enter results, upload evidence images, export |
 | Viewer | Read-only: view data, images, dashboard, reports |
 
 ## Permission Matrix
@@ -16,7 +16,7 @@
 | Create/edit samples | ✓ | ✓ | ✗ |
 | Delete samples | ✓ | ✗ default | ✗ |
 | Enter results | ✓ | ✓ | ✗ |
-| Upload images/files | ✓ | ✓ | ✗ |
+| Upload evidence images | ✓ | ✓ | ✗ |
 | Approve samples | ✓ | ✓ if granted | ✗ |
 | Export Excel/CSV | ✓ | ✓ | ✓ if granted |
 | Manage result groups | ✓ | ✗ | ✗ |

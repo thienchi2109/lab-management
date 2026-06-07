@@ -9,7 +9,7 @@
 | API | Route Handlers + Server Actions | No separate backend needed for MVP |
 | Database | Supabase Postgres | Managed, RLS built-in |
 | Auth | Auth.js / NextAuth | Session + role management |
-| File Storage | Cloudflare R2 | S3-compatible, presigned upload |
+| File Storage | Cloudinary | Signed direct image upload, CDN delivery, thumbnail support |
 | UI Framework | Tailwind CSS + shadcn/ui | Consistent design system |
 | Data Grid | TanStack Table v8 | Server-side pagination, column control |
 | Forms | React Hook Form + Zod | Validation, dynamic forms |

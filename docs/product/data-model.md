@@ -20,7 +20,9 @@
 ### Sample Management
 
 - `samples` — lab samples with 20–30 metadata fields
-- `sample_images` — uploaded evidence images (R2)
+- `sample_images` — uploaded evidence image metadata. For Cloudinary, store the
+  provider marker in `storage_bucket` and the Cloudinary `public_id` in
+  `storage_path`.
 
 ### Result Engine
 

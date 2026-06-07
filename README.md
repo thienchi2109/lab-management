@@ -43,7 +43,7 @@ MVP gom:
 - Tao va cap nhat mau xet nghiem voi ma mau sinh server-side.
 - Nhap ket qua theo 8 nhom chi tieu dong.
 - Tinh `KQ_CHUNG` theo rule cua tung nhom ket qua.
-- Upload anh minh chung qua Cloudflare R2 bang presigned URL.
+- Upload ảnh minh chứng qua Cloudinary signed upload.
 - Dashboard/pivot cho theo doi mau, KIT va ket qua.
 - Xuat Excel/CSV cho mau va ket qua normalized.
 - Phan quyen Admin, Editor, Viewer.
@@ -60,7 +60,7 @@ va billing.
 | Language | TypeScript strict |
 | Database | Supabase Postgres with RLS |
 | Auth | Auth.js / NextAuth |
-| Storage | Cloudflare R2 |
+| Storage | Cloudinary |
 | UI | Tailwind CSS + shadcn/ui |
 | Tables | TanStack Table v8 |
 | Forms | React Hook Form + Zod |

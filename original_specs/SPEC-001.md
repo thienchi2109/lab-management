@@ -1,6 +1,6 @@
 # SPEC-001 — Quản lý mẫu phòng lab đơn giản
 
-**Stack MVP chính thức:** Bun + Next.js App Router + Supabase Postgres + Cloudflare R2 + Auth.js  
+**Stack MVP chính thức:** Bun + Next.js App Router + Supabase Postgres + Cloudinary + Auth.js
 **Backend MVP:** Next.js Route Handlers / Server Actions, không dùng Go trong MVP  
 **Triển khai:** Vercel  
 **Ngôn ngữ giao diện:** Tiếng Việt  
@@ -36,7 +36,7 @@ MVP sử dụng:
 - **Supabase Postgres**: database quan hệ.
 - **Supabase RLS**: bảo vệ dữ liệu ở tầng database.
 - **Auth.js / NextAuth**: đăng nhập, session, role.
-- **Cloudflare R2**: lưu ảnh/file đính kèm qua presigned upload URL.
+- **Cloudinary**: lưu ảnh minh chứng qua signed upload trực tiếp từ client.
 - **TanStack Table v8**: grid dữ liệu.
 - **React Hook Form + Zod**: form + validation.
 - **ECharts**: biểu đồ/dashboard.
@@ -121,7 +121,7 @@ Các phần này phù hợp hơn với Next.js-only backend vì giảm số lư�
 | Role | Mô tả |
 |---|---|
 | Admin | Quản trị hệ thống, cấu hình nhóm/chỉ tiêu/template/setting, quản lý user |
-| Editor | Nhập/sửa mẫu, nhập kết quả, upload ảnh/file, tạo export |
+| Editor | Nhập/sửa mẫu, nhập kết quả, upload ảnh minh chứng, tạo export |
 | Viewer | Chỉ xem dữ liệu, hình ảnh, dashboard, report |
 
 ### 4.2. Permission matrix
@@ -132,7 +132,7 @@ Các phần này phù hợp hơn với Next.js-only backend vì giảm số lư�
 | Tạo/sửa mẫu | Có | Có | Không |
 | Xóa mẫu | Có | Không mặc định | Không |
 | Nhập kết quả | Có | Có | Không |
-| Upload ảnh/file | Có | Có | Không |
+| Upload ảnh minh chứng | Có | Có | Không |
 | Duyệt mẫu | Có | Có nếu được bật quyền | Không |
 | Export Excel/CSV | Có | Có | Có nếu được bật |
 | Quản lý nhóm kết quả | Có | Không | Không |
@@ -156,13 +156,13 @@ actor User as U
 component "Next.js App Router\n- UI/PWA\n- Route Handlers\n- Server Actions" as APP
 component "Auth.js / NextAuth\nSession + Role" as AUTH
 component "Supabase Postgres\nRLS enabled" as PG
-component "Cloudflare R2\nS3-compatible object storage" as R2
+component "Cloudinary\nSigned image upload + CDN delivery" as CLD
 
 U --> APP : Login, CRUD, Dashboard, Export
 APP <--> AUTH : Sign in / Session / Role
 APP --> PG : Server-side SQL / Supabase client\nRLS-aware access
-APP --> R2 : Generate presigned URL
-U --> R2 : Direct upload image/file
+APP --> CLD : Generate signed upload params
+U --> CLD : Direct upload image
 @enduml
 ```
 
@@ -190,7 +190,7 @@ lab-kit-app/
 │   │   ├── result-metrics/route.ts
 │   │   ├── result-templates/route.ts
 │   │   ├── metric-settings/route.ts
-│   │   ├── uploads/presign/route.ts
+│   │   ├── uploads/cloudinary/signature/route.ts
 │   │   ├── analytics/pivot/route.ts
 │   │   └── export/route.ts
 │   ├── layout.tsx
@@ -808,7 +808,7 @@ Chỉ Admin được tạo/sửa nhóm, chỉ tiêu, template, setting.
 ### 10.5. Upload
 
 ```http
-POST /api/uploads/presign
+POST /api/uploads/cloudinary/signature
 POST /api/samples/:id/images
 DELETE /api/samples/:id/images/:imageId
 ```
@@ -818,8 +818,8 @@ Rules:
 - Tối đa 10 ảnh/mẫu.
 - Ảnh tối đa 5 MB.
 - Content type: `image/jpeg`, `image/png`, `image/webp`.
-- Không upload file qua Next.js server; client upload trực tiếp R2 qua presigned URL.
-- Không log presigned URL.
+- Không upload file qua Next.js server; client upload trực tiếp Cloudinary bằng tham số server-signed.
+- Không log Cloudinary API secret, upload signature hoặc raw provider response chứa credential material.
 
 ### 10.6. Analytics/export
 
@@ -845,7 +845,7 @@ Rules:
 - App layer vẫn check permission trước để trả lỗi 403 rõ ràng.
 - Không dùng service role key trong client.
 - Nếu dùng service role ở server cho tác vụ admin nội bộ, phải bọc permission check nghiêm ngặt và không expose ra client.
-- Không log JWT, password, secret, presigned URL, PII không cần thiết.
+- Không log JWT, password, secret, Cloudinary upload signature, PII không cần thiết.
 
 ### 11.2. Audit trail
 
@@ -1186,15 +1186,15 @@ Kết quả grep không được phát hiện explicit `any` trong code mới.
 
 ---
 
-### Phase 7 — Upload images/files via R2
+### Phase 7 — Upload images via Cloudinary
 
-**Mục tiêu:** upload ảnh minh chứng và file đính kèm.
+**Mục tiêu:** upload ảnh minh chứng.
 
 **Tasks:**
 
-- Cấu hình R2 env.
-- API presign upload.
-- Client upload trực tiếp R2.
+- Cấu hình Cloudinary env.
+- API tạo signed upload parameters.
+- Client upload trực tiếp Cloudinary.
 - API attach image vào sample.
 - Xem gallery ảnh trong sample detail.
 - Xóa ảnh nếu có quyền.
@@ -1205,7 +1205,7 @@ Kết quả grep không được phát hiện explicit `any` trong code mới.
 - Tối đa 10 ảnh/mẫu.
 - Ảnh > 5 MB bị chặn.
 - Chỉ nhận jpeg/png/webp.
-- Không log presigned URL.
+- Không log Cloudinary API secret hoặc upload signature.
 - Viewer xem ảnh nhưng không upload/xóa.
 
 **Quality gates:**
@@ -1367,7 +1367,7 @@ bun run react:doctor
 
 - Kiểm tra env vars.
 - Kiểm tra Supabase migrations.
-- Kiểm tra R2 bucket/CORS.
+- Kiểm tra Cloudinary env và signed upload configuration.
 - Kiểm tra seed production.
 - Kiểm tra role admin đầu tiên.
 - Kiểm tra backup/restore DB cơ bản.
@@ -1492,7 +1492,7 @@ Mọi migration tạo bảng mới phải có:
 ### 13.7. Security quality
 
 - Không expose service role key ra client.
-- Không log JWT/session token/presigned URL.
+- Không log JWT/session token/Cloudinary upload signature.
 - Không nhận raw SQL từ client.
 - Không tin role từ client payload.
 - Không cho Viewer/Editor gọi API Admin bằng cách sửa request.
