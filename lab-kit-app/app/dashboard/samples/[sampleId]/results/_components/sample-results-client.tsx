@@ -6,15 +6,18 @@ import { Save } from "lucide-react";
 
 import { ActionMessage } from "@/components/dashboard/action-message";
 import { Button } from "@/components/ui/button";
+import type { SampleImage } from "@/lib/sample-images/operations";
 import type { SampleResultEntry } from "@/lib/sample-results/operations";
 
 import { createSavePayloadFromForm } from "./form-payload";
 import { ResultGroupAccordion } from "./result-group-accordion";
+import { SampleImagesPanel } from "./sample-images-panel";
 import { saveSampleResultsRequest } from "./save-sample-results-request";
 
 type SampleResultsClientProps = {
   entry: SampleResultEntry;
   canWrite: boolean;
+  initialImages: SampleImage[];
 };
 
 type SaveState = {
@@ -26,6 +29,7 @@ type SaveState = {
 export function SampleResultsClient({
   entry,
   canWrite,
+  initialImages,
 }: SampleResultsClientProps) {
   const [state, setState] = useState<SaveState>({
     status: "idle",
@@ -90,6 +94,11 @@ export function SampleResultsClient({
           ) : null}
         </div>
       </div>
+      <SampleImagesPanel
+        canWrite={canWrite}
+        initialImages={initialImages}
+        sampleId={entry.sample.id}
+      />
       {entry.groups.map((group) => (
         <ResultGroupAccordion
           key={group.id}

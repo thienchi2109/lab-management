@@ -77,4 +77,60 @@ cd lab-kit-app && bun run react-doctor
 
 ## Acceptance Evidence
 
-Planned. Add results after implementation.
+Implemented on 2026-06-07 on branch
+`feature/us-008-cloudinary-sample-images`.
+
+Implemented scope:
+
+- signed Cloudinary upload intent API:
+  `POST /api/uploads/cloudinary/signature`;
+- sample image metadata APIs:
+  `GET/POST /api/samples/:sampleId/images` and
+  `DELETE /api/samples/:sampleId/images/:imageId`;
+- server-side auth and role checks for Admin, Editor, and Viewer;
+- Cloudinary signature helpers, deterministic sample folder/public id shape,
+  and destroy request helper;
+- `sample_images` mapping with `storage_bucket = "cloudinary"` and
+  `storage_path = Cloudinary public_id`;
+- upload/delete audit events with field-name-only payloads;
+- result-entry sample surface image panel with upload, thumbnail, empty state,
+  delete action, and Viewer read-only rendering.
+
+Verification run:
+
+```bash
+cd lab-kit-app && bun run test
+# 52 files / 158 tests passed
+
+cd lab-kit-app && bun run quality
+# typecheck, ESLint strict, Prettier, React Doctor, and Next.js build passed
+
+cd lab-kit-app && bun run react-doctor:diff
+# No issues found in branch diff
+
+node scripts/validate-supabase-schema.mjs
+# Supabase schema contract passed
+```
+
+Additional proof:
+
+- focused US-008 TDD tests cover Cloudinary signature generation, secret
+  exclusion from signed payloads, role failures, MIME and size validation,
+  max-10 image limit, duplicate `public_id`, audit payload shape, API auth,
+  upload request orchestration, delete request orchestration, and Viewer
+  read-only UI rendering;
+- live Supabase schema inspection confirmed `sample_images` already has
+  `storage_bucket`, `storage_path`, `content_type`, `size_bytes`, `created_by`,
+  RLS policies for member select and Admin/Editor write, so no migration was
+  required;
+- React Doctor full scan reports 2 pre-existing performance warnings, but
+  `bun run react-doctor:diff` reports no issues in this branch.
+
+Skipped with reason:
+
+- Cloudinary live provider smoke was skipped because
+  `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+  `CLOUDINARY_API_SECRET` were not configured in the local environment;
+- browser E2E was not run because Playwright is not installed in the project.
+  The rendered panel is covered by server-render tests, and the Next.js
+  production build includes the new dashboard/API routes.

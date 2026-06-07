@@ -2,7 +2,7 @@
 
 **Lane:** high-risk  
 **Phase:** 7  
-**Status:** planned  
+**Status:** implemented
 **Affects:** sample image evidence, Cloudinary integration, dashboard sample UI,
 audit trail, media delivery
 

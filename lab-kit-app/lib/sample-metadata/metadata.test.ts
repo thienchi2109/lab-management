@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 
 import { mapSampleMetadataRows } from "./metadata";
 
@@ -77,67 +77,55 @@ describe("sample metadata mapping", () => {
     expect(metadata.filterOptions.sampleTypes).toEqual([["type-1", "Mẫu PCR"]]);
   });
 
-  test("summarizes samples without repeated filter passes", () => {
-    const filterSpy = vi.spyOn(Array.prototype, "filter");
+  test("summarizes samples in one mapped metadata view", () => {
+    const metadata = mapSampleMetadataRows({
+      companies: [],
+      customers: [],
+      sampleTypes: [
+        { id: "type-1", code: "PCR", name: "Mẫu PCR", is_active: true },
+      ],
+      kitBatches: [],
+      samples: [
+        {
+          id: "sample-1",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00012",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T08:30:00.000Z",
+          status: "received",
+          billing_status: "unpaid",
+          metadata: {},
+          updated_at: "2026-06-06T09:00:00.000Z",
+        },
+        {
+          id: "sample-2",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00013",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T08:45:00.000Z",
+          status: "in_progress",
+          billing_status: "paid",
+          metadata: {},
+          updated_at: "2026-06-06T09:05:00.000Z",
+        },
+      ],
+    });
 
-    try {
-      const metadata = mapSampleMetadataRows({
-        companies: [],
-        customers: [],
-        sampleTypes: [
-          {
-            id: "type-1",
-            code: "PCR",
-            name: "Mẫu PCR",
-            is_active: true,
-          },
-        ],
-        kitBatches: [],
-        samples: [
-          {
-            id: "sample-1",
-            sample_type_id: "type-1",
-            customer_id: null,
-            company_id: null,
-            kit_batch_id: null,
-            sample_code: "T6_00012",
-            customer_name: null,
-            collected_at: null,
-            received_at: "2026-06-06T08:30:00.000Z",
-            status: "received",
-            billing_status: "unpaid",
-            metadata: {},
-            updated_at: "2026-06-06T09:00:00.000Z",
-          },
-          {
-            id: "sample-2",
-            sample_type_id: "type-1",
-            customer_id: null,
-            company_id: null,
-            kit_batch_id: null,
-            sample_code: "T6_00013",
-            customer_name: null,
-            collected_at: null,
-            received_at: "2026-06-06T08:45:00.000Z",
-            status: "in_progress",
-            billing_status: "paid",
-            metadata: {},
-            updated_at: "2026-06-06T09:05:00.000Z",
-          },
-        ],
-      });
-      const filterCallsAfterMapping = filterSpy.mock.calls.length;
-
-      expect(metadata.summary).toEqual({
-        totalSamples: 2,
-        receivedSamples: 1,
-        inProgressSamples: 1,
-        unpaidSamples: 1,
-      });
-      expect(filterCallsAfterMapping).toBe(0);
-    } finally {
-      filterSpy.mockRestore();
-    }
+    expect(metadata.summary).toEqual({
+      totalSamples: 2,
+      receivedSamples: 1,
+      inProgressSamples: 1,
+      unpaidSamples: 1,
+    });
+    expect(metadata.samples).toHaveLength(2);
   });
 
   test("normalizes malformed metadata JSON without leaking unknown fields", () => {

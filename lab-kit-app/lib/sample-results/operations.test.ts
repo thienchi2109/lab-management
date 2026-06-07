@@ -290,6 +290,28 @@ describe("saveSampleResults", () => {
     });
   });
 
+  test("rejects group conclusions outside the sample template", async () => {
+    const port = createPort();
+
+    await expect(
+      saveSampleResults(
+        "sample-1",
+        {
+          results: [],
+          groupConclusions: [
+            {
+              groupId: "group-outside-template",
+              conclusionText: "Không hợp lệ",
+            },
+          ],
+        },
+        actor,
+        port
+      )
+    ).rejects.toThrow("Nhóm kết quả không thuộc template hợp lệ của mẫu:");
+    expect(port.transactions).toEqual([]);
+  });
+
   test("rejects metrics that are not assigned to the sample template", async () => {
     const port = createPort();
 
@@ -308,7 +330,7 @@ describe("saveSampleResults", () => {
         actor,
         port
       )
-    ).rejects.toThrow("Chỉ tiêu không thuộc template hợp lệ của mẫu.");
+    ).rejects.toThrow("Chỉ tiêu không thuộc template hợp lệ của mẫu:");
     expect(port.transactions).toEqual([]);
   });
 
