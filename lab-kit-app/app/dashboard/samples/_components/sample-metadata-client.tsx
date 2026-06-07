@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useReducer } from "react";
+import Link from "next/link";
 import { ClipboardList, Search, SlidersHorizontal } from "lucide-react";
 
 import { DashboardDataTable } from "@/components/dashboard/data-table";
@@ -96,14 +97,26 @@ export function SampleMetadataClient({
             },
           ],
           actions: (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => dispatch({ type: "openEdit", sample })}
-            >
-              Cập nhật
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => dispatch({ type: "openEdit", sample })}
+              >
+                Cập nhật
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={
+                  <Link href={`/dashboard/samples/${sample.id}/results`} />
+                }
+              >
+                Nhập kết quả
+              </Button>
+            </div>
           ),
         }))}
       />
