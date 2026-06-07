@@ -32,7 +32,7 @@ Stories derived from SPEC-001 MVP roadmap.
 ## Phase 6 — Result Entry
 
 - [US-007](US-007-dynamic-result-entry-engine.md) — Dynamic Result Entry Engine
-  (planned)
+  (implemented)
 
 ## Phase 7 — Upload
 
@@ -57,3 +57,8 @@ Stories derived from SPEC-001 MVP roadmap.
 ## Phase 12 — Release
 
 - US-013 — MVP Release Checklist (planned)
+
+## Maintenance
+
+- [US-015](US-015-radix-ui-primitives-migration/overview.md) — Radix UI
+  Primitives Migration (implemented)
