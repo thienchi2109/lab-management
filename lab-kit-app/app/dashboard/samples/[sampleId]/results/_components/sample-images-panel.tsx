@@ -55,6 +55,14 @@ export function SampleImagesPanel({
 
     if (!file) return;
 
+    if (initialImages.length >= 10) {
+      setState({
+        status: "error",
+        message: "Mỗi mẫu chỉ được tối đa 10 ảnh minh chứng.",
+      });
+      return;
+    }
+
     startTransition(async () => {
       refreshIfNeeded(await uploadSampleImageRequest(sampleId, file));
     });

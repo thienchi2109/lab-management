@@ -62,11 +62,12 @@ export async function uploadSampleImageRequest(
       method: "POST",
       body: createCloudinaryForm(file, signature),
     });
-    const uploaded = await readJson<CloudinaryUploadResponse>(uploadResponse);
 
     if (!uploadResponse.ok) {
       return error("Không thể upload ảnh lên Cloudinary.");
     }
+
+    const uploaded = await readJson<CloudinaryUploadResponse>(uploadResponse);
 
     const confirmResponse = await fetcher(`/api/samples/${sampleId}/images`, {
       method: "POST",

@@ -1,4 +1,7 @@
-import { getSampleMetadata } from "@/lib/sample-metadata/server";
+import {
+  getSampleMetadata,
+  SampleMetadataAccessError,
+} from "@/lib/sample-metadata/server";
 
 import { SampleMetadataPageContent } from "./_components/sample-metadata-page-content";
 
@@ -29,7 +32,11 @@ export default async function SampleMetadataPage() {
 async function loadSampleMetadataOrNull() {
   try {
     return await getSampleMetadata();
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof SampleMetadataAccessError) {
+      return null;
+    }
+
+    throw error;
   }
 }
