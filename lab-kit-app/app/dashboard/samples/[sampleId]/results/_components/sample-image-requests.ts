@@ -49,12 +49,15 @@ export async function uploadSampleImageRequest(
         }),
       }
     );
-    const signature = await readJson<SignatureResponse>(signatureResponse);
 
     if (!signatureResponse.ok) {
-      return error(readMessage(signature) ?? "Không thể tạo chữ ký upload.");
+      const signatureError = await readJsonOrNull(signatureResponse);
+      return error(
+        readMessage(signatureError) ?? "Không thể tạo chữ ký upload."
+      );
     }
 
+    const signature = await readJson<SignatureResponse>(signatureResponse);
     const uploadResponse = await fetcher(signature.uploadUrl, {
       method: "POST",
       body: createCloudinaryForm(file, signature),
@@ -132,6 +135,14 @@ function createCloudinaryForm(file: File, signature: SignatureResponse) {
 
 async function readJson<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
+}
+
+async function readJsonOrNull(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 function success(message: string): RequestResult {

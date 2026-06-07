@@ -39,11 +39,16 @@ export type SampleImagesPort = {
     publicId: string;
     organizationId: string;
   }): Promise<{ id: string } | null>;
+  findSampleImageForDelete(input: {
+    organizationId: string;
+    sampleId: string;
+    imageId: string;
+  }): Promise<{ publicId: string } | null>;
   listSampleImages(input: {
     sampleId: string;
     organizationId: string;
   }): Promise<SampleImage[]>;
-  insertSampleImage(input: {
+  insertSampleImageWithAudit(input: {
     organizationId: string;
     sampleId: string;
     storageBucket: string;
@@ -51,13 +56,15 @@ export type SampleImagesPort = {
     contentType: string;
     sizeBytes: number;
     createdBy: string;
+    auditEventPayload: Record<string, unknown>;
   }): Promise<{ imageId: string }>;
-  deleteSampleImageRecord(input: {
+  deleteSampleImageRecordWithAudit(input: {
     organizationId: string;
     sampleId: string;
     imageId: string;
-  }): Promise<{ publicId: string } | null>;
-  insertAuditEvent(input: SampleImageAuditInput): Promise<void>;
+    actorId: string;
+    eventPayload: Record<string, unknown>;
+  }): Promise<void>;
   deleteCloudinaryImage(publicId: string): Promise<void>;
 };
 
@@ -130,7 +137,12 @@ export async function confirmSampleImageUpload(
     throw new Error("Ảnh Cloudinary đã được ghi nhận trước đó.");
   }
 
-  const result = await port.insertSampleImage({
+  const result = await port.insertSampleImageWithAudit({
+    auditEventPayload: {
+      metadataPolicy: IMAGE_AUDIT_POLICY,
+      sampleId,
+      submittedFields: ["publicId", "contentType", "sizeBytes"],
+    },
     contentType: input.contentType,
     createdBy: actor.profileId,
     organizationId: actor.organizationId,
@@ -138,19 +150,6 @@ export async function confirmSampleImageUpload(
     sizeBytes: input.sizeBytes,
     storageBucket: "cloudinary",
     storagePath: input.publicId,
-  });
-
-  await port.insertAuditEvent({
-    action: "sample_image.created",
-    actorId: actor.profileId,
-    entityId: result.imageId,
-    entityTable: "sample_images",
-    eventPayload: {
-      metadataPolicy: IMAGE_AUDIT_POLICY,
-      sampleId,
-      submittedFields: ["publicId", "contentType", "sizeBytes"],
-    },
-    organizationId: actor.organizationId,
   });
 
   return result;
@@ -165,28 +164,27 @@ export async function deleteSampleImage(
 ) {
   ensureCanWrite(actor);
   await ensureSampleAccess(sampleId, actor, port);
-  const deleted = await port.deleteSampleImageRecord({
+  const image = await port.findSampleImageForDelete({
     imageId,
     organizationId: actor.organizationId,
     sampleId,
   });
 
-  if (!deleted) {
+  if (!image) {
     throw new Error("Ảnh minh chứng không tồn tại.");
   }
 
-  await port.deleteCloudinaryImage(deleted.publicId);
-  await port.insertAuditEvent({
-    action: "sample_image.deleted",
+  await port.deleteCloudinaryImage(image.publicId);
+  await port.deleteSampleImageRecordWithAudit({
     actorId: actor.profileId,
-    entityId: imageId,
-    entityTable: "sample_images",
     eventPayload: {
       metadataPolicy: IMAGE_AUDIT_POLICY,
       sampleId,
       submittedFields: ["publicId"],
     },
+    imageId,
     organizationId: actor.organizationId,
+    sampleId,
   });
 }
 
@@ -215,9 +213,17 @@ function validateCloudinaryResult(input: ConfirmSampleImageInput) {
     throw new Error("Thiếu mã ảnh Cloudinary.");
   }
 
-  if (!input.secureUrl.startsWith("https://res.cloudinary.com/")) {
+  try {
+    const url = new URL(input.secureUrl);
+
+    if (url.protocol === "https:" && url.hostname === "res.cloudinary.com") {
+      return;
+    }
+  } catch {
     throw new Error("URL ảnh Cloudinary không hợp lệ.");
   }
+
+  throw new Error("URL ảnh Cloudinary không hợp lệ.");
 }
 
 async function ensureSampleAccess(

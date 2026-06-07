@@ -20,12 +20,14 @@ function createPort(
   return {
     countImagesForSample: vi.fn().mockResolvedValue(0),
     deleteCloudinaryImage: vi.fn().mockResolvedValue(undefined),
-    deleteSampleImageRecord: vi.fn().mockResolvedValue({
+    deleteSampleImageRecordWithAudit: vi.fn().mockResolvedValue(undefined),
+    findSampleImageByPublicId: vi.fn().mockResolvedValue(null),
+    findSampleImageForDelete: vi.fn().mockResolvedValue({
       publicId: "lab/org-1/sample-1/evidence-1",
     }),
-    findSampleImageByPublicId: vi.fn().mockResolvedValue(null),
-    insertAuditEvent: vi.fn().mockResolvedValue(undefined),
-    insertSampleImage: vi.fn().mockResolvedValue({ imageId: "image-1" }),
+    insertSampleImageWithAudit: vi
+      .fn()
+      .mockResolvedValue({ imageId: "image-1" }),
     listSampleImages: vi.fn().mockResolvedValue([]),
     sampleBelongsToOrganization: vi.fn().mockResolvedValue(true),
     ...overrides,
@@ -89,7 +91,12 @@ describe("confirmSampleImageUpload", () => {
       )
     ).resolves.toEqual({ imageId: "image-1" });
 
-    expect(port.insertSampleImage).toHaveBeenCalledWith({
+    expect(port.insertSampleImageWithAudit).toHaveBeenCalledWith({
+      auditEventPayload: {
+        metadataPolicy: "field-names-only",
+        sampleId: "sample-1",
+        submittedFields: ["publicId", "contentType", "sizeBytes"],
+      },
       contentType: "image/jpeg",
       createdBy: "actor-1",
       organizationId: "org-1",
@@ -98,28 +105,33 @@ describe("confirmSampleImageUpload", () => {
       storageBucket: "cloudinary",
       storagePath: "lab/org-1/sample-1/evidence-1",
     });
-    expect(port.insertAuditEvent).toHaveBeenCalledWith({
-      action: "sample_image.created",
-      actorId: "actor-1",
-      entityId: "image-1",
-      entityTable: "sample_images",
-      eventPayload: {
-        metadataPolicy: "field-names-only",
-        sampleId: "sample-1",
-        submittedFields: ["publicId", "contentType", "sizeBytes"],
-      },
-      organizationId: "org-1",
-    });
+  });
+
+  test("rejects Cloudinary lookalike hosts", async () => {
+    await expect(
+      confirmSampleImageUpload(
+        "sample-1",
+        actor,
+        {
+          contentType: "image/jpeg",
+          publicId: "lab/org-1/sample-1/evidence-1",
+          secureUrl:
+            "https://res.cloudinary.com.attacker.example/lab/image/upload/evidence-1",
+          sizeBytes: 2048,
+        },
+        createPort()
+      )
+    ).rejects.toThrow("URL ảnh Cloudinary không hợp lệ.");
   });
 });
 
 describe("deleteSampleImage", () => {
-  test("deletes the Cloudinary asset after deleting the tenant image record", async () => {
+  test("deletes the Cloudinary asset before deleting the tenant image record", async () => {
     const port = createPort();
 
     await deleteSampleImage("sample-1", "image-1", actor, port);
 
-    expect(port.deleteSampleImageRecord).toHaveBeenCalledWith({
+    expect(port.findSampleImageForDelete).toHaveBeenCalledWith({
       imageId: "image-1",
       organizationId: "org-1",
       sampleId: "sample-1",
@@ -127,5 +139,57 @@ describe("deleteSampleImage", () => {
     expect(port.deleteCloudinaryImage).toHaveBeenCalledWith(
       "lab/org-1/sample-1/evidence-1"
     );
+    expect(port.deleteSampleImageRecordWithAudit).toHaveBeenCalledWith({
+      actorId: "actor-1",
+      eventPayload: {
+        metadataPolicy: "field-names-only",
+        sampleId: "sample-1",
+        submittedFields: ["publicId"],
+      },
+      imageId: "image-1",
+      organizationId: "org-1",
+      sampleId: "sample-1",
+    });
+
+    const cleanupOrder = vi.mocked(port.deleteCloudinaryImage).mock
+      .invocationCallOrder[0];
+    const deleteOrder = vi.mocked(port.deleteSampleImageRecordWithAudit).mock
+      .invocationCallOrder[0];
+    expect(cleanupOrder).toBeLessThan(deleteOrder);
+  });
+
+  test("keeps the database record when Cloudinary cleanup fails", async () => {
+    const port = createPort({
+      deleteCloudinaryImage: vi
+        .fn()
+        .mockRejectedValue(new Error("Cloudinary timeout")),
+    });
+
+    await expect(
+      deleteSampleImage("sample-1", "image-1", actor, port)
+    ).rejects.toThrow("Cloudinary timeout");
+
+    expect(port.deleteSampleImageRecordWithAudit).not.toHaveBeenCalled();
+  });
+
+  test("rejects missing tenant image records before Cloudinary cleanup", async () => {
+    const port = createPort({
+      findSampleImageForDelete: vi.fn().mockResolvedValue(null),
+    });
+
+    await expect(
+      deleteSampleImage("sample-1", "image-1", actor, port)
+    ).rejects.toThrow("Ảnh minh chứng không tồn tại.");
+
+    expect(port.deleteCloudinaryImage).not.toHaveBeenCalled();
+    expect(port.deleteSampleImageRecordWithAudit).not.toHaveBeenCalled();
+  });
+});
+
+describe("SampleImagesPort contract", () => {
+  test("requires a delete lookup before mutating database records", () => {
+    expect(createPort()).toHaveProperty("findSampleImageForDelete");
+    expect(createPort()).toHaveProperty("insertSampleImageWithAudit");
+    expect(createPort()).toHaveProperty("deleteSampleImageRecordWithAudit");
   });
 });

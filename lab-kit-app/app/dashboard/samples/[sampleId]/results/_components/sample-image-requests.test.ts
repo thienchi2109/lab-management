@@ -75,6 +75,25 @@ describe("uploadSampleImageRequest", () => {
     });
     expect(fetcher).not.toHaveBeenCalled();
   });
+
+  test("keeps signature API errors when the response is not JSON", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      json: vi.fn().mockRejectedValue(new SyntaxError("Unexpected token <")),
+    });
+    const file = new File(["image"], "evidence.png", { type: "image/png" });
+
+    await expect(
+      uploadSampleImageRequest("sample-1", file, fetcher)
+    ).resolves.toEqual({
+      refresh: false,
+      state: {
+        status: "error",
+        message: "Không thể tạo chữ ký upload.",
+      },
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("deleteSampleImageRequest", () => {

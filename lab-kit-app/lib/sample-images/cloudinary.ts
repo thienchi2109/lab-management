@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createHash, randomUUID } from "node:crypto";
 
 import { z } from "zod";
@@ -128,14 +130,20 @@ export async function destroyCloudinaryImage(publicId: string) {
     signature,
     timestamp: String(timestamp),
   });
-  const response = await fetch(getCloudinaryDestroyUrl(env.cloudName), {
-    method: "POST",
-    body,
-  });
+  try {
+    const response = await fetch(getCloudinaryDestroyUrl(env.cloudName), {
+      method: "POST",
+      body,
+    });
 
-  if (!response.ok) {
+    if (response.ok) {
+      return;
+    }
+  } catch {
     throw new Error("Không thể xóa ảnh trên Cloudinary.");
   }
+
+  throw new Error("Không thể xóa ảnh trên Cloudinary.");
 }
 
 function signCloudinaryParams(
@@ -148,6 +156,7 @@ function signCloudinaryParams(
     .map(([key, value]) => `${key}=${value}`)
     .join("&");
 
+  // Cloudinary yêu cầu SHA-1 cho chữ ký tham số upload/destroy.
   return createHash("sha1").update(`${serialized}${apiSecret}`).digest("hex");
 }
 

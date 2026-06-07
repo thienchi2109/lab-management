@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import {
   createCloudinaryUploadSignature,
@@ -20,6 +21,14 @@ type SignatureRequest = {
   sampleId: string;
   sizeBytes: number;
 };
+
+const signatureRequestSchema = z.object({
+  contentType: z
+    .string()
+    .regex(/^image\/[a-z0-9.+-]+$/i, "Content type ảnh không hợp lệ."),
+  sampleId: z.string().min(1),
+  sizeBytes: z.number().int().positive(),
+});
 
 /** Issue signed Cloudinary upload parameters for browser direct upload. */
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -62,25 +71,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 }
 
 function parseSignatureRequest(value: unknown): SignatureRequest {
-  if (!isRecord(value)) {
+  const result = signatureRequestSchema.safeParse(value);
+
+  if (!result.success) {
     throw new ResponseError(400, "Payload upload ảnh không hợp lệ.");
   }
 
-  if (
-    typeof value.contentType !== "string" ||
-    typeof value.sampleId !== "string" ||
-    typeof value.sizeBytes !== "number"
-  ) {
-    throw new ResponseError(400, "Payload upload ảnh không hợp lệ.");
-  }
-
-  return {
-    contentType: value.contentType,
-    sampleId: value.sampleId,
-    sizeBytes: value.sizeBytes,
-  };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return result.data;
 }

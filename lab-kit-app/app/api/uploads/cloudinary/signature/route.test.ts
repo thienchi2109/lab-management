@@ -9,6 +9,8 @@ import { createSupabaseSampleImagesPort } from "@/lib/sample-images/server";
 
 import { POST } from "./route";
 
+vi.mock("server-only", () => ({}));
+
 vi.mock("@/lib/auth/session", () => ({
   getCurrentSession: vi.fn(),
 }));
@@ -72,7 +74,26 @@ describe("/api/uploads/cloudinary/signature", () => {
       })
     );
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(401);
+    expect(prepareSampleImageUpload).not.toHaveBeenCalled();
+  });
+
+  test("rejects structurally invalid signature payloads", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    vi.mocked(hasAnyRole).mockReturnValue(true);
+
+    const response = await POST(
+      new NextRequest("http://test.local", {
+        method: "POST",
+        body: JSON.stringify({
+          contentType: "",
+          sampleId: "",
+          sizeBytes: 2048,
+        }),
+      })
+    );
+
+    expect(response.status).toBe(400);
     expect(prepareSampleImageUpload).not.toHaveBeenCalled();
   });
 

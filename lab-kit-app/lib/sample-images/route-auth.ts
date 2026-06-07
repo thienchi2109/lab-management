@@ -10,7 +10,7 @@ export async function requireSampleImageActor(write: boolean) {
   const session = await getCurrentSession();
 
   if (!session) {
-    throw new ResponseError(403, permissionMessage(write));
+    throw new ResponseError(401, loginMessage(write));
   }
 
   const allowed: AppRole[] = write
@@ -42,7 +42,7 @@ export function jsonError(error: unknown, fallback: string) {
   return NextResponse.json(
     {
       status: "error",
-      message: error instanceof Error ? error.message : fallback,
+      message: fallback,
     },
     { status: 500 }
   );
@@ -88,4 +88,10 @@ function permissionMessage(write: boolean) {
   return write
     ? "Bạn không có quyền tải ảnh minh chứng."
     : "Bạn không có quyền xem ảnh minh chứng.";
+}
+
+function loginMessage(write: boolean) {
+  return write
+    ? "Bạn cần đăng nhập để tải ảnh minh chứng."
+    : "Bạn cần đăng nhập để xem ảnh minh chứng.";
 }
