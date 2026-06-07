@@ -111,6 +111,24 @@ describe("/api/samples/[sampleId]/results", () => {
     expect(saveSampleResults).not.toHaveBeenCalled();
   });
 
+  test("PUT uses the write permission message when the user is unauthenticated", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(null);
+
+    const response = await PUT(
+      new NextRequest("http://test.local", {
+        method: "PUT",
+        body: JSON.stringify({ results: [], groupConclusions: [] }),
+      }),
+      { params }
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Bạn không có quyền ghi kết quả xét nghiệm.",
+    });
+    expect(saveSampleResults).not.toHaveBeenCalled();
+  });
+
   test("PUT lets editors save results and revalidates sample surfaces", async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
     vi.mocked(hasAnyRole).mockReturnValue(true);

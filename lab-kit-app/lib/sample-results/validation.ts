@@ -49,38 +49,41 @@ export function isAbnormalMetricValue(
 }
 
 function validateNumber(metric: SampleResultMetric, value: unknown) {
-  const numberValue = Number(value);
+  return validateNumberWithBounds(metric, value, {
+    min: getNumberSetting(metric, "min"),
+    max: getNumberSetting(metric, "max"),
+  });
+}
 
-  if (!Number.isFinite(numberValue)) {
+function validateNumberWithBounds(
+  metric: SampleResultMetric,
+  value: unknown,
+  bounds: { min: number | null; max: number | null }
+) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error(`${metric.name} phải là số hợp lệ.`);
   }
 
-  const min = getNumberSetting(metric, "min");
-  const max = getNumberSetting(metric, "max");
-
-  if (min !== null && numberValue < min) {
+  if (bounds.min !== null && value < bounds.min) {
     throw new Error(`${metric.name} nhỏ hơn ngưỡng tối thiểu.`);
   }
 
-  if (max !== null && numberValue > max) {
+  if (bounds.max !== null && value > bounds.max) {
     throw new Error(`${metric.name} vượt ngưỡng tối đa.`);
   }
 
-  if (
-    metric.inputType === "percent" &&
-    (numberValue < 0 || numberValue > 100)
-  ) {
+  if (metric.inputType === "percent" && (value < 0 || value > 100)) {
     throw new Error(`${metric.name} phải nằm trong khoảng 0-100%.`);
   }
 
   if (
     metric.inputType === "scale_1_5" &&
-    (!Number.isInteger(numberValue) || numberValue < 1 || numberValue > 5)
+    (!Number.isInteger(value) || value < 1 || value > 5)
   ) {
     throw new Error(`${metric.name} phải nằm trong thang 1-5.`);
   }
 
-  return numberValue;
+  return value;
 }
 
 function validateText(value: unknown) {
@@ -131,13 +134,18 @@ function validatePcr(metric: SampleResultMetric, value: unknown) {
   const ct = value.ct ?? null;
 
   if (ct !== null) {
-    validateNumber(metric, ct);
+    validateNumberWithBounds(metric, ct, {
+      min:
+        getNumberSetting(metric, "ct_min") ?? getNumberSetting(metric, "min"),
+      max:
+        getNumberSetting(metric, "ct_max") ?? getNumberSetting(metric, "max"),
+    });
   }
 
   return { status, ct };
 }
 
-function getNumberSetting(metric: SampleResultMetric, key: "min" | "max") {
+function getNumberSetting(metric: SampleResultMetric, key: string) {
   const value = metric.metricSettings[key];
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }

@@ -1,6 +1,7 @@
 import type { SampleResultEntry } from "@/lib/sample-results/operations";
 
 import { MetricInputRenderer } from "./metric-input-renderer";
+import { groupConclusionFieldName } from "./result-field-names";
 
 type ResultGroup = SampleResultEntry["groups"][number];
 
@@ -54,7 +55,7 @@ export function ResultGroupAccordion({
         <label className="mt-4 grid gap-1.5 text-sm font-medium">
           Kết luận nhóm
           <textarea
-            name={`groupConclusions[${group.id}]`}
+            name={groupConclusionFieldName(group.id)}
             defaultValue={group.kqChung ?? ""}
             disabled={readOnly}
             className="min-h-20 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"

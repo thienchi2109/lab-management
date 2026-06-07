@@ -20,4 +20,25 @@ describe("saveSampleResultsRequest", () => {
       },
     });
   });
+
+  test("falls back when the API error message is not a string", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      json: vi.fn().mockResolvedValue({ message: 123 }),
+    });
+
+    await expect(
+      saveSampleResultsRequest(
+        "sample-1",
+        { results: [], groupConclusions: [] },
+        fetcher
+      )
+    ).resolves.toEqual({
+      refresh: false,
+      state: {
+        status: "error",
+        message: "Không thể lưu kết quả xét nghiệm.",
+      },
+    });
+  });
 });

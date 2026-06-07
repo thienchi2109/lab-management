@@ -67,7 +67,7 @@ async function requireSampleResultActor(write: boolean) {
   const session = await getCurrentSession();
 
   if (!session) {
-    throw new ResponseError(403, "Bạn không có quyền xem kết quả xét nghiệm.");
+    throw new ResponseError(403, permissionMessage(write));
   }
 
   const allowed: AppRole[] = write
@@ -75,12 +75,7 @@ async function requireSampleResultActor(write: boolean) {
     : ["admin", "editor", "viewer"];
 
   if (!hasAnyRole(session.memberships, allowed)) {
-    throw new ResponseError(
-      403,
-      write
-        ? "Bạn không có quyền ghi kết quả xét nghiệm."
-        : "Bạn không có quyền xem kết quả xét nghiệm."
-    );
+    throw new ResponseError(403, permissionMessage(write));
   }
 
   const membership = session.memberships.find(
@@ -88,7 +83,7 @@ async function requireSampleResultActor(write: boolean) {
   );
 
   if (!membership) {
-    throw new ResponseError(403, "Bạn không có quyền xem kết quả xét nghiệm.");
+    throw new ResponseError(403, permissionMessage(write));
   }
 
   return toActor(session, membership.organizationId, membership.role, write);
@@ -103,7 +98,7 @@ function toActor(
   const canWrite = role === "admin" || role === "editor";
 
   if (write && !canWrite) {
-    throw new ResponseError(403, "Bạn không có quyền ghi kết quả xét nghiệm.");
+    throw new ResponseError(403, permissionMessage(true));
   }
 
   return {
@@ -111,6 +106,12 @@ function toActor(
     organizationId,
     canWrite,
   };
+}
+
+function permissionMessage(write: boolean) {
+  return write
+    ? "Bạn không có quyền ghi kết quả xét nghiệm."
+    : "Bạn không có quyền xem kết quả xét nghiệm.";
 }
 
 function parseSaveInput(value: unknown): SaveSampleResultsInput {

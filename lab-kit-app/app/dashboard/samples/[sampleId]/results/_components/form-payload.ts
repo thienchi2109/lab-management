@@ -3,6 +3,13 @@ import type {
   SaveSampleResultsInput,
 } from "@/lib/sample-results/operations";
 
+import {
+  groupConclusionFieldName,
+  pcrCtFieldName,
+  pcrStatusFieldName,
+  resultFieldName,
+} from "./result-field-names";
+
 /** Convert form controls from the dynamic result UI into the PUT payload. */
 export function createSavePayloadFromForm(
   entry: Pick<SampleResultEntry, "groups">,
@@ -16,7 +23,7 @@ export function createSavePayloadFromForm(
       })
     ),
     groupConclusions: entry.groups.flatMap((group) => {
-      const value = formData.get(`groupConclusions[${group.id}]`);
+      const value = formData.get(groupConclusionFieldName(group.id));
       const conclusionText = typeof value === "string" ? value.trim() : "";
       return conclusionText ? [{ groupId: group.id, conclusionText }] : [];
     }),
@@ -28,7 +35,7 @@ function valueFromForm(
   metricId: string,
   formData: FormData
 ) {
-  const name = `results[${metricId}]`;
+  const name = resultFieldName(metricId);
 
   switch (inputType) {
     case "number":
@@ -45,7 +52,7 @@ function valueFromForm(
     case "select":
       return nonEmptyStringValue(formData.get(name));
     case "pcr_qualitative": {
-      const status = pcrStatus(formData.get(`${name}[status]`));
+      const status = pcrStatus(formData.get(pcrStatusFieldName(metricId)));
       if (!status) return null;
       return {
         status,
@@ -53,11 +60,11 @@ function valueFromForm(
       };
     }
     case "pcr_realtime": {
-      const status = pcrStatus(formData.get(`${name}[status]`));
+      const status = pcrStatus(formData.get(pcrStatusFieldName(metricId)));
       if (!status) return null;
       return {
         status,
-        ct: numberValue(formData.get(`${name}[ct]`)),
+        ct: numberValue(formData.get(pcrCtFieldName(metricId))),
       };
     }
     default: {

@@ -123,9 +123,12 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
     if (assignmentError) throw new Error("Không thể tải chỉ tiêu template.");
 
     const metricIds = (assignments ?? []).map((item) => item.result_metric_id);
-    const [metrics, groups, results, conclusions] = await Promise.all([
-      loadMetrics(organizationId, metricIds),
-      loadGroups(organizationId),
+    const metrics = await loadMetrics(organizationId, metricIds);
+    const groupIds = [
+      ...new Set(metrics.map((metric) => metric.result_group_id)),
+    ];
+    const [groups, results, conclusions] = await Promise.all([
+      loadGroups(organizationId, groupIds),
       loadResults(organizationId, sample.id),
       loadConclusions(organizationId, sample.id),
     ]);
@@ -161,12 +164,15 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
     return data ?? [];
   }
 
-  async function loadGroups(organizationId: string) {
+  async function loadGroups(organizationId: string, groupIds: string[]) {
+    if (groupIds.length === 0) return [];
+
     const { data, error } = await supabase
       .from("result_groups")
       .select("id, code, name, sort_order")
       .eq("organization_id", organizationId)
       .eq("is_active", true)
+      .in("id", groupIds)
       .order("sort_order", { ascending: true })
       .returns<GroupRow[]>();
 
@@ -250,11 +256,37 @@ function mapMetric(
     name: row.name,
     inputType: normalizeInputType(row.input_type),
     unit: row.unit,
-    options: Array.isArray(row.options) ? row.options : [],
-    metricSettings: isRecord(row.metric_settings) ? row.metric_settings : {},
+    options: normalizeOptions(row.options),
+    metricSettings: normalizeMetricSettings(row.metric_settings),
     sortOrder: assignmentSort ?? row.sort_order,
     isRequired: row.is_required,
   };
+}
+
+function normalizeOptions(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((option): option is string => typeof option === "string")
+    : [];
+}
+
+function normalizeMetricSettings(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, setting]) => {
+      if (isNumericSettingKey(key)) {
+        return typeof setting === "number" && Number.isFinite(setting)
+          ? [[key, setting]]
+          : [];
+      }
+
+      return isJsonValue(setting) ? [[key, setting]] : [];
+    })
+  );
+}
+
+function isNumericSettingKey(key: string) {
+  return key === "min" || key === "max" || key === "ct_min" || key === "ct_max";
 }
 
 function normalizeInputType(value: string): ResultInputType {
@@ -280,4 +312,28 @@ function groupBy<T>(items: T[], getKey: (item: T) => string): Map<string, T[]> {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isJsonValue(value: unknown): boolean {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.every(isJsonValue);
+  }
+
+  if (isRecord(value)) {
+    return Object.values(value).every(isJsonValue);
+  }
+
+  return false;
 }

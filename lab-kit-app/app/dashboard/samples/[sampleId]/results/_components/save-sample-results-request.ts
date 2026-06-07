@@ -24,14 +24,15 @@ export async function saveSampleResultsRequest(
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const responsePayload = (await response.json()) as { message?: string };
+    const responsePayload = await response.json();
+    const message = readMessage(responsePayload);
 
     return {
       refresh: response.ok,
       state: {
         status: response.ok ? "success" : "error",
         message:
-          responsePayload.message ??
+          message ??
           (response.ok
             ? "Đã lưu kết quả xét nghiệm."
             : "Không thể lưu kết quả xét nghiệm."),
@@ -46,4 +47,14 @@ export async function saveSampleResultsRequest(
       },
     };
   }
+}
+
+function readMessage(value: unknown) {
+  return isRecord(value) && typeof value.message === "string"
+    ? value.message
+    : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

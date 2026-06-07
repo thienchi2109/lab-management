@@ -1,6 +1,12 @@
 import { Input } from "@/components/ui/input";
 import type { SampleResultMetric } from "@/lib/sample-results/operations";
 
+import {
+  pcrCtFieldName,
+  pcrStatusFieldName,
+  resultFieldName,
+} from "./result-field-names";
+
 type MetricInputRendererProps = {
   metric: SampleResultMetric;
   value: unknown;
@@ -18,7 +24,7 @@ export function MetricInputRenderer({
   value,
   readOnly,
 }: MetricInputRendererProps) {
-  const name = `results[${metric.id}]`;
+  const name = resultFieldName(metric.id);
   const inputId = `metric-${metric.id}`;
 
   return (
@@ -160,7 +166,7 @@ function MetricInputControl({
       return (
         <PcrStatusInputs
           inputId={inputId}
-          name={name}
+          metricId={metric.id}
           value={value}
           readOnly={readOnly}
         />
@@ -170,14 +176,14 @@ function MetricInputControl({
         <div className="grid gap-2 sm:grid-cols-[1fr_140px]">
           <PcrStatusInputs
             inputId={inputId}
-            name={name}
+            metricId={metric.id}
             value={value}
             readOnly={readOnly}
           />
           <Input
             id={`${inputId}-ct`}
             aria-label={`${metric.name} CT`}
-            name={`${name}[ct]`}
+            name={pcrCtFieldName(metric.id)}
             type="number"
             step="any"
             placeholder="CT"
@@ -201,12 +207,12 @@ function MetricInputControl({
 
 function PcrStatusInputs({
   inputId,
-  name,
+  metricId,
   value,
   readOnly,
 }: {
   inputId: string;
-  name: string;
+  metricId: string;
   value: unknown;
   readOnly: boolean;
 }) {
@@ -215,7 +221,7 @@ function PcrStatusInputs({
   return (
     <select
       id={inputId}
-      name={`${name}[status]`}
+      name={pcrStatusFieldName(metricId)}
       defaultValue={status}
       disabled={readOnly}
       className="h-10 rounded-lg border border-input bg-background px-2.5 text-sm"
