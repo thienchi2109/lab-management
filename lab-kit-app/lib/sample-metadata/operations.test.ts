@@ -126,6 +126,7 @@ describe("sample metadata operations", () => {
       createSampleMetadata(createInput, actor, port)
     ).rejects.toThrow("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.");
     expect(port.writes).toEqual([]);
+    expect(port.audits).toEqual([]);
   });
 
   test("starts independent save guards before waiting for either result", async () => {

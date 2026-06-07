@@ -118,7 +118,9 @@ export type SampleResultsPort = {
 
 const MISSING_SAMPLE_MESSAGE =
   "Mẫu xét nghiệm không tồn tại hoặc không thuộc tổ chức hiện tại.";
-const INVALID_METRIC_MESSAGE = "Chỉ tiêu không thuộc template hợp lệ của mẫu.";
+const INVALID_METRIC_MESSAGE = "Chỉ tiêu không thuộc template hợp lệ của mẫu";
+const INVALID_GROUP_MESSAGE =
+  "Nhóm kết quả không thuộc template hợp lệ của mẫu";
 
 /** Load entry kết quả mẫu và tính tiến độ hiển thị theo từng nhóm. */
 export async function getSampleResultEntry(
@@ -172,7 +174,7 @@ export async function saveSampleResults(
     const metric = metricById.get(result.metricId);
 
     if (!metric) {
-      throw new Error(INVALID_METRIC_MESSAGE);
+      throw new Error(`${INVALID_METRIC_MESSAGE}: ${result.metricId}.`);
     }
 
     return {
@@ -221,6 +223,14 @@ function buildConclusions(
   nextResults: StoredSampleResult[],
   input: SaveSampleResultsInput
 ) {
+  const groupIds = new Set(template.groups.map((group) => group.id));
+
+  for (const item of input.groupConclusions) {
+    if (!groupIds.has(item.groupId)) {
+      throw new Error(`${INVALID_GROUP_MESSAGE}: ${item.groupId}.`);
+    }
+  }
+
   const valueByMetricId = new Map(
     template.results.map((result) => [result.metricId, result.value])
   );
