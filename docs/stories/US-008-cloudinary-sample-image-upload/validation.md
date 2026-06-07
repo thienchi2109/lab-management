@@ -78,7 +78,8 @@ cd lab-kit-app && bun run react-doctor
 ## Acceptance Evidence
 
 Implemented on 2026-06-07 on branch
-`feature/us-008-cloudinary-sample-images`.
+`feature/us-008-cloudinary-sample-images`. Merged via PR #32 into `main` at
+`e60cabc1dac6cc94dcc305375f56ef42735024c3` on 2026-06-07.
 
 Implemented scope:
 
@@ -100,16 +101,23 @@ Verification run:
 
 ```bash
 cd lab-kit-app && bun run test
-# 52 files / 158 tests passed
+# Post-merge on main: 54 files / 172 tests passed
 
 cd lab-kit-app && bun run quality
-# typecheck, ESLint strict, Prettier, React Doctor, and Next.js build passed
+# Post-merge on main: typecheck, ESLint strict, Prettier, React Doctor,
+# and Next.js build passed
 
 cd lab-kit-app && bun run react-doctor:diff
 # No issues found in branch diff
 
+cd lab-kit-app && bun run docstring:check
+# Post-merge on main: Docstring gate passed
+
 node scripts/validate-supabase-schema.mjs
-# Supabase schema contract passed
+# Post-merge on main: Supabase schema contract passed
+
+scripts/bin/harness-cli story verify US-008
+# Story US-008 verification: pass
 ```
 
 Additional proof:
@@ -125,6 +133,13 @@ Additional proof:
   required;
 - React Doctor full scan reports 2 pre-existing performance warnings, but
   `bun run react-doctor:diff` reports no issues in this branch.
+- review hardening after PR comments added transaction-backed image audit RPCs,
+  blocked unauthenticated image routes with `401`, validated signature payloads,
+  prevented leaking internal `Error.message` values on `500`, validated
+  Cloudinary asset hostnames, and added focused regression tests;
+- review follow-up issues were split for product-dependent findings that need
+  more research: #33 for route-level result payload validation without breaking
+  PCR object values, and #34 for Cloudinary hostname allowlist policy.
 
 Skipped with reason:
 
