@@ -61,11 +61,14 @@ scripts/bin/harness-cli story verify US-009B
   `bun run docstring:check`, `bun run build`, and `bun run react-doctor`.
 - React Doctor ran through the package script and exited 0; it reported 3
   non-blocking warnings.
-- Browser smoke: dev server at `http://127.0.0.1:3010` loaded
-  `/dashboard/samples`, redirected unauthenticated traffic to
-  `/login?next=%2Fdashboard%2Fsamples`, showed non-empty content, and had no
-  Next.js error overlay. Authenticated grid browser E2E was not run because no
-  documented local credential or saved auth state was available.
+- Authenticated browser E2E with `agent-browser`: admin login succeeded, opening
+  `/dashboard/samples` rendered the Sample Grid MVP with row `T6_90007`,
+  search submit updated URL state to
+  `/dashboard/samples?page=1&search=T6_90007&status=all&billingStatus=all&sort=receivedAt&dir=desc`,
+  the row remained visible, no Next.js error overlay appeared, and the
+  `Kết quả & ảnh` row action opened
+  `/dashboard/samples/daa166fb-d089-4b7a-9b58-a7e1a71affd0/results` with
+  `Ảnh minh chứng` visible.
 - Implementation uses `DashboardDataTable` for the grid MVP, consumes
   `getSampleGridPage()` from US-009A/A.1, preserves URL state for
   search/filter/sort/page, renders loading/error/permission states, and keeps
