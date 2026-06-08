@@ -1,10 +1,11 @@
-# US-009 - Data Grid, Filters & Views
+# US-009 - Data Grid, Filters & Views Parent Tracker
 
 **Lane:** high-risk  
 **Phase:** 8  
 **Status:** planned  
-**Affects:** bảng dữ liệu mẫu, bộ lọc, sắp xếp, phân trang, hiển thị cột,
-chi tiết nhóm kết quả, trải nghiệm mobile/desktop
+**Affects:** điều phối các slice Phase 8 cho bảng dữ liệu mẫu, phân trang,
+bộ lọc, sắp xếp, responsive view, column visibility, group detail, và hardening
+dữ liệu nếu cần
 
 ## Current Behavior
 
@@ -12,28 +13,27 @@ US-006 đã tạo bề mặt quản lý metadata mẫu và US-007 đã thêm nh�
 theo nhóm/chỉ tiêu. US-008 đã bổ sung ảnh minh chứng cho từng mẫu.
 
 Ứng dụng vẫn chưa có bảng dữ liệu chính đủ dùng hằng ngày theo Phase 8 của
-`original_specs/SPEC-001.md`. Người dùng có thể xem và thao tác từng mẫu, nhưng
-chưa có bề mặt scan dữ liệu có phân trang phía server, search/filter/sort, chế
-độ compact, tùy chọn ẩn/hiện cột, và cách mở chi tiết nhóm kết quả mà không làm
-vỡ layout mobile.
+`original_specs/SPEC-001.md`. Phạm vi Phase 8 ban đầu quá rộng cho một PR vì
+gom data contract, table UI, responsive layout, kết quả động, role behavior, và
+khả năng phát sinh DB/RPC/index.
 
 ## Target Behavior
 
-Admin, Editor và Viewer có một bảng dữ liệu mẫu chính để tra cứu hằng ngày:
+US-009 là parent tracker để chia Phase 8 thành các slice nhỏ, có thể review và
+merge độc lập:
 
-- danh sách mẫu dùng phân trang phía server và không tải toàn bộ dataset;
-- search theo mã mẫu, khách hàng, công ty, loại mẫu, trạng thái, và thông tin
-  liên quan trong phạm vi hợp lý;
-- filter theo trạng thái mẫu, trạng thái thanh toán, loại mẫu, kit, ngày nhận,
-  và nhóm kết quả khi dữ liệu đã có;
-- sort theo các cột được whitelist, mặc định ổn định và dễ đối chiếu;
-- desktop hỗ trợ chọn nhóm/chỉ tiêu để bung cột kết quả;
-- mobile dùng compact/card hoặc group detail mode, không bung toàn bộ cột kết
-  quả ra khỏi viewport;
-- tùy chọn ẩn/hiện cột được lưu ở local/session storage, không thay đổi dữ liệu
-  server;
-- Viewer chỉ đọc, Admin và Editor đi theo quyền hiện có khi mở hành động chi
-  tiết mẫu, kết quả hoặc ảnh.
+- [US-009A](../US-009A-data-grid-query-contract/overview.md): query contract,
+  `searchParams`, server-side pagination, whitelist search/filter/sort, tenant
+  và role read proof.
+- [US-009B](../US-009B-sample-grid-mvp/overview.md): bảng mẫu chính dùng
+  `DashboardDataTable`, URL state, states cơ bản, và row actions theo quyền hiện
+  có.
+- [US-009C](../US-009C-responsive-column-visibility/overview.md): compact/mobile
+  mode và column visibility local/session.
+- [US-009D](../US-009D-result-group-detail-column-mode/overview.md): group
+  detail và desktop column mode cho nhóm/chỉ tiêu kết quả.
+- [US-009E](../US-009E-db-rpc-index-hardening/overview.md): slice điều kiện cho
+  DB/RPC/index/migration nếu các slice trước chứng minh query hiện tại không đủ.
 
 ## Affected Users
 
@@ -42,6 +42,7 @@ Admin, Editor và Viewer có một bảng dữ liệu mẫu chính để tra c�
 - Editor: cần tìm mẫu đang xử lý, lọc mẫu theo trạng thái/ngày nhận/kit, và mở
   chi tiết nhóm kết quả để nhập hoặc kiểm tra.
 - Viewer: cần xem dữ liệu mẫu, ảnh và kết quả ở chế độ chỉ đọc.
+- Reviewer: cần PR nhỏ, có proof riêng, không gom toàn bộ Phase 8 vào một diff.
 
 ## Affected Product Docs
 
@@ -57,6 +58,7 @@ Admin, Editor và Viewer có một bảng dữ liệu mẫu chính để tra c�
 
 ## Non-Goals
 
+- Implement toàn bộ Phase 8 trong một PR.
 - Dashboard/pivot/analytics của US-010.
 - Excel/CSV export của US-011.
 - Report view cho mẫu đã duyệt.

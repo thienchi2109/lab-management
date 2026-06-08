@@ -2,25 +2,21 @@
 
 ## Goal
 
-Triển khai bảng dữ liệu chính cho mẫu, có phân trang phía server,
-search/filter/sort, chế độ compact, group detail, và column visibility đúng
-Phase 8.
+Giữ US-009 làm parent tracker cho Phase 8 và triển khai qua các slice nhỏ, đủ
+nhỏ để review, test, verify và merge độc lập.
 
 ## Scope
 
 Trong scope:
 
-- data grid cho sample dataset hiện có;
-- server-side pagination với page size bị giới hạn;
-- search/filter/sort có whitelist;
-- desktop column mode cho nhóm/chỉ tiêu kết quả;
-- mobile compact mode và group detail mode;
-- local/session column visibility;
-- role-aware row actions dùng quyền hiện có;
-- focused tests, browser verification, React Doctor, và Harness proof.
+- điều phối thứ tự US-009A đến US-009E;
+- giữ boundaries để mỗi PR không gom toàn bộ Phase 8;
+- yêu cầu mỗi slice có proof riêng;
+- cập nhật backlog và durable Harness records cho từng slice.
 
 Ngoài scope:
 
+- implement runtime code trong parent US-009;
 - dashboard/pivot/analytics;
 - export Excel/CSV;
 - report view;
@@ -32,71 +28,45 @@ Ngoài scope:
 
 High-risk vì story chạm:
 
-- read contract của nhiều domain: samples, kits, results, images, users/roles;
+- decomposition của một Phase high-risk;
+- read contract của nhiều domain nếu triển khai nguyên khối;
 - table/list surface dùng hằng ngày;
 - responsive UI trên mobile và desktop;
-- server-side query, phân trang, filter/sort whitelist;
-- khả năng phát sinh RPC/index/migration nếu query hiện tại không đủ;
+- khả năng phát sinh RPC/index/migration;
 - authorization và tenant isolation cho cả Admin, Editor, Viewer.
 
 ## Work Phases
 
 1. Discovery.
    - Dùng context-mode trước, `rtk` cho shell ngắn.
-   - Đọc Code Review Graph trước code edits.
    - Đọc `docs/product/*`, `docs/TEST_MATRIX.md`, US-006, US-007, US-008, và
      `original_specs/SPEC-001.md` Phase 8.
-   - Dùng GitNexus sau khi graph đã thu hẹp symbol hoặc flow cần sửa.
 
-2. Data contract proof.
-   - Map dữ liệu cần hiển thị từ samples, reference tables, results, và images.
-   - Chứng minh query hiện tại có thể phân trang/filter/sort mà không tải toàn
-     bộ dataset.
-   - Nếu cần Supabase write, chứng minh namespace `mcp__supabase_lab_management`,
-     project-ref `tuuqgpzgollcerqqszjr`, migration history, target
-     tables/functions, rồi mới apply forward-only migration.
+2. Slice creation.
+   - Tạo packet US-009A đến US-009E.
+   - Cập nhật backlog Phase 8 để reviewer thấy thứ tự PR.
+   - Thêm durable story/intake records cho từng slice.
 
-3. TDD.
-   - Viết failing tests cho query normalization, page/page size giới hạn,
-     whitelist sort/filter, tenant scope, role read behavior, và empty/error
-     states.
-   - Viết UI tests cho filter reset, URL state, mobile compact mode, desktop
-     column mode, group detail, và Viewer read-only row actions.
+3. Execution order.
+   - US-009A: data grid query contract.
+   - US-009B: sample grid MVP.
+   - US-009C: responsive và column visibility.
+   - US-009D: result group detail và desktop column mode.
+   - US-009E: DB/RPC/index hardening nếu có bằng chứng cần thiết.
 
-4. Frontend, reuse, và caching checkpoint.
-   - Invoke Build Web Apps plugin capability trước UI work.
-   - Invoke `code-deduplication` trước reusable helpers/components.
-   - Reuse `DashboardDataTable` và dashboard primitives.
-   - Giữ Server Components/server actions/`useActionState`/`revalidatePath`.
-   - Không thêm TanStack Query nếu không có client-cache requirement cụ thể.
+4. Per-slice implementation.
+   - Mỗi slice tự chạy discovery, Code Review Graph nếu sửa code,
+     code-deduplication nếu thêm shared code, Build Web Apps nếu sửa UI, TDD,
+     quality gates, và Harness closeout.
 
-5. Implementation.
-   - Thêm parser/normalizer cho search params.
-   - Thêm query/read-model có pagination/filter/sort whitelist.
-   - Cập nhật data grid UI cho desktop/mobile.
-   - Thêm group detail mode và column visibility local/session.
-   - Kết nối row actions vào các flow hiện có của metadata/results/images.
-
-6. Verification.
-   - Chạy focused tests trước.
-   - Chạy typecheck, lint strict, build, React Doctor, docstring gate nếu có
-     changed TS/TSX exports.
-   - Chạy browser verification cho desktop và mobile.
-   - Nếu có migration/RPC, chạy Supabase schema/security/performance checks phù
-     hợp.
-
-7. Harness closeout.
-   - Cập nhật `validation.md` bằng chứng thực tế.
-   - Cập nhật durable story flags bằng `scripts/bin/harness-cli story update`.
-   - Chạy `scripts/bin/harness-cli story verify US-009`.
-   - Ghi trace outcome, proof, và friction nếu có.
+5. Parent closeout.
+   - Chỉ verify US-009 parent sau khi US-009A đến US-009D đã verify hoặc có
+     quyết định durable loại bỏ slice.
 
 ## Stop Conditions
 
-- Không xác định được source of truth cho filter/sort/column contract.
-- Query yêu cầu đọc toàn bộ dataset để lọc/sort.
-- Cần Supabase write nhưng namespace/project-ref không đúng hoặc không chứng
-  minh được target.
-- Mobile layout buộc render toàn bộ cột kết quả.
+- Một slice bắt đầu kéo scope của slice sau vào cùng PR.
+- US-009E cần Supabase write nhưng namespace/project-ref không đúng hoặc không
+  chứng minh được target.
 - Implementation cần quyền mới ngoài role matrix hiện có.
 - Có thay đổi result-engine semantics hoặc upload semantics ngoài scope.

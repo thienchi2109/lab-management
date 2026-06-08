@@ -42,7 +42,16 @@ Stories derived from SPEC-001 MVP roadmap.
 ## Phase 8 — Data Grid
 
 - [US-009](US-009-data-grid-filters-views/overview.md) — Data Grid, Filters &
-  Views (planned)
+  Views parent tracker (planned)
+- [US-009A](US-009A-data-grid-query-contract/overview.md) — Data Grid Query
+  Contract (planned)
+- [US-009B](US-009B-sample-grid-mvp/overview.md) — Sample Grid MVP (planned)
+- [US-009C](US-009C-responsive-column-visibility/overview.md) — Responsive Mode
+  & Column Visibility (planned)
+- [US-009D](US-009D-result-group-detail-column-mode/overview.md) — Result Group
+  Detail & Desktop Column Mode (planned)
+- [US-009E](US-009E-db-rpc-index-hardening/overview.md) — DB/RPC/Index
+  Hardening for Data Grid (planned conditional)
 
 ## Phase 9 — Dashboard
 
