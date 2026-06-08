@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition, type ChangeEvent } from "react";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { Camera, ImagePlus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +35,8 @@ export function SampleImagesPanel({
     message: "",
   });
   const [pending, startTransition] = useTransition();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   function refreshIfNeeded(result: {
@@ -84,22 +85,46 @@ export function SampleImagesPanel({
           </p>
         </div>
         {canWrite ? (
-          <div className="inline-flex">
+          <div className="grid gap-2 sm:grid-cols-2 md:flex">
             <Input
+              aria-label="Chụp ảnh mới"
               accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
+              capture="environment"
+              className="hidden"
               disabled={pending}
               onChange={handleFileChange}
-              ref={fileInputRef}
+              ref={cameraInputRef}
+              tabIndex={-1}
               type="file"
             />
             <Button
+              className="h-11 w-full justify-center px-4 md:w-auto"
               disabled={pending}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => cameraInputRef.current?.click()}
               type="button"
             >
+              <Camera className="size-4" />
+              {pending ? "Đang tải ảnh" : "Chụp ảnh"}
+            </Button>
+            <Input
+              aria-label="Chọn ảnh từ thư viện"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              disabled={pending}
+              onChange={handleFileChange}
+              ref={libraryInputRef}
+              tabIndex={-1}
+              type="file"
+            />
+            <Button
+              className="h-11 w-full justify-center px-4 md:w-auto"
+              disabled={pending}
+              onClick={() => libraryInputRef.current?.click()}
+              type="button"
+              variant="outline"
+            >
               <ImagePlus className="size-4" />
-              {pending ? "Đang xử lý" : "Tải ảnh"}
+              Thư viện
             </Button>
           </div>
         ) : null}
@@ -115,7 +140,7 @@ export function SampleImagesPanel({
         </p>
       ) : (
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {initialImages.map((image) => (
+          {initialImages.map((image, index) => (
             <figure
               key={image.id}
               className="rounded-lg border bg-background p-2"
@@ -124,6 +149,8 @@ export function SampleImagesPanel({
                 alt={`Ảnh minh chứng ${image.publicId}`}
                 className="aspect-video w-full rounded-md object-cover"
                 height={360}
+                loading={index === 0 ? "eager" : "lazy"}
+                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 src={image.secureUrl}
                 width={640}
               />
@@ -132,9 +159,10 @@ export function SampleImagesPanel({
                 {canWrite ? (
                   <Button
                     aria-label="Xóa ảnh"
+                    className="size-9"
                     disabled={pending}
                     onClick={() => handleDelete(image.id)}
-                    size="icon-sm"
+                    size="icon"
                     type="button"
                     variant="ghost"
                   >

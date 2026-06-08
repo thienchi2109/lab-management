@@ -73,9 +73,9 @@ describe("SampleImagesPanel", () => {
     expect(screen.getByRole("img", { name: /evidence-1/ })).toBeTruthy();
     expect(screen.getByText("image/png")).toBeTruthy();
 
-    await userEvent.click(screen.getByRole("button", { name: /Tải ảnh/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Thư viện/ }));
     await userEvent.upload(
-      document.querySelector('input[type="file"]') as HTMLInputElement,
+      screen.getByLabelText("Chọn ảnh từ thư viện") as HTMLInputElement,
       new File(["image"], "evidence.png", { type: "image/png" })
     );
     await waitFor(() =>
@@ -95,6 +95,26 @@ describe("SampleImagesPanel", () => {
     expect(refresh).toHaveBeenCalledTimes(2);
   });
 
+  test("offers mobile camera capture and library upload targets", () => {
+    render(
+      <SampleImagesPanel
+        canWrite={true}
+        initialImages={images}
+        sampleId="sample-1"
+      />
+    );
+
+    const captureInput = screen.getByLabelText("Chụp ảnh mới");
+    const libraryInput = screen.getByLabelText("Chọn ảnh từ thư viện");
+    const deleteButton = screen.getByRole("button", { name: "Xóa ảnh" });
+
+    expect(captureInput.getAttribute("capture")).toBe("environment");
+    expect(libraryInput.hasAttribute("capture")).toBe(false);
+    expect(screen.getByRole("button", { name: /Chụp ảnh/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Thư viện/ })).toBeTruthy();
+    expect(deleteButton.className).toContain("size-9");
+  });
+
   test("renders viewer images without upload or delete controls", () => {
     render(
       <SampleImagesPanel
@@ -108,7 +128,8 @@ describe("SampleImagesPanel", () => {
       screen.getByRole("heading", { name: "Ảnh minh chứng" })
     ).toBeTruthy();
     expect(screen.getByText("image/png")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Tải ảnh/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Chụp ảnh/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Thư viện/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Xóa ảnh" })).toBeNull();
   });
 
@@ -127,9 +148,9 @@ describe("SampleImagesPanel", () => {
       />
     );
 
-    await userEvent.click(screen.getByRole("button", { name: /Tải ảnh/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Chụp ảnh/ }));
     await userEvent.upload(
-      document.querySelector('input[type="file"]') as HTMLInputElement,
+      screen.getByLabelText("Chụp ảnh mới") as HTMLInputElement,
       new File(["image"], "evidence.png", { type: "image/png" })
     );
 
