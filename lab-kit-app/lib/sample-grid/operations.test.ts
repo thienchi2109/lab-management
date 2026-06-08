@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import {
   listSampleGridPage,
@@ -49,6 +49,8 @@ describe("sample grid operations", () => {
         limit: 10,
         offset: 10,
       }),
+      resultColumnOptions: [],
+      selectedResultColumnKeys: [],
       rows: [],
     });
     expect(calls).toEqual([
@@ -85,4 +87,133 @@ describe("sample grid operations", () => {
       canUpdateMetadata: false,
     });
   });
+
+  test("loads result summaries only for current page samples and whitelists selected result columns", async () => {
+    const calls: unknown[] = [];
+    const port: SampleGridPort = {
+      async listSamples() {
+        return {
+          rows: [
+            createSampleRow("sample-1", "T6_00012"),
+            createSampleRow("sample-2", "T6_00013"),
+          ],
+          totalCount: 2,
+        };
+      },
+      async listSampleResultSummaries(input) {
+        calls.push(input);
+        return {
+          "sample-1": createResultSummary("group-1", "metric-1", "NHIỄM"),
+          "sample-2": createResultSummary("group-1", "metric-1", "SẠCH"),
+        };
+      },
+    };
+
+    const page = await listSampleGridPage(
+      {
+        resultColumns: "metric:metric-1,group:group-1,metric:missing",
+      },
+      actor,
+      port
+    );
+
+    expect(calls).toEqual([
+      {
+        organizationId: "org-1",
+        sampleIds: ["sample-1", "sample-2"],
+      },
+    ]);
+    expect(page.selectedResultColumnKeys).toEqual([
+      "metric:metric-1",
+      "group:group-1",
+    ]);
+    expect(page.resultColumnOptions).toEqual([
+      { key: "group:group-1", label: "PCR" },
+      { key: "metric:metric-1", label: "PCR / WSSV" },
+    ]);
+    expect(page.rows[0].resultSummary).toEqual(
+      createResultSummary("group-1", "metric-1", "NHIỄM")
+    );
+  });
+
+  test("keeps the sample page usable when result summary loading fails", async () => {
+    const error = new Error("summary backend unavailable");
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const port: SampleGridPort = {
+      async listSamples() {
+        return {
+          rows: [createSampleRow("sample-1", "T6_00012")],
+          totalCount: 1,
+        };
+      },
+      async listSampleResultSummaries() {
+        throw error;
+      },
+    };
+
+    try {
+      const page = await listSampleGridPage(
+        { resultColumns: "metric:metric-1" },
+        actor,
+        port
+      );
+
+      expect(page.rows).toEqual([
+        expect.objectContaining({ id: "sample-1", resultSummary: null }),
+      ]);
+      expect(page.resultColumnOptions).toEqual([]);
+      expect(page.selectedResultColumnKeys).toEqual([]);
+      expect(consoleError).toHaveBeenCalledWith(
+        "Failed to fetch sample result summaries:",
+        error
+      );
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
+
+function createSampleRow(id: string, sampleCode: string) {
+  return {
+    billingStatus: "unpaid",
+    companyId: null,
+    companyName: null,
+    customerId: null,
+    customerName: null,
+    id,
+    kitBatchId: null,
+    kitSummary: "Chưa gán KIT",
+    receivedAt: "2026-06-06T08:30:00.000Z",
+    sampleCode,
+    sampleTypeId: "sample-type-1",
+    sampleTypeName: "Mẫu PCR",
+    status: "received",
+    resultSummary: null,
+    updatedAt: "2026-06-06T09:00:00.000Z",
+  };
+}
+
+function createResultSummary(groupId: string, metricId: string, value: string) {
+  return {
+    groups: [
+      {
+        id: groupId,
+        code: "PCR",
+        name: "PCR",
+        kqChung: value,
+        enteredMetrics: 1,
+        totalMetrics: 1,
+        metrics: [
+          {
+            id: metricId,
+            code: "WSSV",
+            name: "WSSV",
+            value,
+          },
+        ],
+      },
+    ],
+  };
+}

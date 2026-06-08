@@ -41,9 +41,12 @@ describe("SampleGridPage", () => {
         offset: 0,
         page: 1,
         pageSize: 25,
+        resultColumnKeys: [],
         search: "T6_00012",
         sort: { direction: "desc", key: "receivedAt" },
       },
+      resultColumnOptions: [],
+      selectedResultColumnKeys: [],
       rows: [],
     });
 

@@ -1,8 +1,11 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, test, vi } from "vitest";
 
 import { getCurrentSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
+import { listSampleGridResultSummaries } from "./result-summary-server";
 import {
   SampleGridAccessError,
   createSupabaseSampleGridPort,
@@ -19,8 +22,22 @@ vi.mock("@/lib/supabase/admin", () => ({
   getSupabaseAdminClient: vi.fn(),
 }));
 
+vi.mock("./result-summary-server", () => ({
+  listSampleGridResultSummaries: vi.fn(async () => ({})),
+}));
+
+const serverSource = readFileSync(
+  join(process.cwd(), "lib/sample-grid/server.ts"),
+  "utf8"
+);
+
 describe("sample grid server contract", () => {
+  test("keeps the result-summary adapter typed without disabling checks", () => {
+    expect(serverSource).not.toContain("as never");
+  });
+
   test("allows active viewers to read a tenant-scoped page", async () => {
+    vi.mocked(listSampleGridResultSummaries).mockResolvedValue({});
     vi.mocked(getCurrentSession).mockResolvedValue({
       memberships: [
         { isActive: true, organizationId: "org-1", role: "viewer" },
@@ -121,6 +138,7 @@ describe("sample grid server contract", () => {
         offset: 20,
         page: 3,
         pageSize: 10,
+        resultColumnKeys: [],
         search: "T6_00012",
         sort: { direction: "desc", key: "receivedAt" },
       },

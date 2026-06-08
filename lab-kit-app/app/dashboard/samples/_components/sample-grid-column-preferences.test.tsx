@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react";
@@ -23,22 +25,37 @@ const columns = [
   { key: "kit", label: "KIT" },
 ];
 
+const source = readFileSync(
+  join(
+    process.cwd(),
+    "app/dashboard/samples/_components/sample-grid-column-preferences.tsx"
+  ),
+  "utf8"
+);
+
 describe("SampleGridColumnPreferences", () => {
+  test("uses the shared Checkbox component for column toggles", () => {
+    expect(source).toContain('from "@/components/ui/checkbox"');
+    expect(source).not.toContain('type="checkbox"');
+    expect(source).toContain("checked === true");
+  });
+
   test("restores hidden column state from localStorage and persists toggles", async () => {
     localStorage.setItem("sample-grid-test-columns", JSON.stringify(["kit"]));
 
     render(<ColumnPreferenceHarness storageKey="sample-grid-test-columns" />);
 
-    const kitToggle = screen.getByRole<HTMLInputElement>("checkbox", {
+    const kitToggle = screen.getByRole("checkbox", {
       name: "Hiển thị KIT",
     });
 
     await screen.findByText("Ẩn: kit");
-    expect(kitToggle.checked).toBe(false);
+    expect(kitToggle.getAttribute("aria-checked")).toBe("false");
 
     await userEvent.click(kitToggle);
 
     await screen.findByText("Ẩn: none");
+    expect(kitToggle.getAttribute("aria-checked")).toBe("true");
     expect(localStorage.getItem("sample-grid-test-columns")).toBe("[]");
   });
 
@@ -57,11 +74,13 @@ describe("SampleGridColumnPreferences", () => {
     const kitColumn = document.querySelector<HTMLElement>(
       '[data-sample-column-key="kit"]'
     );
-    const kitToggle = screen.getByRole<HTMLInputElement>("checkbox", {
+    const kitToggle = screen.getByRole("checkbox", {
       name: "Hiển thị KIT",
     });
 
-    await waitFor(() => expect(kitToggle.checked).toBe(false));
+    await waitFor(() =>
+      expect(kitToggle.getAttribute("aria-checked")).toBe("false")
+    );
     expect(kitColumn?.hidden).toBe(false);
   });
 
@@ -88,12 +107,14 @@ describe("SampleGridColumnPreferences", () => {
       <ColumnPreferenceHarness storageKey={storageKey} />
     );
 
-    const kitToggle = screen.getByRole<HTMLInputElement>("checkbox", {
+    const kitToggle = screen.getByRole("checkbox", {
       name: "Hiển thị KIT",
     });
 
     await screen.findByText("Ẩn: kit");
-    await waitFor(() => expect(kitToggle.checked).toBe(false));
+    await waitFor(() =>
+      expect(kitToggle.getAttribute("aria-checked")).toBe("false")
+    );
 
     await act(async () => {
       root.unmount();

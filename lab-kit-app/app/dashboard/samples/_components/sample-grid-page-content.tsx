@@ -68,6 +68,9 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         method="get"
       >
         <input name="page" type="hidden" value="1" />
+        {page.selectedResultColumnKeys.map((key) => (
+          <input key={key} name="resultColumns" type="hidden" value={key} />
+        ))}
         <div className="grid gap-3 md:grid-cols-[1fr_180px_190px_150px_150px_auto] md:items-end">
           <label className="space-y-1.5 text-sm font-medium">
             <span>Tìm kiếm</span>
@@ -171,6 +174,9 @@ function buildPageHref(page: SampleGridPage, nextPage: number) {
   params.set("dir", page.query.sort.direction);
   params.set("page", String(nextPage));
   params.set("pageSize", String(page.query.pageSize));
+  for (const key of page.selectedResultColumnKeys) {
+    params.append("resultColumns", key);
+  }
 
   return `/dashboard/samples?${params.toString()}`;
 }

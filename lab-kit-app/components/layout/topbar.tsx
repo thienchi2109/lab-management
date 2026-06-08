@@ -54,7 +54,7 @@ export function Topbar({ displayName, username }: TopbarProps) {
       </nav>
 
       <div className="ml-auto flex items-center gap-3">
-        <div className="relative hidden w-60 sm:block">
+        <div className="relative hidden w-60 2xl:block">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
             type="search"
