@@ -4,9 +4,10 @@ This directory contains harness automation tools.
 
 ## Harness CLI
 
-The Rust Harness CLI is the primary interface for the durable layer. Installed
-projects use the prebuilt binary at `scripts/bin/harness-cli` on macOS/Linux or
-`scripts/bin/harness-cli.exe` on Windows for normal Harness work.
+The Rust Harness CLI is the primary interface for the durable layer. Normal
+macOS/Linux use goes through the guarded wrapper at `scripts/bin/harness-cli`,
+which delegates to the local prebuilt binary at `scripts/bin/harness-cli.raw`.
+On Windows, use `scripts/bin/harness-cli.exe`.
 
 ```bash
 scripts/bin/harness-cli init          # Create the database
@@ -32,6 +33,9 @@ Proof flags on `story update` are numeric booleans: use `1` for yes and `0` for
 no. `story verify <id>` runs the configured `verify_command`; it does not accept
 proof flags. Configure the command with `story add/update --verify`, run
 `story verify <id>`, then update proof flags with `story update`.
+Do not set a story's `verify_command` to `scripts/bin/harness-cli story verify
+<same-id>`; the wrapper blocks recursive verification and reports the offending
+`HARNESS_VERIFY_STACK` instead of allowing unbounded process spawning.
 
 Backlog `--risk` uses Harness lanes, not severity words: use `tiny`, `normal`,
 or `high-risk`. Use `tiny` instead of `low`. `query matrix` defaults to
@@ -41,8 +45,9 @@ human-readable `yes`/`no`; use `query matrix --numeric` when copying values into
 The schema lives in `scripts/schema/` and is version-controlled. The database
 file (`harness.db`) is `.gitignore`d.
 
-Requires: the prebuilt Rust CLI at `scripts/bin/harness-cli` on macOS/Linux or
-`scripts/bin/harness-cli.exe` on Windows.
+Requires: the guarded wrapper at `scripts/bin/harness-cli` and prebuilt Rust CLI
+at `scripts/bin/harness-cli.raw` on macOS/Linux, or `scripts/bin/harness-cli.exe`
+on Windows.
 
 Direct database inspection may still use SQLite tools, but normal Harness use
 should go through the Rust CLI.
@@ -132,8 +137,11 @@ validation commands. The installer script is not part of the installed project
 payload.
 
 By default the installer also downloads the prebuilt Rust Harness CLI for the
-current platform into `scripts/bin/harness-cli` on macOS/Linux or
-`scripts/bin/harness-cli.exe` on Windows, then verifies its `.sha256` checksum.
+current platform. In this repo, keep the macOS/Linux artifact at
+`scripts/bin/harness-cli.raw` so the tracked `scripts/bin/harness-cli` wrapper
+can guard recursive `story verify` calls. Windows continues to use
+`scripts/bin/harness-cli.exe`. The installer verifies the artifact `.sha256`
+checksum.
 A source branch can pin the release used by the installer through
 `scripts/harness-cli-release-tag`; Phase 3 pins `harness-cli-v0.1.4` so branch
 installs receive a Phase 3-built CLI. Set `HARNESS_CLI_RELEASE_TAG` to override

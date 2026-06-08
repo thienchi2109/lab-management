@@ -1,29 +1,20 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 
-import { DashboardDataTable } from "@/components/dashboard/data-table";
 import { SelectField } from "@/components/dashboard/select-field";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type {
-  SampleGridPage,
-  SampleGridRow,
-} from "@/lib/sample-grid/operations";
+import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
 import {
   billingStatusLabels,
   sampleStatusLabels,
 } from "./sample-metadata-labels";
+import { SampleGridTableSection } from "./sample-grid-table-section";
 
 type SampleGridPageContentProps = {
   page: SampleGridPage;
 };
-
-const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 const statusOptions: Array<[string, string]> = [
   ["all", "Tất cả trạng thái"],
@@ -118,12 +109,7 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         </div>
       </form>
 
-      <DashboardDataTable
-        caption="Danh sách mẫu xét nghiệm"
-        emptyDescription="Thử đổi từ khóa, bộ lọc hoặc quay lại trang đầu."
-        emptyTitle="Không có mẫu phù hợp"
-        rows={page.rows.map((sample) => toTableRow(sample, page))}
-      />
+      <SampleGridTableSection page={page} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>
@@ -169,60 +155,6 @@ function PaginationButton({
       <Link href={href}>{label}</Link>
     </Button>
   );
-}
-
-function toTableRow(sample: SampleGridRow, page: SampleGridPage) {
-  const actionLabel =
-    page.capabilities.canEnterResults || page.capabilities.canManageImages
-      ? "Kết quả & ảnh"
-      : "Xem kết quả & ảnh";
-
-  return {
-    id: sample.id,
-    cells: [
-      { header: "Mã mẫu", content: sample.sampleCode, primary: true },
-      { header: "Khách hàng", content: sample.customerName ?? "Không có" },
-      { header: "Công ty", content: sample.companyName ?? "Không có" },
-      { header: "Loại mẫu", content: sample.sampleTypeName },
-      { header: "KIT", content: sample.kitSummary },
-      { header: "Ngày nhận", content: formatDate(sample.receivedAt) },
-      {
-        header: "Trạng thái",
-        content: <StatusBadge status={sample.status} />,
-      },
-      {
-        header: "Thanh toán",
-        content: formatBillingStatus(sample.billingStatus),
-      },
-    ],
-    actions: (
-      <Button asChild size="sm" variant="outline">
-        <Link href={`/dashboard/samples/${sample.id}/results`}>
-          {actionLabel}
-        </Link>
-      </Button>
-    ),
-  };
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const destructive = status === "archived";
-
-  return (
-    <Badge variant={destructive ? "destructive" : "secondary"}>
-      {sampleStatusLabels[status as keyof typeof sampleStatusLabels] ?? status}
-    </Badge>
-  );
-}
-
-function formatBillingStatus(status: string) {
-  const labels: Record<string, string> = billingStatusLabels;
-
-  return labels[status] ?? status;
-}
-
-function formatDate(value: string) {
-  return sampleDateFormatter.format(new Date(value));
 }
 
 function buildPageHref(page: SampleGridPage, nextPage: number) {

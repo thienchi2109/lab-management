@@ -1,11 +1,18 @@
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
+/** Ô dữ liệu có metadata responsive cho shared dashboard table. */
 export type DashboardDataTableCell = {
+  columnKey?: string;
   header: string;
   content: ReactNode;
   primary?: boolean;
+  desktopClassName?: string;
+  mobileClassName?: string;
 };
 
+/** Dòng dữ liệu chung cho bảng dashboard và mobile card fallback. */
 export type DashboardDataTableRow = {
   id: string;
   cells: DashboardDataTableCell[];
@@ -16,13 +23,18 @@ type DashboardDataTableProps = {
   caption: string;
   emptyTitle: string;
   emptyDescription: string;
+  hiddenColumnKeys?: readonly string[];
   rows: DashboardDataTableRow[];
 };
 
+const emptyHiddenColumnKeys: readonly string[] = [];
+
+/** Render bảng dashboard với desktop table và mobile card từ cùng dữ liệu. */
 export function DashboardDataTable({
   caption,
   emptyTitle,
   emptyDescription,
+  hiddenColumnKeys = emptyHiddenColumnKeys,
   rows,
 }: DashboardDataTableProps) {
   if (rows.length === 0) {
@@ -34,7 +46,14 @@ export function DashboardDataTable({
     );
   }
 
-  const headers = rows[0]?.cells.map((cell) => cell.header) ?? [];
+  const hiddenColumnKeySet = new Set(hiddenColumnKeys);
+  const visibleRows = rows.map((row) => ({
+    ...row,
+    cells: row.cells.filter((cell) =>
+      isColumnVisible(cell, hiddenColumnKeySet)
+    ),
+  }));
+  const headerCells = visibleRows[0]?.cells ?? [];
 
   return (
     <div className="overflow-hidden rounded-lg border bg-background">
@@ -43,25 +62,31 @@ export function DashboardDataTable({
           <caption className="sr-only">{caption}</caption>
           <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
             <tr>
-              {headers.map((header) => (
-                <th key={header} className="px-4 py-3 font-medium">
-                  {header}
+              {headerCells.map((cell) => (
+                <th
+                  key={cell.columnKey ?? cell.header}
+                  className={cn("px-4 py-3 font-medium", cell.desktopClassName)}
+                  data-sample-column-key={cell.columnKey}
+                >
+                  {cell.header}
                 </th>
               ))}
               <th className="px-4 py-3 text-right font-medium">Tác vụ</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {rows.map((row) => (
+            {visibleRows.map((row) => (
               <tr key={row.id} className="hover:bg-muted/30">
                 {row.cells.map((cell) => (
                   <td
-                    key={cell.header}
-                    className={
+                    key={cell.columnKey ?? cell.header}
+                    className={cn(
                       cell.primary
                         ? "px-4 py-3 font-medium"
-                        : "px-4 py-3 text-muted-foreground"
-                    }
+                        : "px-4 py-3 text-muted-foreground",
+                      cell.desktopClassName
+                    )}
+                    data-sample-column-key={cell.columnKey}
                   >
                     {cell.content}
                   </td>
@@ -74,10 +99,17 @@ export function DashboardDataTable({
       </div>
 
       <div className="divide-y md:hidden">
-        {rows.map((row) => (
+        {visibleRows.map((row) => (
           <div key={row.id} className="space-y-3 p-4">
             {row.cells.map((cell) => (
-              <div key={cell.header} className="flex justify-between gap-4">
+              <div
+                key={cell.columnKey ?? cell.header}
+                className={cn(
+                  "flex justify-between gap-4",
+                  cell.mobileClassName
+                )}
+                data-sample-column-key={cell.columnKey}
+              >
                 <span className="text-xs font-medium uppercase text-muted-foreground">
                   {cell.header}
                 </span>
@@ -98,4 +130,11 @@ export function DashboardDataTable({
       </div>
     </div>
   );
+}
+
+function isColumnVisible(
+  cell: DashboardDataTableCell,
+  hiddenColumnKeys: Set<string>
+) {
+  return !cell.columnKey || !hiddenColumnKeys.has(cell.columnKey);
 }
