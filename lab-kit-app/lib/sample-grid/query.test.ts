@@ -65,6 +65,8 @@ describe("sample grid query parser", () => {
     const query = parseSampleGridQuery({
       billingStatus: "late",
       dir: "sideways",
+      receivedFrom: "2026-02-31",
+      receivedTo: "2026-13-45",
       page: "-10",
       pageSize: "0",
       sort: "organization_id",

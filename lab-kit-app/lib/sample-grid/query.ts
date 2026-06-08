@@ -111,11 +111,11 @@ function parseFilters(params: SampleGridSearchParams): SampleGridFilters {
   const receivedFrom = firstParam(params, "receivedFrom");
   const receivedTo = firstParam(params, "receivedTo");
 
-  if (receivedFrom && ISO_DATE_PATTERN.test(receivedFrom)) {
+  if (receivedFrom && isValidIsoDate(receivedFrom)) {
     filters.receivedFrom = receivedFrom;
   }
 
-  if (receivedTo && ISO_DATE_PATTERN.test(receivedTo)) {
+  if (receivedTo && isValidIsoDate(receivedTo)) {
     filters.receivedTo = receivedTo;
   }
 
@@ -150,6 +150,21 @@ function normalizeSearch(value: string | undefined) {
   const search = value?.trim().replace(/\s+/g, " ") ?? "";
 
   return search.length > 0 ? search.slice(0, MAX_SEARCH_LENGTH) : null;
+}
+
+function isValidIsoDate(value: string) {
+  if (!ISO_DATE_PATTERN.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
 }
 
 function positiveInteger(value: string | undefined) {
