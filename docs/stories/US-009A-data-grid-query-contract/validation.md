@@ -48,4 +48,19 @@ scripts/bin/harness-cli story verify US-009A
 ## Acceptance Evidence
 
 - Story split from US-009 before runtime implementation.
-- Implementation proof pending.
+- RED: `bun run test lib/sample-grid/query.test.ts lib/sample-grid/operations.test.ts lib/sample-grid/server.test.ts` failed before implementation because `./query`, `./operations`, and `./server` did not exist.
+- GREEN focused tests: `bun run test lib/sample-grid/query.test.ts lib/sample-grid/operations.test.ts lib/sample-grid/server.test.ts` passed `3` files and `8` tests.
+- Full tests: `bun run test` passed `59` files and `188` tests.
+- Typecheck: `bun run typecheck` passed.
+- Lint strict: `bun run lint:strict` passed.
+- Build: `bun run build` passed.
+- React Doctor: `bun run react-doctor` exited `0` with `2` non-blocking performance warnings.
+- React Doctor verbose: `bun run react-doctor:verbose` reported the same
+  `react-doctor/async-parallel` warnings at
+  `app/api/samples/[sampleId]/images/[imageId]/route.ts:21` and
+  `lib/sample-images/operations.ts:128`; both are outside US-009A.
+- React Doctor diff: `bun run react-doctor:diff` found no issues for
+  `feature/us-009a-data-grid-query-contract -> main`.
+- Docstring gate: `bun run docstring:check` passed before staging; rerun after staging before commit.
+- Harness: `scripts/bin/harness-cli story verify US-009A` passed after updating
+  the durable verify command to non-recursive `true`.
