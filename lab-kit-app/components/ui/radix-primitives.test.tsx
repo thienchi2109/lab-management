@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
 describe("Radix UI primitive contracts", () => {
@@ -41,5 +42,16 @@ describe("Radix UI primitive contracts", () => {
     expect(html).toContain('data-slot="input"');
     expect(html).toContain('name="sampleCode"');
     expect(html).toContain('value="T6_00012"');
+  });
+
+  test("Checkbox renders the shared Radix checkbox control", () => {
+    const html = renderToStaticMarkup(
+      <Checkbox name="enabled" value="true" defaultChecked />
+    );
+
+    expect(html).toContain('role="checkbox"');
+    expect(html).toContain('data-slot="checkbox"');
+    expect(html).toContain('aria-checked="true"');
+    expect(html).toContain('name="enabled"');
   });
 });

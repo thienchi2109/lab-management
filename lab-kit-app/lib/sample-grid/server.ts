@@ -15,6 +15,11 @@ import type {
   SampleGridSearchParams,
   SampleGridSortKey,
 } from "./query";
+import {
+  createSampleGridResultSummaryClient,
+  listSampleGridResultSummaries,
+  type SupabaseResultSummarySource,
+} from "./result-summary-server";
 
 type SampleGridDbRow = {
   billing_status: string;
@@ -98,6 +103,9 @@ export async function getSampleGridPage(searchParams: SampleGridSearchParams) {
 /** Create the Supabase-backed read port for sample grid pages. */
 export function createSupabaseSampleGridPort(): SampleGridPort {
   const supabase = getSupabaseAdminClient();
+  const resultSummaryClient = createSampleGridResultSummaryClient(
+    supabase as unknown as SupabaseResultSummarySource
+  );
 
   return {
     async listSamples(input) {
@@ -130,6 +138,9 @@ export function createSupabaseSampleGridPort(): SampleGridPort {
         rows: (data ?? []).map(mapSampleGridRow),
         totalCount: count ?? 0,
       };
+    },
+    async listSampleResultSummaries(input) {
+      return listSampleGridResultSummaries(resultSummaryClient, input);
     },
   };
 }
@@ -214,6 +225,7 @@ function mapSampleGridRow(row: SampleGridDbRow): SampleGridRow {
     sampleTypeId: row.sample_type_id,
     sampleTypeName: sampleType?.name ?? UNKNOWN_SAMPLE_TYPE_LABEL,
     status: row.status,
+    resultSummary: null,
     updatedAt: row.updated_at,
   };
 }

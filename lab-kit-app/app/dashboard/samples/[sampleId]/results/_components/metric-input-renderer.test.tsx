@@ -1,9 +1,19 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 
 import type { SampleResultMetric } from "@/lib/sample-results/operations";
 
 import { MetricInputRenderer } from "./metric-input-renderer";
+
+const source = readFileSync(
+  join(
+    process.cwd(),
+    "app/dashboard/samples/[sampleId]/results/_components/metric-input-renderer.tsx"
+  ),
+  "utf8"
+);
 
 const metricBase: Omit<SampleResultMetric, "inputType"> = {
   id: "metric-1",
@@ -17,6 +27,11 @@ const metricBase: Omit<SampleResultMetric, "inputType"> = {
 };
 
 describe("MetricInputRenderer", () => {
+  test("uses the shared Checkbox component for boolean inputs", () => {
+    expect(source).toContain('from "@/components/ui/checkbox"');
+    expect(source).not.toContain('type="checkbox"');
+  });
+
   test("renders numeric, text, textarea, select, multi-select, boolean, scale, percent and PCR inputs", () => {
     const inputTypes = [
       "number",
@@ -49,7 +64,8 @@ describe("MetricInputRenderer", () => {
     expect(html).toContain("<textarea");
     expect(html).toContain('name="results[select]"');
     expect(html).toContain('name="results[multi_select]"');
-    expect(html).toContain('type="checkbox"');
+    expect(html).toContain('role="checkbox"');
+    expect(html).toContain('data-slot="checkbox"');
     expect(html).toContain('min="1"');
     expect(html).toContain('max="100"');
     expect(html).toContain('name="results[pcr_qualitative][status]"');

@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import type { SampleResultMetric } from "@/lib/sample-results/operations";
 
@@ -148,15 +149,13 @@ function MetricInputControl({
         <span className="flex items-center gap-2">
           <input type="hidden" name={name} value="false" />
           <label htmlFor={inputId} className="flex items-center gap-2">
-            <input
+            <Checkbox
               id={inputId}
               aria-label={metric.name}
               name={name}
-              type="checkbox"
               value="true"
               defaultChecked={value === true}
               disabled={readOnly}
-              className="size-4"
             />
             Có
           </label>

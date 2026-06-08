@@ -20,3 +20,11 @@ describe("getPageTitle", () => {
     expect(topbarSource).not.toContain("export function getPageTitle");
   });
 });
+
+describe("Topbar responsive layout", () => {
+  test("keeps global search hidden until wide desktop to avoid overlapping nav items", () => {
+    expect(topbarSource).toContain(
+      'className="relative hidden w-60 2xl:block"'
+    );
+  });
+});

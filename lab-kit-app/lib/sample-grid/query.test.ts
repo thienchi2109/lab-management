@@ -16,6 +16,7 @@ describe("sample grid query parser", () => {
       offset: 0,
       page: 1,
       pageSize: DEFAULT_SAMPLE_GRID_PAGE_SIZE,
+      resultColumnKeys: [],
       search: null,
       sort: { direction: "desc", key: "receivedAt" },
     });
@@ -77,5 +78,22 @@ describe("sample grid query parser", () => {
     expect(query.pageSize).toBe(DEFAULT_SAMPLE_GRID_PAGE_SIZE);
     expect(query.filters).toEqual({});
     expect(query.sort).toEqual({ direction: "desc", key: "receivedAt" });
+  });
+
+  test("whitelists bounded result group and metric column keys", () => {
+    const query = parseSampleGridQuery({
+      resultColumns: [
+        "metric:metric-1,group:group-1",
+        "metric:bad/value",
+        "group:group-2",
+        "metric:metric-3",
+      ],
+    });
+
+    expect(query.resultColumnKeys).toEqual([
+      "metric:metric-1",
+      "group:group-1",
+      "group:group-2",
+    ]);
   });
 });

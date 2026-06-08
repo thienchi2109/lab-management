@@ -2,6 +2,8 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 /** Cấu hình một cột Sample Grid có thể lưu preference trong browser. */
 export type SampleGridColumnPreference = Readonly<{
   key: string;
@@ -38,20 +40,18 @@ export function SampleGridColumnPreferences({
               key={column.key}
               className="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <input
+              <Checkbox
+                aria-label={`Hiển thị ${column.label}`}
                 checked={column.locked || isVisible}
-                className="size-4 rounded border-input"
                 disabled={column.locked}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked;
-
-                  const nextHiddenKeys = checked
+                onCheckedChange={(checked) => {
+                  const isChecked = checked === true;
+                  const nextHiddenKeys = isChecked
                     ? hiddenKeys.filter((key) => key !== column.key)
                     : [...new Set([...hiddenKeys, column.key])];
 
                   writeHiddenKeys(storageKey, nextHiddenKeys);
                 }}
-                type="checkbox"
               />
               <span>Hiển thị {column.label}</span>
             </label>

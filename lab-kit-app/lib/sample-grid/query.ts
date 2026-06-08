@@ -41,6 +41,7 @@ export type SampleGridQuery = {
   offset: number;
   page: number;
   pageSize: number;
+  resultColumnKeys: string[];
   search: string | null;
   sort: {
     direction: SampleGridSortDirection;
@@ -58,8 +59,10 @@ const DEFAULT_SORT: SampleGridQuery["sort"] = {
   key: "receivedAt",
 };
 const MAX_SEARCH_LENGTH = 100;
+const MAX_RESULT_COLUMNS = 3;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
+const RESULT_COLUMN_KEY_PATTERN = /^(group|metric):[A-Za-z0-9_-]{1,120}$/;
 const sortKeys = new Set<SampleGridSortKey>([
   "billingStatus",
   "customerName",
@@ -86,6 +89,7 @@ export function parseSampleGridQuery(
     offset,
     page,
     pageSize,
+    resultColumnKeys: parseResultColumnKeys(params),
     search: normalizeSearch(firstParam(params, "search")),
     sort: parseSort(params),
   };
@@ -146,6 +150,31 @@ function parseSort(params: SampleGridSearchParams): SampleGridQuery["sort"] {
   };
 }
 
+function parseResultColumnKeys(params: SampleGridSearchParams) {
+  const rawValues = allParams(params, "resultColumns");
+  const keys: string[] = [];
+
+  for (const rawValue of rawValues) {
+    for (const key of rawValue.split(",")) {
+      const normalized = key.trim();
+
+      if (
+        normalized &&
+        RESULT_COLUMN_KEY_PATTERN.test(normalized) &&
+        !keys.includes(normalized)
+      ) {
+        keys.push(normalized);
+      }
+
+      if (keys.length >= MAX_RESULT_COLUMNS) {
+        return keys;
+      }
+    }
+  }
+
+  return keys;
+}
+
 function normalizeSearch(value: string | undefined) {
   const search = value?.trim().replace(/\s+/g, " ") ?? "";
 
@@ -189,4 +218,18 @@ function firstParam(
   const value = params[key];
 
   return Array.isArray(value) ? value[0] : value;
+}
+
+function allParams(params: SampleGridSearchParams, key: string): string[] {
+  if (params instanceof URLSearchParams) {
+    return params.getAll(key);
+  }
+
+  const value = params[key];
+
+  if (!value) {
+    return [];
+  }
+
+  return Array.isArray(value) ? value : [value];
 }

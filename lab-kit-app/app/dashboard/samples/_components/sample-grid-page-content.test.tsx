@@ -1,9 +1,19 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 
 import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
 import { SampleGridPageContent } from "./sample-grid-page-content";
+
+const tableSectionSource = readFileSync(
+  join(
+    process.cwd(),
+    "app/dashboard/samples/_components/sample-grid-table-section.tsx"
+  ),
+  "utf8"
+);
 
 const basePage: SampleGridPage = {
   capabilities: {
@@ -25,9 +35,12 @@ const basePage: SampleGridPage = {
     offset: 0,
     page: 1,
     pageSize: 25,
+    resultColumnKeys: [],
     search: "T6",
     sort: { direction: "desc", key: "receivedAt" },
   },
+  resultColumnOptions: [],
+  selectedResultColumnKeys: [],
   rows: [
     {
       billingStatus: "unpaid",
@@ -43,6 +56,7 @@ const basePage: SampleGridPage = {
       sampleTypeId: "sample-type-1",
       sampleTypeName: "Mẫu PCR",
       status: "received",
+      resultSummary: null,
       updatedAt: "2026-06-06T09:00:00.000Z",
     },
   ],
@@ -106,5 +120,69 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain('data-sample-column-key="kit"');
     expect(html).toContain("hidden xl:table-cell");
     expect(html).toContain("hidden sm:flex");
+  });
+
+  test("renders result group detail and desktop selected result columns without mobile matrix cells", () => {
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent
+        page={{
+          ...basePage,
+          query: {
+            ...basePage.query,
+            resultColumnKeys: ["metric:metric-1", "group:group-1"],
+          },
+          resultColumnOptions: [
+            { key: "group:group-1", label: "PCR" },
+            { key: "metric:metric-1", label: "PCR / WSSV" },
+          ],
+          selectedResultColumnKeys: ["metric:metric-1", "group:group-1"],
+          rows: [
+            {
+              ...basePage.rows[0],
+              resultSummary: {
+                groups: [
+                  {
+                    id: "group-1",
+                    code: "PCR",
+                    name: "PCR",
+                    kqChung: "NHIỄM",
+                    enteredMetrics: 1,
+                    totalMetrics: 1,
+                    metrics: [
+                      {
+                        id: "metric-1",
+                        code: "WSSV",
+                        name: "WSSV",
+                        value: "Dương tính",
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
+        }}
+      />
+    );
+
+    expect(html).toContain("Nhóm kết quả");
+    expect(html).toContain("PCR: 1/1 chỉ tiêu");
+    expect(html).toContain('data-sample-column-key="metric:metric-1"');
+    expect(html).toContain('data-sample-column-key="group:group-1"');
+    expect(html).toContain("Dương tính");
+    expect(html).toContain("hidden lg:table-cell");
+    expect(html).toContain("hidden md:flex");
+  });
+
+  test("builds result column label lookup once per page render", () => {
+    const toTableRowBody = tableSectionSource.slice(
+      tableSectionSource.indexOf("function toTableRow"),
+      tableSectionSource.indexOf("function ResultColumnModeControls")
+    );
+
+    expect(toTableRowBody).not.toContain("resultColumnLabelByKey = new Map");
+    expect(tableSectionSource).toContain(
+      "const resultColumnLabelByKey = new Map"
+    );
   });
 });

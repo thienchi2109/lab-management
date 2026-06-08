@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type {
   SampleGridPage,
+  SampleGridResultGroupSummary,
+  SampleGridResultMetricSummary,
   SampleGridRow,
 } from "@/lib/sample-grid/operations";
 
@@ -25,6 +27,11 @@ import {
 
 type SampleGridTableSectionProps = {
   page: SampleGridPage;
+};
+
+type ResultSummaryIndex = {
+  groupKqChungByKey: Map<string, string | null>;
+  metricByKey: Map<string, SampleGridResultMetricSummary>;
 };
 
 const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
@@ -48,17 +55,23 @@ export function SampleGridTableSection({ page }: SampleGridTableSectionProps) {
   const hiddenColumnKeys = useSampleGridHiddenColumnKeys(
     sampleGridColumnPreferences
   );
+  const resultColumnLabelByKey = new Map(
+    page.resultColumnOptions.map((option) => [option.key, option.label])
+  );
 
   return (
     <>
       <SampleGridColumnPreferences columns={sampleGridColumnPreferences} />
+      <ResultColumnModeControls page={page} />
 
       <DashboardDataTable
         caption="Danh sách mẫu xét nghiệm"
         emptyDescription="Thử đổi từ khóa, bộ lọc hoặc quay lại trang đầu."
         emptyTitle="Không có mẫu phù hợp"
         hiddenColumnKeys={hiddenColumnKeys}
-        rows={page.rows.map((sample) => toTableRow(sample, page))}
+        rows={page.rows.map((sample) =>
+          toTableRow(sample, page, resultColumnLabelByKey)
+        )}
       />
     </>
   );
@@ -66,12 +79,16 @@ export function SampleGridTableSection({ page }: SampleGridTableSectionProps) {
 
 function toTableRow(
   sample: SampleGridRow,
-  page: SampleGridPage
+  page: SampleGridPage,
+  resultColumnLabelByKey: Map<string, string>
 ): DashboardDataTableRow {
   const actionLabel =
     page.capabilities.canEnterResults || page.capabilities.canManageImages
       ? "Kết quả & ảnh"
       : "Xem kết quả & ảnh";
+  const resultSummaryIndex = buildResultSummaryIndex(
+    sample.resultSummary?.groups ?? []
+  );
 
   return {
     id: sample.id,
@@ -127,6 +144,21 @@ function toTableRow(
         mobileClassName: "hidden sm:flex",
         content: formatBillingStatus(sample.billingStatus),
       },
+      {
+        columnKey: "resultDetail",
+        desktopClassName: "hidden lg:table-cell",
+        header: "Nhóm kết quả",
+        content: (
+          <ResultGroupDetail
+            canWrite={page.capabilities.canEnterResults}
+            sampleId={sample.id}
+            summary={sample.resultSummary}
+          />
+        ),
+      },
+      ...page.selectedResultColumnKeys.map((key) =>
+        toResultColumnCell(key, resultColumnLabelByKey, resultSummaryIndex)
+      ),
     ],
     actions: (
       <Button asChild size="sm" variant="outline">
@@ -136,6 +168,165 @@ function toTableRow(
       </Button>
     ),
   };
+}
+
+function ResultColumnModeControls({ page }: { page: SampleGridPage }) {
+  if (page.resultColumnOptions.length === 0) {
+    return null;
+  }
+
+  return (
+    <fieldset className="rounded-lg border bg-background p-4">
+      <legend className="px-1 text-sm font-medium">Cột kết quả desktop</legend>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {page.resultColumnOptions.map((option) => {
+          const selected = page.selectedResultColumnKeys.includes(option.key);
+
+          return (
+            <Button
+              key={option.key}
+              asChild
+              size="sm"
+              variant={selected ? "default" : "outline"}
+            >
+              <Link href={buildResultColumnHref(page, option.key, selected)}>
+                {option.label}
+              </Link>
+            </Button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+function ResultGroupDetail({
+  canWrite,
+  sampleId,
+  summary,
+}: {
+  canWrite: boolean;
+  sampleId: string;
+  summary: SampleGridRow["resultSummary"];
+}) {
+  if (!summary || summary.groups.length === 0) {
+    return <span className="text-muted-foreground">Chưa có nhóm kết quả</span>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {summary.groups.map((group) => (
+        <details key={group.id} className="rounded-md border p-2" open>
+          <summary className="cursor-pointer list-none text-sm font-medium [&::-webkit-details-marker]:hidden">
+            {group.name}: {group.enteredMetrics}/{group.totalMetrics} chỉ tiêu
+          </summary>
+          <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+            <p>KQ_CHUNG: {group.kqChung ?? "Chưa có"}</p>
+            {group.metrics.map((metric) => (
+              <p key={metric.id}>
+                {metric.name}: {formatResultValue(metric.value)}
+              </p>
+            ))}
+            <Link
+              className="inline-flex text-foreground underline-offset-4 hover:underline"
+              href={`/dashboard/samples/${sampleId}/results`}
+            >
+              {canWrite ? "Chỉnh sửa kết quả" : "Xem kết quả"}
+            </Link>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+function toResultColumnCell(
+  key: string,
+  resultColumnLabelByKey: Map<string, string>,
+  resultSummaryIndex: ResultSummaryIndex
+) {
+  return {
+    columnKey: key,
+    desktopClassName: "hidden lg:table-cell",
+    header: resultColumnLabelByKey.get(key) ?? "Kết quả",
+    mobileClassName: "hidden md:flex",
+    content: formatSelectedResultValue(key, resultSummaryIndex),
+  };
+}
+
+function formatSelectedResultValue(
+  key: string,
+  resultSummaryIndex: ResultSummaryIndex
+) {
+  if (key.startsWith("group:")) {
+    return resultSummaryIndex.groupKqChungByKey.get(key) ?? "Chưa có";
+  }
+
+  const metric = resultSummaryIndex.metricByKey.get(key);
+
+  return metric ? formatResultValue(metric.value) : "Chưa có";
+}
+
+function buildResultSummaryIndex(
+  groups: SampleGridResultGroupSummary[]
+): ResultSummaryIndex {
+  const groupKqChungByKey = new Map<string, string | null>();
+  const metricByKey = new Map<string, SampleGridResultMetricSummary>();
+
+  for (const group of groups) {
+    groupKqChungByKey.set(`group:${group.id}`, group.kqChung ?? null);
+
+    for (const metric of group.metrics) {
+      metricByKey.set(`metric:${metric.id}`, metric);
+    }
+  }
+
+  return { groupKqChungByKey, metricByKey };
+}
+
+function formatResultValue(value: unknown) {
+  if (value === null || value === undefined || value === "") {
+    return "Chưa nhập";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Có" : "Không";
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+}
+
+function buildResultColumnHref(
+  page: SampleGridPage,
+  key: string,
+  selected: boolean
+) {
+  const params = new URLSearchParams();
+  const nextKeys = selected
+    ? page.selectedResultColumnKeys.filter((item) => item !== key)
+    : [...page.selectedResultColumnKeys, key].slice(0, 3);
+
+  if (page.query.search) params.set("search", page.query.search);
+  if (page.query.filters.status)
+    params.set("status", page.query.filters.status);
+  if (page.query.filters.billingStatus) {
+    params.set("billingStatus", page.query.filters.billingStatus);
+  }
+  params.set("sort", page.query.sort.key);
+  params.set("dir", page.query.sort.direction);
+  params.set("page", "1");
+  params.set("pageSize", String(page.query.pageSize));
+  for (const nextKey of nextKeys) params.append("resultColumns", nextKey);
+
+  return `/dashboard/samples?${params.toString()}`;
 }
 
 function formatBillingStatus(status: string) {
