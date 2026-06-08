@@ -1,16 +1,23 @@
 import {
-  getSampleMetadata,
-  SampleMetadataAccessError,
-} from "@/lib/sample-metadata/server";
+  getSampleGridPage,
+  SampleGridAccessError,
+} from "@/lib/sample-grid/server";
 
-import { SampleMetadataPageContent } from "./_components/sample-metadata-page-content";
+import { SampleGridPageContent } from "./_components/sample-grid-page-content";
 
-/** Render route quản lý metadata mẫu xét nghiệm trong dashboard. */
-export default async function SampleMetadataPage() {
-  const metadata = await loadSampleMetadataOrNull();
+type SampleGridPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
-  if (metadata) {
-    return <SampleMetadataPageContent metadata={metadata} />;
+/** Render route bảng mẫu xét nghiệm từ contract data grid server-side. */
+export default async function SampleGridPage({
+  searchParams,
+}: SampleGridPageProps) {
+  const params = (await searchParams) ?? {};
+  const page = await loadSampleGridOrNull(params);
+
+  if (page) {
+    return <SampleGridPageContent page={page} />;
   }
 
   return (
@@ -22,18 +29,19 @@ export default async function SampleMetadataPage() {
         Bạn chưa có quyền xem mẫu xét nghiệm
       </h1>
       <p className="text-sm text-muted-foreground">
-        Tài khoản hiện tại không có quyền xem hoặc quản lý metadata mẫu xét
-        nghiệm trong tổ chức.
+        Tài khoản hiện tại không có quyền xem bảng mẫu xét nghiệm trong tổ chức.
       </p>
     </div>
   );
 }
 
-async function loadSampleMetadataOrNull() {
+async function loadSampleGridOrNull(
+  searchParams: Record<string, string | string[] | undefined>
+) {
   try {
-    return await getSampleMetadata();
+    return await getSampleGridPage(searchParams);
   } catch (error) {
-    if (error instanceof SampleMetadataAccessError) {
+    if (error instanceof SampleGridAccessError) {
       return null;
     }
 
