@@ -141,11 +141,19 @@ Additional proof:
   more research: #33 for route-level result payload validation without breaking
   PCR object values, and #34 for Cloudinary hostname allowlist policy.
 
-Skipped with reason:
+Live E2E proof:
 
-- Cloudinary live provider smoke was skipped because
-  `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
-  `CLOUDINARY_API_SECRET` were not configured in the local environment;
-- browser E2E was not run because Playwright is not installed in the project.
-  The rendered panel is covered by server-render tests, and the Next.js
-  production build includes the new dashboard/API routes.
+- On 2026-06-08, Cloudinary credentials were configured in local
+  `lab-kit-app/.env.local` and the dev server was restarted with
+  `bun run dev --hostname 127.0.0.1 --port 3000`.
+- `agent-browser` logged in with the Admin account, opened
+  `/dashboard/samples/daa166fb-d089-4b7a-9b58-a7e1a71affd0/results`
+  for sample `T6_90007`, uploaded `/root/images/cld-sample-5.jpg`, observed
+  the uploaded image delete control, deleted the uploaded image, and confirmed
+  `GET /api/samples/daa166fb-d089-4b7a-9b58-a7e1a71affd0/images` returned
+  `{"canWrite":true,"images":[]}`.
+- Dev server logs showed HTTP `200` for
+  `POST /api/uploads/cloudinary/signature`,
+  `POST /api/samples/:sampleId/images`,
+  `DELETE /api/samples/:sampleId/images/:imageId`, and
+  `GET /api/samples/:sampleId/images`.
