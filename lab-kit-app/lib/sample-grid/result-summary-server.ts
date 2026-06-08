@@ -70,6 +70,16 @@ export async function listSampleGridResultSummaries(
     return {};
   }
 
+  const resultsPromise = loadResults(
+    supabase,
+    input.organizationId,
+    input.sampleIds
+  );
+  const conclusionsPromise = loadConclusions(
+    supabase,
+    input.organizationId,
+    input.sampleIds
+  );
   const samples = await readRows<SampleRow>(
     supabase
       .from<SampleRow>("samples")
@@ -98,16 +108,10 @@ export async function listSampleGridResultSummaries(
     input.organizationId,
     unique(metrics.map((metric) => metric.result_group_id))
   );
-  const results = await loadResults(
-    supabase,
-    input.organizationId,
-    input.sampleIds
-  );
-  const conclusions = await loadConclusions(
-    supabase,
-    input.organizationId,
-    input.sampleIds
-  );
+  const [results, conclusions] = await Promise.all([
+    resultsPromise,
+    conclusionsPromise,
+  ]);
 
   return buildResultSummaries({
     assignments,

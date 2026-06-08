@@ -129,6 +129,55 @@ describe("listSampleGridResultSummaries", () => {
       consoleError.mockRestore();
     }
   });
+
+  test("starts page-scoped result reads before the template-dependent chain", async () => {
+    const { client, queryStarts } = createSupabaseDouble({
+      result_groups: [
+        { id: "group-1", code: "PCR", name: "PCR", sort_order: 10 },
+      ],
+      result_metrics: [
+        {
+          id: "metric-1",
+          result_group_id: "group-1",
+          code: "WSSV",
+          name: "WSSV",
+          sort_order: 10,
+        },
+      ],
+      result_template_metrics: [
+        {
+          result_template_id: "template-1",
+          result_metric_id: "metric-1",
+          sort_order: 10,
+        },
+      ],
+      result_templates: [
+        {
+          id: "template-1",
+          sample_type_id: "sample-type-1",
+          created_at: "2026-06-01T00:00:00.000Z",
+        },
+      ],
+      sample_group_conclusions: [],
+      sample_results: [],
+      samples: [{ id: "sample-1", sample_type_id: "sample-type-1" }],
+    });
+
+    await listSampleGridResultSummaries(
+      client as unknown as Parameters<typeof listSampleGridResultSummaries>[0],
+      {
+        organizationId: "org-1",
+        sampleIds: ["sample-1"],
+      }
+    );
+
+    expect(queryStarts.indexOf("sample_results")).toBeLessThan(
+      queryStarts.indexOf("result_templates")
+    );
+    expect(queryStarts.indexOf("sample_group_conclusions")).toBeLessThan(
+      queryStarts.indexOf("result_templates")
+    );
+  });
 });
 
 function createSupabaseDouble(
@@ -136,23 +185,31 @@ function createSupabaseDouble(
   errors: Record<string, unknown> = {}
 ) {
   const calls: Array<Record<string, unknown>> = [];
+  const queryStarts: string[] = [];
   const client = {
     from(table: string) {
       return {
         select() {
-          return createQuery(table, tables[table] ?? [], calls, errors[table]);
+          return createQuery(
+            table,
+            tables[table] ?? [],
+            calls,
+            queryStarts,
+            errors[table]
+          );
         },
       };
     },
   };
 
-  return { calls, client };
+  return { calls, client, queryStarts };
 }
 
 function createQuery(
   table: string,
   rows: Array<Record<string, unknown>>,
   calls: Array<Record<string, unknown>>,
+  queryStarts: string[],
   error: unknown
 ) {
   const filters: Array<(row: Record<string, unknown>) => boolean> = [];
@@ -178,6 +235,7 @@ function createQuery(
     then(
       resolve: (value: { data: typeof rows | null; error: unknown }) => void
     ) {
+      queryStarts.push(table);
       resolve({
         data: error
           ? null
