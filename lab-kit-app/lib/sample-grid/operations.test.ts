@@ -9,6 +9,7 @@ import {
 const actor: SampleGridActor = {
   organizationId: "org-1",
   profileId: "profile-1",
+  role: "editor",
 };
 
 describe("sample grid operations", () => {
@@ -39,6 +40,11 @@ describe("sample grid operations", () => {
         totalCount: 42,
         totalPages: 5,
       },
+      capabilities: {
+        canEnterResults: true,
+        canManageImages: true,
+        canUpdateMetadata: true,
+      },
       query: expect.objectContaining({
         limit: 10,
         offset: 10,
@@ -55,5 +61,28 @@ describe("sample grid operations", () => {
         }),
       },
     ]);
+  });
+
+  test("marks viewer grid capabilities as read-only", async () => {
+    const port: SampleGridPort = {
+      async listSamples() {
+        return {
+          rows: [],
+          totalCount: 0,
+        };
+      },
+    };
+
+    const page = await listSampleGridPage(
+      {},
+      { ...actor, role: "viewer" },
+      port
+    );
+
+    expect(page.capabilities).toEqual({
+      canEnterResults: false,
+      canManageImages: false,
+      canUpdateMetadata: false,
+    });
   });
 });

@@ -41,9 +41,11 @@ describe("sample grid server contract", () => {
           customer_name: "Nguyễn Văn A",
           id: "sample-1",
           kit_batch_id: null,
+          kit_batches: null,
           received_at: "2026-06-08T08:00:00.000Z",
           sample_code: "T6_00012",
           sample_type_id: "type-1",
+          sample_types: { name: "Mẫu PCR" },
           status: "received",
           updated_at: "2026-06-08T09:00:00.000Z",
         },
@@ -57,6 +59,18 @@ describe("sample grid server contract", () => {
     const page = await getSampleGridPage({ pageSize: "10" });
 
     expect(page.rows).toHaveLength(1);
+    expect(page.capabilities).toEqual({
+      canEnterResults: false,
+      canManageImages: false,
+      canUpdateMetadata: false,
+    });
+    expect(page.rows[0]).toEqual(
+      expect.objectContaining({
+        companyName: null,
+        kitSummary: "Chưa gán KIT",
+        sampleTypeName: "Mẫu PCR",
+      })
+    );
     expect(page.pageInfo.totalCount).toBe(1);
     expect(page.query.limit).toBe(10);
   });
@@ -114,6 +128,10 @@ describe("sample grid server contract", () => {
 
     expect(query.select).toHaveBeenCalledWith(
       expect.stringContaining("sample_code"),
+      { count: "exact" }
+    );
+    expect(query.select).toHaveBeenCalledWith(
+      expect.stringContaining("sample_types(name)"),
       { count: "exact" }
     );
     expect(query.eq).toHaveBeenCalledWith("organization_id", "org-1");

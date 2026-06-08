@@ -1,7 +1,7 @@
 import "server-only";
 
-import { getCurrentSession } from "@/lib/auth/session";
-import { getSampleMetadataActor } from "@/lib/sample-metadata/server";
+import type { AppRole } from "@/lib/auth/permissions";
+import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import {
@@ -19,15 +19,27 @@ import type {
 type SampleGridDbRow = {
   billing_status: string;
   company_id: string | null;
+  companies?: RelationName | RelationName[] | null;
   customer_id: string | null;
   customer_name: string | null;
   id: string;
   kit_batch_id: string | null;
+  kit_batches?: KitBatchRelation | KitBatchRelation[] | null;
   received_at: string;
   sample_code: string;
   sample_type_id: string;
+  sample_types?: RelationName | RelationName[] | null;
   status: string;
   updated_at: string;
+};
+
+type RelationName = {
+  name?: string | null;
+};
+
+type KitBatchRelation = {
+  lot_number?: string | null;
+  kit_types?: RelationName | RelationName[] | null;
 };
 
 type SampleGridQueryBuilder = {
@@ -51,8 +63,10 @@ type SampleGridQueryBuilder = {
 };
 
 const SAMPLE_GRID_SELECT =
-  "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, received_at, status, billing_status, updated_at";
+  "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, received_at, status, billing_status, updated_at, sample_types(name), companies(name), kit_batches(lot_number, kit_types(name))";
 const SAMPLE_GRID_READ_ROLES = ["admin", "editor", "viewer"] as const;
+const MISSING_KIT_LABEL = "Chưa gán KIT";
+const UNKNOWN_SAMPLE_TYPE_LABEL = "Không rõ loại mẫu";
 const sortColumnByKey: Record<SampleGridSortKey, string> = {
   billingStatus: "billing_status",
   customerName: "customer_name",
@@ -127,7 +141,7 @@ async function requireSampleGridActor(): Promise<SampleGridActor> {
     throw new SampleGridAccessError();
   }
 
-  const actor = getSampleMetadataActor(session, [...SAMPLE_GRID_READ_ROLES]);
+  const actor = getActiveSampleGridActor(session);
 
   if (!actor) {
     throw new SampleGridAccessError();
@@ -178,17 +192,56 @@ function escapeSearchToken(value: string) {
 }
 
 function mapSampleGridRow(row: SampleGridDbRow): SampleGridRow {
+  const sampleType = firstRelation(row.sample_types);
+  const company = firstRelation(row.companies);
+  const kitBatch = firstRelation(row.kit_batches);
+  const kitType = firstRelation(kitBatch?.kit_types);
+
   return {
     billingStatus: row.billing_status,
     companyId: row.company_id,
+    companyName: company?.name ?? null,
     customerId: row.customer_id,
     customerName: row.customer_name,
     id: row.id,
     kitBatchId: row.kit_batch_id,
+    kitSummary:
+      kitBatch?.lot_number && kitType?.name
+        ? `${kitType.name} - ${kitBatch.lot_number}`
+        : MISSING_KIT_LABEL,
     receivedAt: row.received_at,
     sampleCode: row.sample_code,
     sampleTypeId: row.sample_type_id,
+    sampleTypeName: sampleType?.name ?? UNKNOWN_SAMPLE_TYPE_LABEL,
     status: row.status,
     updatedAt: row.updated_at,
   };
+}
+
+function getActiveSampleGridActor(
+  session: CurrentSession
+): SampleGridActor | null {
+  const membership = session.memberships.find((item) => {
+    return (
+      item.isActive && SAMPLE_GRID_READ_ROLES.includes(item.role as AppRole)
+    );
+  });
+
+  if (!membership) {
+    return null;
+  }
+
+  return {
+    organizationId: membership.organizationId,
+    profileId: session.profile.id,
+    role: membership.role,
+  };
+}
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) {
+    return null;
+  }
+
+  return Array.isArray(value) ? (value[0] ?? null) : value;
 }
