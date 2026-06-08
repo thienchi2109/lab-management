@@ -45,6 +45,8 @@ Stories derived from SPEC-001 MVP roadmap.
   Views parent tracker (planned)
 - [US-009A](US-009A-data-grid-query-contract/overview.md) — Data Grid Query
   Contract (planned)
+- [US-009A.1](US-009A.1-sample-grid-display-contract/overview.md) — Sample
+  Grid Display Contract (implemented)
 - [US-009B](US-009B-sample-grid-mvp/overview.md) — Sample Grid MVP (planned)
 - [US-009C](US-009C-responsive-column-visibility/overview.md) — Responsive Mode
   & Column Visibility (planned)
