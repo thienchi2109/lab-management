@@ -61,6 +61,28 @@ export type SupabaseLike = {
   };
 };
 
+/** Supabase client surface tối thiểu được adapter summary kết quả sử dụng. */
+export type SupabaseResultSummarySource = {
+  from(table: string): {
+    select(columns: string): QueryBuilder<unknown>;
+  };
+};
+
+/** Adapt an ungenerated Supabase client to the result-summary query contract. */
+export function createSampleGridResultSummaryClient(
+  source: SupabaseResultSummarySource
+): SupabaseLike {
+  return {
+    from<T>(table: string) {
+      return {
+        select(columns: string) {
+          return source.from(table).select(columns) as QueryBuilder<T>;
+        },
+      };
+    },
+  };
+}
+
 /** Load result summaries for the current sample grid page only. */
 export async function listSampleGridResultSummaries(
   supabase: SupabaseLike,

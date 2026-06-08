@@ -16,9 +16,9 @@ import type {
   SampleGridSortKey,
 } from "./query";
 import {
+  createSampleGridResultSummaryClient,
   listSampleGridResultSummaries,
-  type QueryBuilder,
-  type SupabaseLike,
+  type SupabaseResultSummarySource,
 } from "./result-summary-server";
 
 type SampleGridDbRow = {
@@ -103,15 +103,9 @@ export async function getSampleGridPage(searchParams: SampleGridSearchParams) {
 /** Create the Supabase-backed read port for sample grid pages. */
 export function createSupabaseSampleGridPort(): SampleGridPort {
   const supabase = getSupabaseAdminClient();
-  const resultSummaryClient: SupabaseLike = {
-    from<T>(table: string) {
-      const source = supabase as { from(table: string): unknown };
-
-      return source.from(table) as {
-        select(columns: string): QueryBuilder<T>;
-      };
-    },
-  };
+  const resultSummaryClient = createSampleGridResultSummaryClient(
+    supabase as unknown as SupabaseResultSummarySource
+  );
 
   return {
     async listSamples(input) {

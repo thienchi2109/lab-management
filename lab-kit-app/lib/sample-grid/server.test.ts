@@ -23,6 +23,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 vi.mock("./result-summary-server", () => ({
+  createSampleGridResultSummaryClient: vi.fn((source) => source),
   listSampleGridResultSummaries: vi.fn(async () => ({})),
 }));
 
@@ -34,6 +35,12 @@ const serverSource = readFileSync(
 describe("sample grid server contract", () => {
   test("keeps the result-summary adapter typed without disabling checks", () => {
     expect(serverSource).not.toContain("as never");
+    expect(serverSource).not.toContain("as { from(table: string): unknown }");
+    expect(serverSource).not.toContain(
+      "select(columns: string): QueryBuilder<T>"
+    );
+    expect(serverSource).toContain("createSampleGridResultSummaryClient(");
+    expect(serverSource).toContain("SupabaseResultSummarySource");
   });
 
   test("allows active viewers to read a tenant-scoped page", async () => {
