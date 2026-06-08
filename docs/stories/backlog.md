@@ -41,7 +41,8 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 8 — Data Grid
 
-- US-009 — Data Grid, Filters & Views (planned)
+- [US-009](US-009-data-grid-filters-views/overview.md) — Data Grid, Filters &
+  Views (planned)
 
 ## Phase 9 — Dashboard
 
