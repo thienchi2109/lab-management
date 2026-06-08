@@ -20,6 +20,15 @@
   permits it.
 - Do not edit migration files after they have been applied to a live database.
   Any correction must use a follow-up, forward-only migration.
+- Before any Supabase MCP write operation, including `apply_migration`, DDL,
+  DML, RPC changes, grants, policy changes, or cleanup SQL, you must prove the
+  target project first. Query and state the exact MCP namespace, project-ref,
+  repo mapping, current migration history, and target tables/functions before
+  executing the write. For this repo the expected namespace is
+  `mcp__supabase_lab_management` and the expected project-ref is
+  `tuuqgpzgollcerqqszjr`. If the namespace or project-ref is missing,
+  ambiguous, or different, stop immediately and ask the user; never fall back to
+  the generic `mcp__supabase` namespace for this repo.
 - React Doctor is a mandatory quality gate before commit and push. Enable the
   tracked hooks once with `scripts/setup-git-hooks.sh`; hooks run from
   `lab-kit-app/` and call `bun run react-doctor:staged` on pre-commit and

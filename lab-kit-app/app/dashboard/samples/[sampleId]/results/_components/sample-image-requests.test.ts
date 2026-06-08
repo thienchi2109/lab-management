@@ -94,6 +94,42 @@ describe("uploadSampleImageRequest", () => {
     });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
+
+  test("handles non-JSON Cloudinary upload failures before parsing the body", async () => {
+    const uploadJson = vi
+      .fn()
+      .mockRejectedValue(new SyntaxError("Unexpected token <"));
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          apiKey: "api-key-1",
+          folder: "lab-management/org-1/sample-1",
+          publicId: "lab-management/org-1/sample-1/evidence-1",
+          signature: "signature-1",
+          timestamp: 1_720_000_000,
+          uploadUrl: "https://api.cloudinary.com/v1_1/lab/image/upload",
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        json: uploadJson,
+      });
+    const file = new File(["image"], "evidence.png", { type: "image/png" });
+
+    await expect(
+      uploadSampleImageRequest("sample-1", file, fetcher)
+    ).resolves.toEqual({
+      refresh: false,
+      state: {
+        status: "error",
+        message: "Không thể upload ảnh lên Cloudinary.",
+      },
+    });
+    expect(uploadJson).not.toHaveBeenCalled();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("deleteSampleImageRequest", () => {

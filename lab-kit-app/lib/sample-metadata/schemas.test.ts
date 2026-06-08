@@ -91,6 +91,39 @@ describe("sample metadata schemas", () => {
     }
   });
 
+  test("rejects sample codes outside calendar months", () => {
+    const validInput = {
+      sampleCode: "T12_99999",
+      sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+      customerName: "Công ty Minh Phú",
+      receivedAt: "2026-06-06T08:30",
+      status: "received",
+      billingStatus: "unpaid",
+    };
+
+    expect(parseCreateSampleInput(validInput).sampleCode).toBe("T12_99999");
+
+    for (const sampleCode of ["T0_00001", "T13_00001", "T99_00001"]) {
+      expect(() =>
+        parseCreateSampleInput({ ...validInput, sampleCode })
+      ).toThrow(SampleMetadataValidationError);
+    }
+  });
+
+  test("rejects blank receivedAt as the required datetime field", () => {
+    expect(() =>
+      parseCreateSampleInput({
+        sampleCode: "T6_00012",
+        sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+        customerName: "Công ty Minh Phú",
+        collectedAt: "",
+        receivedAt: "",
+        status: "received",
+        billingStatus: "unpaid",
+      })
+    ).toThrow(SampleMetadataValidationError);
+  });
+
   test("exposes user-safe field errors for invalid form values", () => {
     try {
       parseCreateSampleInput({

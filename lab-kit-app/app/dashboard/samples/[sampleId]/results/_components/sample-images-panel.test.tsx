@@ -111,4 +111,31 @@ describe("SampleImagesPanel", () => {
     expect(screen.queryByRole("button", { name: /Tải ảnh/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Xóa ảnh" })).toBeNull();
   });
+
+  test("blocks upload when the sample already has ten images", async () => {
+    const tenImages = Array.from({ length: 10 }, (_, index) => ({
+      ...images[0],
+      id: `image-${index + 1}`,
+      publicId: `lab-management/org-1/sample-1/evidence-${index + 1}`,
+    }));
+
+    render(
+      <SampleImagesPanel
+        canWrite={true}
+        initialImages={tenImages}
+        sampleId="sample-1"
+      />
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /Tải ảnh/ }));
+    await userEvent.upload(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      new File(["image"], "evidence.png", { type: "image/png" })
+    );
+
+    expect(uploadSampleImageRequest).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("Mỗi mẫu chỉ được tối đa 10 ảnh minh chứng.")
+    ).toBeTruthy();
+  });
 });

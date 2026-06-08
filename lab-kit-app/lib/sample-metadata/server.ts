@@ -54,6 +54,14 @@ type SampleRow = {
   updated_at: string;
 };
 
+/** Lỗi phân quyền khi người dùng không được đọc metadata mẫu. */
+export class SampleMetadataAccessError extends Error {
+  constructor() {
+    super("Sample metadata access required.");
+    this.name = "SampleMetadataAccessError";
+  }
+}
+
 /** Resolve the active sample metadata actor for read or write operations. */
 export function getSampleMetadataActor(
   session: CurrentSession,
@@ -209,13 +217,13 @@ async function requireSampleMetadataActor(roles: AppRole[]) {
   const session = await getCurrentSession();
 
   if (!session || !hasAnyRole(session.memberships, roles)) {
-    throw new Error("Sample metadata access required.");
+    throw new SampleMetadataAccessError();
   }
 
   const actor = getSampleMetadataActor(session, roles);
 
   if (!actor) {
-    throw new Error("Sample metadata access required.");
+    throw new SampleMetadataAccessError();
   }
 
   return actor;

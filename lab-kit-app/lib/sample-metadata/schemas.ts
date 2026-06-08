@@ -36,7 +36,7 @@ export function isSampleBillingStatus(
 }
 
 const INVALID_SAMPLE_MESSAGE = "Thông tin mẫu xét nghiệm không hợp lệ.";
-const SAMPLE_CODE_PATTERN = /^T\d{1,2}_[0-9]{5}$/;
+const SAMPLE_CODE_PATTERN = /^T(?:1[0-2]|[1-9])_[0-9]{5}$/;
 const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 /** Lỗi validation metadata mẫu kèm thông báo an toàn theo từng field. */
@@ -63,6 +63,17 @@ const optionalTextSchema = z.preprocess((value) => {
 }, z.string().max(500).nullable());
 
 const requiredTextSchema = z.string().trim().min(1).max(200);
+const nullableDateTimeSchema = z.preprocess(
+  normalizeEmptyValue,
+  z
+    .string()
+    .refine((value) => DATE_TIME_PATTERN.test(value))
+    .nullable()
+);
+const requiredDateTimeSchema = z.preprocess(
+  normalizeEmptyValue,
+  z.string().refine((value) => DATE_TIME_PATTERN.test(value))
+);
 
 const sampleInputSchema = z.object({
   sampleCode: z
@@ -75,20 +86,8 @@ const sampleInputSchema = z.object({
   companyId: nullableUuidSchema,
   kitBatchId: nullableUuidSchema,
   customerName: requiredTextSchema,
-  collectedAt: z.preprocess(
-    (value) => {
-      if (value === "" || value === null || value === undefined) return null;
-      return value;
-    },
-    z
-      .string()
-      .refine((value) => DATE_TIME_PATTERN.test(value))
-      .nullable()
-  ),
-  receivedAt: z
-    .string()
-    .trim()
-    .refine((value) => DATE_TIME_PATTERN.test(value)),
+  collectedAt: nullableDateTimeSchema,
+  receivedAt: requiredDateTimeSchema,
   status: z.enum(SAMPLE_STATUSES),
   billingStatus: z.enum(SAMPLE_BILLING_STATUSES),
   note: optionalTextSchema,
@@ -122,6 +121,11 @@ function parseWithMessage<T>(schema: z.ZodType<T>, input: unknown): T {
   }
 
   return result.data;
+}
+
+function normalizeEmptyValue(value: unknown) {
+  if (value === "" || value === null || value === undefined) return null;
+  return typeof value === "string" ? value.trim() : value;
 }
 
 function toFieldErrors(
