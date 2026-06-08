@@ -48,4 +48,26 @@ scripts/bin/harness-cli story verify US-009B
 ## Acceptance Evidence
 
 - Story split from US-009 before runtime implementation.
-- Implementation proof pending.
+- RED: focused UI tests failed before implementation because
+  `sample-grid-page-content`, `loading`, and `error` did not exist, and the
+  samples page still loaded metadata instead of `getSampleGridPage()`.
+- GREEN focused tests:
+  `bun run test app/dashboard/samples/page.test.tsx app/dashboard/samples/_components/sample-grid-page-content.test.tsx app/dashboard/samples/loading.test.tsx app/dashboard/samples/error.test.tsx`
+  passed 4 files / 8 tests.
+- Full test suite: `cd lab-kit-app && bun run test` passed 62 files / 195
+  tests.
+- Quality gates passed:
+  `bun run typecheck`, `bun run lint:strict`, `bun run format:check`,
+  `bun run docstring:check`, `bun run build`, and `bun run react-doctor`.
+- React Doctor ran through the package script and exited 0; it reported 3
+  non-blocking warnings.
+- Browser smoke: dev server at `http://127.0.0.1:3010` loaded
+  `/dashboard/samples`, redirected unauthenticated traffic to
+  `/login?next=%2Fdashboard%2Fsamples`, showed non-empty content, and had no
+  Next.js error overlay. Authenticated grid browser E2E was not run because no
+  documented local credential or saved auth state was available.
+- Implementation uses `DashboardDataTable` for the grid MVP, consumes
+  `getSampleGridPage()` from US-009A/A.1, preserves URL state for
+  search/filter/sort/page, renders loading/error/permission states, and keeps
+  Viewer row actions read-only while Admin/Editor actions go to the existing
+  results/images flow.
