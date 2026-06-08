@@ -15,6 +15,7 @@ import {
   billingStatusLabels,
   sampleStatusLabels,
 } from "./sample-metadata-labels";
+import { SampleGridColumnPreferences } from "./sample-grid-column-preferences";
 
 type SampleGridPageContentProps = {
   page: SampleGridPage;
@@ -43,6 +44,16 @@ const sortOptions: Array<[string, string]> = [
 const directionOptions: Array<[string, string]> = [
   ["desc", "Giảm dần"],
   ["asc", "Tăng dần"],
+];
+const sampleGridColumnPreferences = [
+  { key: "sample", label: "Mã mẫu", locked: true },
+  { key: "customer", label: "Khách hàng", locked: true },
+  { key: "company", label: "Công ty" },
+  { key: "sampleType", label: "Loại mẫu" },
+  { key: "kit", label: "KIT" },
+  { key: "receivedAt", label: "Ngày nhận" },
+  { key: "status", label: "Trạng thái", locked: true },
+  { key: "billing", label: "Thanh toán" },
 ];
 
 /** Render bảng mẫu MVP bằng shared DashboardDataTable và URL state. */
@@ -118,6 +129,8 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         </div>
       </form>
 
+      <SampleGridColumnPreferences columns={sampleGridColumnPreferences} />
+
       <DashboardDataTable
         caption="Danh sách mẫu xét nghiệm"
         emptyDescription="Thử đổi từ khóa, bộ lọc hoặc quay lại trang đầu."
@@ -180,18 +193,55 @@ function toTableRow(sample: SampleGridRow, page: SampleGridPage) {
   return {
     id: sample.id,
     cells: [
-      { header: "Mã mẫu", content: sample.sampleCode, primary: true },
-      { header: "Khách hàng", content: sample.customerName ?? "Không có" },
-      { header: "Công ty", content: sample.companyName ?? "Không có" },
-      { header: "Loại mẫu", content: sample.sampleTypeName },
-      { header: "KIT", content: sample.kitSummary },
-      { header: "Ngày nhận", content: formatDate(sample.receivedAt) },
       {
+        columnKey: "sample",
+        header: "Mã mẫu",
+        content: sample.sampleCode,
+        primary: true,
+      },
+      {
+        columnKey: "customer",
+        header: "Khách hàng",
+        content: sample.customerName ?? "Không có",
+      },
+      {
+        columnKey: "company",
+        desktopClassName: "hidden xl:table-cell",
+        header: "Công ty",
+        mobileClassName: "hidden sm:flex",
+        content: sample.companyName ?? "Không có",
+      },
+      {
+        columnKey: "sampleType",
+        desktopClassName: "hidden lg:table-cell",
+        header: "Loại mẫu",
+        mobileClassName: "hidden sm:flex",
+        content: sample.sampleTypeName,
+      },
+      {
+        columnKey: "kit",
+        desktopClassName: "hidden xl:table-cell",
+        header: "KIT",
+        mobileClassName: "hidden sm:flex",
+        content: sample.kitSummary,
+      },
+      {
+        columnKey: "receivedAt",
+        desktopClassName: "hidden lg:table-cell",
+        header: "Ngày nhận",
+        mobileClassName: "hidden sm:flex",
+        content: formatDate(sample.receivedAt),
+      },
+      {
+        columnKey: "status",
         header: "Trạng thái",
         content: <StatusBadge status={sample.status} />,
       },
       {
+        columnKey: "billing",
+        desktopClassName: "hidden lg:table-cell",
         header: "Thanh toán",
+        mobileClassName: "hidden sm:flex",
         content: formatBillingStatus(sample.billingStatus),
       },
     ],

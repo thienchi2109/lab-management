@@ -42,4 +42,33 @@ describe("DashboardDataTable", () => {
     expect(html).toContain("Không có KIT phù hợp");
     expect(html).toContain("Thử đổi bộ lọc hoặc từ khóa tìm kiếm.");
   });
+
+  test("applies responsive column metadata to desktop and mobile cells", () => {
+    const html = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Danh sách KIT"
+        emptyTitle="Không có KIT phù hợp"
+        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+        rows={[
+          {
+            id: "kit-1",
+            cells: [
+              { header: "Mã KIT", content: "KIT-001", primary: true },
+              {
+                columnKey: "lot",
+                desktopClassName: "hidden lg:table-cell",
+                header: "Lô",
+                mobileClassName: "hidden sm:flex",
+                content: "LOT-001",
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(html).toContain('data-sample-column-key="lot"');
+    expect(html).toContain("hidden lg:table-cell");
+    expect(html).toContain("hidden sm:flex");
+  });
 });

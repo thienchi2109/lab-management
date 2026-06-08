@@ -8,7 +8,7 @@ target/
 dist/
 
 # Downloaded Harness CLI binary for installed project instances.
-scripts/bin/harness-cli
+scripts/bin/harness-cli.raw
 scripts/bin/harness-cli.exe
 
 # Editor / workspace settings

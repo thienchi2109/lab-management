@@ -96,4 +96,15 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain("Xem kết quả &amp; ảnh");
     expect(html).not.toContain(">Kết quả &amp; ảnh<");
   });
+
+  test("marks lower-priority columns for responsive hiding and preferences", () => {
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent page={basePage} />
+    );
+
+    expect(html).toContain("Tùy chọn cột");
+    expect(html).toContain('data-sample-column-key="kit"');
+    expect(html).toContain("hidden xl:table-cell");
+    expect(html).toContain("hidden sm:flex");
+  });
 });
