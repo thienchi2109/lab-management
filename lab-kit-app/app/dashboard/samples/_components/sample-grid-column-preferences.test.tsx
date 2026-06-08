@@ -7,7 +7,10 @@ import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, test } from "vitest";
 
-import { SampleGridColumnPreferences } from "./sample-grid-column-preferences";
+import {
+  SampleGridColumnPreferences,
+  useSampleGridHiddenColumnKeys,
+} from "./sample-grid-column-preferences";
 
 afterEach(() => {
   cleanup();
@@ -21,7 +24,25 @@ const columns = [
 ];
 
 describe("SampleGridColumnPreferences", () => {
-  test("restores hidden columns from localStorage and persists toggles", async () => {
+  test("restores hidden column state from localStorage and persists toggles", async () => {
+    localStorage.setItem("sample-grid-test-columns", JSON.stringify(["kit"]));
+
+    render(<ColumnPreferenceHarness storageKey="sample-grid-test-columns" />);
+
+    const kitToggle = screen.getByRole<HTMLInputElement>("checkbox", {
+      name: "Hiển thị KIT",
+    });
+
+    await screen.findByText("Ẩn: kit");
+    expect(kitToggle.checked).toBe(false);
+
+    await userEvent.click(kitToggle);
+
+    await screen.findByText("Ẩn: none");
+    expect(localStorage.getItem("sample-grid-test-columns")).toBe("[]");
+  });
+
+  test("does not mutate grid DOM nodes directly", async () => {
     localStorage.setItem("sample-grid-test-columns", JSON.stringify(["kit"]));
     document.body.innerHTML =
       '<div data-sample-column-key="kit">PCR Realtime - LOT-01</div>';
@@ -40,13 +61,8 @@ describe("SampleGridColumnPreferences", () => {
       name: "Hiển thị KIT",
     });
 
-    await waitFor(() => expect(kitColumn?.hidden).toBe(true));
-    expect(kitToggle.checked).toBe(false);
-
-    await userEvent.click(kitToggle);
-
-    await waitFor(() => expect(kitColumn?.hidden).toBe(false));
-    expect(localStorage.getItem("sample-grid-test-columns")).toBe("[]");
+    await waitFor(() => expect(kitToggle.checked).toBe(false));
+    expect(kitColumn?.hidden).toBe(false);
   });
 
   test("syncs persisted hidden columns after hydration", async () => {
@@ -57,7 +73,7 @@ describe("SampleGridColumnPreferences", () => {
     };
 
     const serverMarkup = renderToString(
-      <SampleGridColumnPreferences columns={columns} storageKey={storageKey} />
+      <ColumnPreferenceHarness storageKey={storageKey} />
     );
 
     Storage.prototype.getItem = originalGetItem;
@@ -69,17 +85,14 @@ describe("SampleGridColumnPreferences", () => {
 
     const root = hydrateRoot(
       container,
-      <SampleGridColumnPreferences columns={columns} storageKey={storageKey} />
+      <ColumnPreferenceHarness storageKey={storageKey} />
     );
 
-    const kitColumn = document.querySelector<HTMLElement>(
-      '[data-sample-column-key="kit"]'
-    );
     const kitToggle = screen.getByRole<HTMLInputElement>("checkbox", {
       name: "Hiển thị KIT",
     });
 
-    await waitFor(() => expect(kitColumn?.hidden).toBe(true));
+    await screen.findByText("Ẩn: kit");
     await waitFor(() => expect(kitToggle.checked).toBe(false));
 
     await act(async () => {
@@ -87,3 +100,14 @@ describe("SampleGridColumnPreferences", () => {
     });
   });
 });
+
+function ColumnPreferenceHarness({ storageKey }: { storageKey: string }) {
+  const hiddenKeys = useSampleGridHiddenColumnKeys(columns, storageKey);
+
+  return (
+    <>
+      <SampleGridColumnPreferences columns={columns} storageKey={storageKey} />
+      <output>Ẩn: {hiddenKeys.join(", ") || "none"}</output>
+    </>
+  );
+}

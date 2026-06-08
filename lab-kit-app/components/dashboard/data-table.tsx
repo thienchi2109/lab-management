@@ -23,14 +23,18 @@ type DashboardDataTableProps = {
   caption: string;
   emptyTitle: string;
   emptyDescription: string;
+  hiddenColumnKeys?: readonly string[];
   rows: DashboardDataTableRow[];
 };
+
+const emptyHiddenColumnKeys: readonly string[] = [];
 
 /** Render bảng dashboard với desktop table và mobile card từ cùng dữ liệu. */
 export function DashboardDataTable({
   caption,
   emptyTitle,
   emptyDescription,
+  hiddenColumnKeys = emptyHiddenColumnKeys,
   rows,
 }: DashboardDataTableProps) {
   if (rows.length === 0) {
@@ -42,7 +46,14 @@ export function DashboardDataTable({
     );
   }
 
-  const headerCells = rows[0]?.cells ?? [];
+  const hiddenColumnKeySet = new Set(hiddenColumnKeys);
+  const visibleRows = rows.map((row) => ({
+    ...row,
+    cells: row.cells.filter((cell) =>
+      isColumnVisible(cell, hiddenColumnKeySet)
+    ),
+  }));
+  const headerCells = visibleRows[0]?.cells ?? [];
 
   return (
     <div className="overflow-hidden rounded-lg border bg-background">
@@ -64,7 +75,7 @@ export function DashboardDataTable({
             </tr>
           </thead>
           <tbody className="divide-y">
-            {rows.map((row) => (
+            {visibleRows.map((row) => (
               <tr key={row.id} className="hover:bg-muted/30">
                 {row.cells.map((cell) => (
                   <td
@@ -88,7 +99,7 @@ export function DashboardDataTable({
       </div>
 
       <div className="divide-y md:hidden">
-        {rows.map((row) => (
+        {visibleRows.map((row) => (
           <div key={row.id} className="space-y-3 p-4">
             {row.cells.map((cell) => (
               <div
@@ -119,4 +130,11 @@ export function DashboardDataTable({
       </div>
     </div>
   );
+}
+
+function isColumnVisible(
+  cell: DashboardDataTableCell,
+  hiddenColumnKeys: Set<string>
+) {
+  return !cell.columnKey || !hiddenColumnKeys.has(cell.columnKey);
 }

@@ -1,30 +1,20 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 
-import { DashboardDataTable } from "@/components/dashboard/data-table";
 import { SelectField } from "@/components/dashboard/select-field";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type {
-  SampleGridPage,
-  SampleGridRow,
-} from "@/lib/sample-grid/operations";
+import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
 import {
   billingStatusLabels,
   sampleStatusLabels,
 } from "./sample-metadata-labels";
-import { SampleGridColumnPreferences } from "./sample-grid-column-preferences";
+import { SampleGridTableSection } from "./sample-grid-table-section";
 
 type SampleGridPageContentProps = {
   page: SampleGridPage;
 };
-
-const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 const statusOptions: Array<[string, string]> = [
   ["all", "Tất cả trạng thái"],
@@ -44,16 +34,6 @@ const sortOptions: Array<[string, string]> = [
 const directionOptions: Array<[string, string]> = [
   ["desc", "Giảm dần"],
   ["asc", "Tăng dần"],
-];
-const sampleGridColumnPreferences = [
-  { key: "sample", label: "Mã mẫu", locked: true },
-  { key: "customer", label: "Khách hàng", locked: true },
-  { key: "company", label: "Công ty" },
-  { key: "sampleType", label: "Loại mẫu" },
-  { key: "kit", label: "KIT" },
-  { key: "receivedAt", label: "Ngày nhận" },
-  { key: "status", label: "Trạng thái", locked: true },
-  { key: "billing", label: "Thanh toán" },
 ];
 
 /** Render bảng mẫu MVP bằng shared DashboardDataTable và URL state. */
@@ -129,14 +109,7 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         </div>
       </form>
 
-      <SampleGridColumnPreferences columns={sampleGridColumnPreferences} />
-
-      <DashboardDataTable
-        caption="Danh sách mẫu xét nghiệm"
-        emptyDescription="Thử đổi từ khóa, bộ lọc hoặc quay lại trang đầu."
-        emptyTitle="Không có mẫu phù hợp"
-        rows={page.rows.map((sample) => toTableRow(sample, page))}
-      />
+      <SampleGridTableSection page={page} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>
@@ -182,97 +155,6 @@ function PaginationButton({
       <Link href={href}>{label}</Link>
     </Button>
   );
-}
-
-function toTableRow(sample: SampleGridRow, page: SampleGridPage) {
-  const actionLabel =
-    page.capabilities.canEnterResults || page.capabilities.canManageImages
-      ? "Kết quả & ảnh"
-      : "Xem kết quả & ảnh";
-
-  return {
-    id: sample.id,
-    cells: [
-      {
-        columnKey: "sample",
-        header: "Mã mẫu",
-        content: sample.sampleCode,
-        primary: true,
-      },
-      {
-        columnKey: "customer",
-        header: "Khách hàng",
-        content: sample.customerName ?? "Không có",
-      },
-      {
-        columnKey: "company",
-        desktopClassName: "hidden xl:table-cell",
-        header: "Công ty",
-        mobileClassName: "hidden sm:flex",
-        content: sample.companyName ?? "Không có",
-      },
-      {
-        columnKey: "sampleType",
-        desktopClassName: "hidden lg:table-cell",
-        header: "Loại mẫu",
-        mobileClassName: "hidden sm:flex",
-        content: sample.sampleTypeName,
-      },
-      {
-        columnKey: "kit",
-        desktopClassName: "hidden xl:table-cell",
-        header: "KIT",
-        mobileClassName: "hidden sm:flex",
-        content: sample.kitSummary,
-      },
-      {
-        columnKey: "receivedAt",
-        desktopClassName: "hidden lg:table-cell",
-        header: "Ngày nhận",
-        mobileClassName: "hidden sm:flex",
-        content: formatDate(sample.receivedAt),
-      },
-      {
-        columnKey: "status",
-        header: "Trạng thái",
-        content: <StatusBadge status={sample.status} />,
-      },
-      {
-        columnKey: "billing",
-        desktopClassName: "hidden lg:table-cell",
-        header: "Thanh toán",
-        mobileClassName: "hidden sm:flex",
-        content: formatBillingStatus(sample.billingStatus),
-      },
-    ],
-    actions: (
-      <Button asChild size="sm" variant="outline">
-        <Link href={`/dashboard/samples/${sample.id}/results`}>
-          {actionLabel}
-        </Link>
-      </Button>
-    ),
-  };
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const destructive = status === "archived";
-
-  return (
-    <Badge variant={destructive ? "destructive" : "secondary"}>
-      {sampleStatusLabels[status as keyof typeof sampleStatusLabels] ?? status}
-    </Badge>
-  );
-}
-
-function formatBillingStatus(status: string) {
-  const labels: Record<string, string> = billingStatusLabels;
-
-  return labels[status] ?? status;
-}
-
-function formatDate(value: string) {
-  return sampleDateFormatter.format(new Date(value));
 }
 
 function buildPageHref(page: SampleGridPage, nextPage: number) {

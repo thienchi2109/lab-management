@@ -71,4 +71,37 @@ describe("DashboardDataTable", () => {
     expect(html).toContain("hidden lg:table-cell");
     expect(html).toContain("hidden sm:flex");
   });
+
+  test("renders hidden columns declaratively from table props", () => {
+    const html = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Danh sách KIT"
+        emptyTitle="Không có KIT phù hợp"
+        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+        hiddenColumnKeys={["lot"]}
+        rows={[
+          {
+            id: "kit-1",
+            cells: [
+              {
+                columnKey: "code",
+                header: "Mã KIT",
+                content: "KIT-001",
+                primary: true,
+              },
+              {
+                columnKey: "lot",
+                header: "Lô",
+                content: "LOT-001",
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(html).toContain("KIT-001");
+    expect(html).not.toContain("LOT-001");
+    expect(html).not.toContain('data-sample-column-key="lot"');
+  });
 });

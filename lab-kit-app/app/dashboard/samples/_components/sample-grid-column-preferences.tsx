@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 /** Cấu hình một cột Sample Grid có thể lưu preference trong browser. */
-export type SampleGridColumnPreference = {
+export type SampleGridColumnPreference = Readonly<{
   key: string;
   label: string;
   locked?: boolean;
-};
+}>;
 
 type SampleGridColumnPreferencesProps = {
-  columns: SampleGridColumnPreference[];
+  columns: readonly SampleGridColumnPreference[];
   storageKey?: string;
 };
 
@@ -23,20 +23,8 @@ export function SampleGridColumnPreferences({
   columns,
   storageKey = defaultStorageKey,
 }: SampleGridColumnPreferencesProps) {
-  const storedHiddenKeys = useSyncExternalStore(
-    subscribeColumnPreferences,
-    () => readStoredHiddenKeys(storageKey),
-    () => "[]"
-  );
-  const hiddenKeys = useMemo(
-    () => parseHiddenKeys(storedHiddenKeys, columns),
-    [columns, storedHiddenKeys]
-  );
+  const hiddenKeys = useSampleGridHiddenColumnKeys(columns, storageKey);
   const hiddenKeySet = useMemo(() => new Set(hiddenKeys), [hiddenKeys]);
-
-  useEffect(() => {
-    applyColumnVisibility(hiddenKeySet);
-  }, [hiddenKeySet]);
 
   return (
     <fieldset className="rounded-lg border bg-background p-4">
@@ -74,6 +62,23 @@ export function SampleGridColumnPreferences({
   );
 }
 
+/** Đọc danh sách cột Sample Grid đang bị ẩn từ browser preference. */
+export function useSampleGridHiddenColumnKeys(
+  columns: readonly SampleGridColumnPreference[],
+  storageKey = defaultStorageKey
+) {
+  const storedHiddenKeys = useSyncExternalStore(
+    subscribeColumnPreferences,
+    () => readStoredHiddenKeys(storageKey),
+    () => "[]"
+  );
+
+  return useMemo(
+    () => parseHiddenKeys(storedHiddenKeys, columns),
+    [columns, storedHiddenKeys]
+  );
+}
+
 function subscribeColumnPreferences(callback: () => void) {
   window.addEventListener("storage", callback);
   window.addEventListener(sampleGridColumnPreferencesEvent, callback);
@@ -94,7 +99,7 @@ function readStoredHiddenKeys(storageKey: string) {
 
 function parseHiddenKeys(
   storedHiddenKeys: string,
-  columns: SampleGridColumnPreference[]
+  columns: readonly SampleGridColumnPreference[]
 ) {
   const allowedKeys = new Set<string>();
 
@@ -122,13 +127,4 @@ function writeHiddenKeys(storageKey: string, hiddenKeys: string[]) {
   } catch {
     return;
   }
-}
-
-function applyColumnVisibility(hiddenKeys: Set<string>) {
-  document
-    .querySelectorAll<HTMLElement>("[data-sample-column-key]")
-    .forEach((element) => {
-      const key = element.dataset.sampleColumnKey;
-      element.hidden = key ? hiddenKeys.has(key) : false;
-    });
 }
