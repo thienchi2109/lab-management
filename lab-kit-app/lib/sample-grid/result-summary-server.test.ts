@@ -8,11 +8,30 @@ const mapperSource = readFileSync(
   join(process.cwd(), "lib/sample-grid/result-summary-mapper.ts"),
   "utf8"
 );
+const serverSource = readFileSync(
+  join(process.cwd(), "lib/sample-grid/result-summary-server.ts"),
+  "utf8"
+);
 
 describe("listSampleGridResultSummaries", () => {
   test("keeps row grouping linear by appending to existing arrays", () => {
     expect(mapperSource).not.toContain("[...(groups.get(value) ?? []), row]");
     expect(mapperSource).toContain("group.push(row)");
+  });
+
+  test("sorts result group summaries with immutable toSorted", () => {
+    expect(mapperSource).toContain(".toSorted(");
+    expect(mapperSource).not.toContain("[...groupMap.values()].sort(");
+  });
+
+  test("starts page-scoped sample, result, and conclusion reads together", () => {
+    expect(serverSource).toContain(
+      "const [results, conclusions, samples] = await Promise.all"
+    );
+    expect(serverSource).not.toContain("const resultsPromise = loadResults");
+    expect(serverSource).not.toContain(
+      "const conclusionsPromise = loadConclusions"
+    );
   });
 
   test("loads result summaries with page-scoped sample ids", async () => {

@@ -92,24 +92,18 @@ export async function listSampleGridResultSummaries(
     return {};
   }
 
-  const resultsPromise = loadResults(
-    supabase,
-    input.organizationId,
-    input.sampleIds
-  );
-  const conclusionsPromise = loadConclusions(
-    supabase,
-    input.organizationId,
-    input.sampleIds
-  );
-  const samples = await readRows<SampleRow>(
-    supabase
-      .from<SampleRow>("samples")
-      .select("id, sample_type_id")
-      .eq("organization_id", input.organizationId)
-      .in("id", input.sampleIds),
-    "Không thể tải mẫu cho summary kết quả."
-  );
+  const [results, conclusions, samples] = await Promise.all([
+    loadResults(supabase, input.organizationId, input.sampleIds),
+    loadConclusions(supabase, input.organizationId, input.sampleIds),
+    readRows<SampleRow>(
+      supabase
+        .from<SampleRow>("samples")
+        .select("id, sample_type_id")
+        .eq("organization_id", input.organizationId)
+        .in("id", input.sampleIds),
+      "Không thể tải mẫu cho summary kết quả."
+    ),
+  ]);
   const templateBySampleType = await loadTemplates(
     supabase,
     input.organizationId,
@@ -130,11 +124,6 @@ export async function listSampleGridResultSummaries(
     input.organizationId,
     unique(metrics.map((metric) => metric.result_group_id))
   );
-  const [results, conclusions] = await Promise.all([
-    resultsPromise,
-    conclusionsPromise,
-  ]);
-
   return buildResultSummaries({
     assignments,
     conclusions,

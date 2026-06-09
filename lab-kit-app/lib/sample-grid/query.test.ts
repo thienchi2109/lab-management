@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
 import {
@@ -5,6 +7,11 @@ import {
   MAX_SAMPLE_GRID_PAGE_SIZE,
   parseSampleGridQuery,
 } from "./query";
+
+const querySource = readFileSync(
+  join(process.cwd(), "lib/sample-grid/query.ts"),
+  "utf8"
+);
 
 describe("sample grid query parser", () => {
   test("uses stable defaults for an empty search param set", () => {
@@ -95,5 +102,15 @@ describe("sample grid query parser", () => {
       "group:group-1",
       "group:group-2",
     ]);
+  });
+
+  test("uses a set for result column de-duplication inside the parser loop", () => {
+    const parserBody = querySource.slice(
+      querySource.indexOf("function parseResultColumnKeys"),
+      querySource.indexOf("function normalizeSearch")
+    );
+
+    expect(parserBody).toContain("new Set");
+    expect(parserBody).not.toContain("keys.includes");
   });
 });
