@@ -168,4 +168,59 @@ describe("/api/samples/[sampleId]/results", () => {
       expect.anything()
     );
   });
+
+  test("PUT keeps PCR object values for domain validation", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    vi.mocked(hasAnyRole).mockReturnValue(true);
+    vi.mocked(saveSampleResults).mockResolvedValue(undefined);
+
+    const response = await PUT(
+      new NextRequest("http://test.local", {
+        method: "PUT",
+        body: JSON.stringify({
+          results: [
+            { metricId: "metric-pcr", value: { status: "positive", ct: 30 } },
+          ],
+          groupConclusions: [],
+        }),
+      }),
+      { params }
+    );
+
+    expect(response.status).toBe(200);
+    expect(saveSampleResults).toHaveBeenCalledWith(
+      "sample-1",
+      {
+        results: [
+          { metricId: "metric-pcr", value: { status: "positive", ct: 30 } },
+        ],
+        groupConclusions: [],
+      },
+      expect.anything(),
+      expect.anything()
+    );
+  });
+
+  test("PUT rejects result items without a value before calling the domain", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    vi.mocked(hasAnyRole).mockReturnValue(true);
+    vi.mocked(saveSampleResults).mockResolvedValue(undefined);
+
+    const response = await PUT(
+      new NextRequest("http://test.local", {
+        method: "PUT",
+        body: JSON.stringify({
+          results: [{ metricId: "metric-1" }],
+          groupConclusions: [],
+        }),
+      }),
+      { params }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Payload chỉ tiêu không hợp lệ.",
+    });
+    expect(saveSampleResults).not.toHaveBeenCalled();
+  });
 });
