@@ -1,53 +1,48 @@
-import {
-  AlertTriangle,
-  ArrowUpRight,
-  Clock,
-  FlaskConical,
-  Package,
-} from "lucide-react";
+import { AlertTriangle, Clock, FlaskConical, Package } from "lucide-react";
+
+import type { DashboardOverviewData } from "@/lib/analytics/overview";
 
 import { DashboardStatCard } from "./dashboard-stat-card";
 
-function DashboardStatsGrid() {
+type DashboardStatsGridProps = {
+  stats: DashboardOverviewData["stats"];
+};
+
+function DashboardStatsGrid({ stats }: DashboardStatsGridProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <DashboardStatCard
-        title="Tổng số mẫu nhận"
-        value="342"
+        title={stats.totalSamples.title}
+        value={stats.totalSamples.value}
         icon={FlaskConical}
         iconClassName="bg-primary/10 text-primary"
       >
-        <span className="inline-flex items-center font-semibold text-emerald-600">
-          <ArrowUpRight className="size-3" /> +12.5%
-        </span>
-        so với tuần trước
+        {stats.totalSamples.detail}
       </DashboardStatCard>
       <DashboardStatCard
-        title="Lô KIT đang hoạt động"
-        value="8 / 12"
+        title={stats.activeKits.title}
+        value={stats.activeKits.value}
         icon={Package}
         iconClassName="bg-secondary/80 text-secondary-foreground"
       >
-        <span className="font-semibold text-amber-600">2 lô</span> sắp hết hạn
-        sử dụng
+        {stats.activeKits.detail}
       </DashboardStatCard>
       <DashboardStatCard
-        title="Mẫu dương tính PCR"
-        value="8 mẫu"
+        title={stats.positiveSamples.title}
+        value={stats.positiveSamples.value}
         icon={AlertTriangle}
         iconClassName="bg-destructive/10 text-destructive"
         valueClassName="text-destructive"
       >
-        Chiếm <span className="font-semibold">2.3%</span> tổng số mẫu xét nghiệm
+        {stats.positiveSamples.detail}
       </DashboardStatCard>
       <DashboardStatCard
-        title="Chờ duyệt kết quả"
-        value="30 mẫu"
+        title={stats.cleanSamples.title}
+        value={stats.cleanSamples.value}
         icon={Clock}
         iconClassName="bg-blue-500/10 text-blue-600 dark:text-blue-400"
       >
-        Tỷ lệ hoàn thành{" "}
-        <span className="font-semibold text-emerald-600">91.2%</span>
+        {stats.cleanSamples.detail}
       </DashboardStatCard>
     </div>
   );

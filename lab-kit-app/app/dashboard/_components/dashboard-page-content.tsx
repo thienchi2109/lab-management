@@ -1,13 +1,19 @@
+import type { DashboardOverviewData } from "@/lib/analytics/overview";
+
 import { DashboardHero } from "./dashboard-hero";
 import { DashboardMainGrid } from "./dashboard-main-grid";
 import { DashboardStatsGrid } from "./dashboard-stats-grid";
 
-function DashboardPageContent() {
+type DashboardPageContentProps = {
+  overview: DashboardOverviewData;
+};
+
+function DashboardPageContent({ overview }: DashboardPageContentProps) {
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <DashboardHero />
-      <DashboardStatsGrid />
-      <DashboardMainGrid />
+      <DashboardStatsGrid stats={overview.stats} />
+      <DashboardMainGrid overview={overview} />
     </div>
   );
 }

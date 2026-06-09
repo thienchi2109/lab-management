@@ -1,15 +1,21 @@
+import type { DashboardOverviewData } from "@/lib/analytics/overview";
+
 import { DashboardMetricCard } from "./dashboard-metric-card";
 import { DashboardRecentSamplesCard } from "./dashboard-recent-samples-card";
 import { DashboardTrendCard } from "./dashboard-trend-card";
 
-function DashboardMainGrid() {
+type DashboardMainGridProps = {
+  overview: DashboardOverviewData;
+};
+
+function DashboardMainGrid({ overview }: DashboardMainGridProps) {
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-3">
-        <DashboardTrendCard />
-        <DashboardMetricCard />
+        <DashboardTrendCard trend={overview.trend} />
+        <DashboardMetricCard metrics={overview.pcrMetrics} />
       </div>
-      <DashboardRecentSamplesCard />
+      <DashboardRecentSamplesCard samples={overview.recentSamples} />
     </>
   );
 }
