@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getCurrentSession } from "@/lib/auth/session";
+import { isPositivePcrValue } from "@/lib/sample-results/validation";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import { getAnalyticsActor, type AnalyticsAggregateRow } from "./operations";
@@ -36,7 +37,6 @@ export class DashboardOverviewAccessError extends Error {
 /** Load dashboard overview data for the current authenticated session. */
 export async function getDashboardOverviewPage(options?: { now?: Date }) {
   const session = await getCurrentSession();
-
   if (!session) {
     throw new DashboardOverviewAccessError();
   }
@@ -56,7 +56,7 @@ export async function getDashboardOverviewPage(options?: { now?: Date }) {
 
 /** Create the Supabase-backed dashboard overview read port. */
 export function createSupabaseDashboardOverviewPort(): DashboardOverviewReadPort {
-  const supabase = getSupabaseAdminClient() as unknown as DashboardSource;
+  const supabase = createDashboardSource(getSupabaseAdminClient());
 
   return {
     async countKits(input) {
@@ -72,29 +72,32 @@ export function createSupabaseDashboardOverviewPort(): DashboardOverviewReadPort
       return { available, total: rows.length };
     },
     async listDataset(input) {
+      assertPositiveLimit(input.query.limit);
       const samples = await listSamples(supabase, input.organizationId, {
         limit: input.query.limit,
         query: input.query,
       });
       const sampleIds = samples.map((sample) => sample.id);
-      const conclusions = await loadConclusions(
+      const conclusionsPromise = loadConclusions(
         supabase,
         input.organizationId,
         sampleIds
       );
 
       if (input.query.dimensions.includes("pcrMetric")) {
+        const [conclusions, rows] = await Promise.all([
+          conclusionsPromise,
+          buildPcrMetricRows(supabase, input.organizationId, sampleIds),
+        ]);
+
         return {
-          rows: await buildPcrMetricRows(
-            supabase,
-            input.organizationId,
-            sampleIds
-          ),
+          rows,
           totals: countConclusionTotals(samples, conclusions),
           warnings: [],
         };
       }
 
+      const conclusions = await conclusionsPromise;
       const rows = buildReceivedDateRows(samples, conclusions);
 
       return {
@@ -104,6 +107,7 @@ export function createSupabaseDashboardOverviewPort(): DashboardOverviewReadPort
       };
     },
     async listRecentSamples(input) {
+      assertPositiveLimit(input.limit);
       const samples = await readRows(
         applyDateBounds(
           supabase
@@ -195,7 +199,7 @@ async function buildPcrMetricRows(
     const title = metric?.name ?? metric?.code ?? "Không rõ chỉ tiêu";
     const counts = grouped.get(title) ?? { positiveCount: 0, sampleCount: 0 };
     counts.sampleCount += 1;
-    if (isPositiveValue(result.value)) counts.positiveCount += 1;
+    if (isPositivePcrValue(result.value)) counts.positiveCount += 1;
     grouped.set(title, counts);
   }
 
@@ -298,11 +302,23 @@ function loadConclusions(
 async function readRows<T>(query: DashboardQuery<T>, message: string) {
   const { data, error } = await query;
 
-  if (error) {
-    throw new Error(message);
-  }
+  if (error) throw new Error(message);
 
   return data ?? [];
+}
+
+function createDashboardSource(value: unknown): DashboardSource {
+  if (!isRecord(value) || typeof value.from !== "function") {
+    throw new Error("Supabase dashboard source không hợp lệ.");
+  }
+
+  return value as DashboardSource;
+}
+
+function assertPositiveLimit(limit: number) {
+  if (!Number.isInteger(limit) || limit <= 0) {
+    throw new Error("Giới hạn đọc dashboard phải lớn hơn 0.");
+  }
 }
 
 function groupConclusionsBySample(rows: DashboardConclusionRow[]) {
@@ -319,10 +335,6 @@ function isPositiveConclusion(rows: DashboardConclusionRow[]) {
   return rows.some((row) => POSITIVE_PATTERN.test(row.kq_chung));
 }
 
-function isPositiveValue(value: unknown) {
-  return POSITIVE_PATTERN.test(JSON.stringify(value));
-}
-
 function unique(values: string[]) {
   return [...new Set(values)];
 }
@@ -331,4 +343,8 @@ function firstRelation<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null;
 
   return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
