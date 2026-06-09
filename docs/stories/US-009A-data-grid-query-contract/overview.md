@@ -2,7 +2,7 @@
 
 **Lane:** high-risk  
 **Phase:** 8  
-**Status:** planned  
+**Status:** implemented  
 **Parent:** [US-009](../US-009-data-grid-filters-views/overview.md)
 
 ## Current Behavior

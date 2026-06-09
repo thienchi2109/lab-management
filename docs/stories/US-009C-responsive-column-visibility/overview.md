@@ -2,7 +2,7 @@
 
 **Lane:** normal  
 **Phase:** 8  
-**Status:** planned  
+**Status:** implemented  
 **Parent:** [US-009](../US-009-data-grid-filters-views/overview.md)  
 **Depends on:** [US-009B](../US-009B-sample-grid-mvp/overview.md)
 
