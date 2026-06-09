@@ -62,7 +62,7 @@ describe("dashboard overview analytics data", () => {
           {
             customerName: "Công ty Thủy sản Hùng Vương",
             receivedAt: "2026-06-09T08:00:00.000Z",
-            resultLabel: "PCR (NHIỄM - WSSV)",
+            resultLabel: "PCR (Nhiễm - WSSV)",
             sampleCode: "T06_00124",
             sampleTypeName: "Tôm thẻ chân trắng",
             status: "completed",
@@ -176,7 +176,7 @@ describe("dashboard overview analytics data", () => {
         code: "T06_00124",
         customer: "Công ty Thủy sản Hùng Vương",
         receivedAt: "09/06/2026",
-        result: "PCR (NHIỄM - WSSV)",
+        result: "PCR (Nhiễm - WSSV)",
         resultTone: "danger",
         status: "Đã hoàn tất",
         statusTone: "success",

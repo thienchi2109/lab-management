@@ -22,6 +22,7 @@ import type {
 
 const SAMPLE_SELECT =
   "id, sample_code, customer_name, received_at, status, sample_types(name)";
+const CLEAN_PATTERN = /SẠCH/i;
 const POSITIVE_PATTERN = /NHIỄM|POSITIVE|DƯƠNG/i;
 
 /** Lỗi phân quyền khi người dùng không được đọc dashboard overview. */
@@ -244,7 +245,7 @@ function countConclusionTotals(
   for (const sample of samples) {
     const sampleConclusions = conclusionBySample.get(sample.id) ?? [];
     if (isPositiveConclusion(sampleConclusions)) positiveCount += 1;
-    if (sampleConclusions.some((row) => row.kq_chung.includes("SẠCH"))) {
+    if (sampleConclusions.some((row) => CLEAN_PATTERN.test(row.kq_chung))) {
       cleanCount += 1;
     }
   }

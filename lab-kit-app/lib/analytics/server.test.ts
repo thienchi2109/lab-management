@@ -42,6 +42,7 @@ describe("dashboard overview server data", () => {
     });
 
     expect(page.stats.totalSamples.value).toBe("1");
+    expect(page.stats.cleanSamples.value).toBe("1 mẫu");
     expect(page.recentSamples).toEqual([
       expect.objectContaining({
         code: "T06_00124",
@@ -136,7 +137,7 @@ function createDashboardClientDouble() {
   const conclusionsQuery = {
     eq: vi.fn(() => conclusionsQuery),
     in: vi.fn(async () => ({
-      data: [{ kq_chung: "SẠCH", sample_id: "sample-1" }],
+      data: [{ kq_chung: "sạch", sample_id: "sample-1" }],
       error: null,
     })),
     select: vi.fn(() => conclusionsQuery),

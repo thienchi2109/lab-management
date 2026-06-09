@@ -6,6 +6,9 @@ import {
   type AnalyticsReadResult,
 } from "./operations";
 
+const CLEAN_RESULT_PATTERN = /SẠCH/i;
+const POSITIVE_RESULT_PATTERN = /NHIỄM/i;
+
 /** Dòng mẫu gần đây do dashboard overview read port trả về. */
 export type DashboardOverviewRecentSampleRow = {
   customerName: string | null;
@@ -281,10 +284,10 @@ function toIsoDate(value: Date) {
 function getResultTone(
   result: string
 ): DashboardOverviewRecentSample["resultTone"] {
-  if (result.includes("NHIỄM")) {
+  if (POSITIVE_RESULT_PATTERN.test(result)) {
     return "danger";
   }
-  if (result.includes("SẠCH")) {
+  if (CLEAN_RESULT_PATTERN.test(result)) {
     return "success";
   }
 
