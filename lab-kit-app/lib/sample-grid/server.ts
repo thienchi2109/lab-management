@@ -66,6 +66,15 @@ type SampleGridQueryBuilder = {
   }>;
   select(columns: string, options: { count: "exact" }): SampleGridQueryBuilder;
 };
+type ResultSummaryTableSource = {
+  select(columns: string): unknown;
+};
+type ResultSummaryQuery = ReturnType<
+  ReturnType<SupabaseResultSummarySource["from"]>["select"]
+>;
+type ResultSummarySourceCandidate = {
+  from(table: string): unknown;
+};
 
 const SAMPLE_GRID_SELECT =
   "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, received_at, status, billing_status, updated_at, sample_types(name), companies(name), kit_batches(lot_number, kit_types(name))";
@@ -104,7 +113,7 @@ export async function getSampleGridPage(searchParams: SampleGridSearchParams) {
 export function createSupabaseSampleGridPort(): SampleGridPort {
   const supabase = getSupabaseAdminClient();
   const resultSummaryClient = createSampleGridResultSummaryClient(
-    supabase as unknown as SupabaseResultSummarySource
+    toSupabaseResultSummarySource(supabase)
   );
 
   return {
@@ -143,6 +152,69 @@ export function createSupabaseSampleGridPort(): SampleGridPort {
       return listSampleGridResultSummaries(resultSummaryClient, input);
     },
   };
+}
+
+function toSupabaseResultSummarySource(
+  source: unknown
+): SupabaseResultSummarySource {
+  if (!hasFrom(source)) {
+    throw new Error("Supabase client không hỗ trợ đọc summary kết quả.");
+  }
+
+  return {
+    from(table: string) {
+      const tableSource = source.from(table);
+
+      if (!hasSelect(tableSource)) {
+        throw new Error(
+          "Supabase table client không hỗ trợ đọc summary kết quả."
+        );
+      }
+
+      return {
+        select(columns: string) {
+          const query = tableSource.select(columns);
+
+          if (!isResultSummaryQuery(query)) {
+            throw new Error(
+              "Supabase query builder không hỗ trợ đọc summary kết quả."
+            );
+          }
+
+          return query;
+        },
+      };
+    },
+  };
+}
+
+function hasFrom(value: unknown): value is ResultSummarySourceCandidate {
+  return hasFunctionMember(value, "from");
+}
+
+function hasSelect(value: unknown): value is ResultSummaryTableSource {
+  return hasFunctionMember(value, "select");
+}
+
+function isResultSummaryQuery(value: unknown): value is ResultSummaryQuery {
+  return (
+    hasFunctionMember(value, "eq") &&
+    hasFunctionMember(value, "in") &&
+    hasFunctionMember(value, "order") &&
+    hasFunctionMember(value, "then")
+  );
+}
+
+function hasFunctionMember<K extends string>(
+  value: unknown,
+  member: K
+): value is Record<K, (...args: unknown[]) => unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    member in value &&
+    typeof (value as Record<K, unknown>)[member] === "function"
+  );
 }
 
 async function requireSampleGridActor(): Promise<SampleGridActor> {
