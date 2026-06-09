@@ -87,4 +87,21 @@ describe("analytics query contract", () => {
       })
     ).toThrow(AnalyticsQueryValidationError);
   });
+
+  test("formats a received-to-only filter summary without undefined date parts", () => {
+    const query = parseAnalyticsQuery({
+      filters: { receivedTo: "2026-06-08" },
+    });
+
+    expect(query.filterSummary).toEqual(["Đến 08/06/2026"]);
+  });
+
+  test("rejects extremely large page offsets", () => {
+    expect(() =>
+      parseAnalyticsQuery({
+        filters: { receivedFrom: "2026-06-01" },
+        page: 1_000_001,
+      })
+    ).toThrow(AnalyticsQueryValidationError);
+  });
 });

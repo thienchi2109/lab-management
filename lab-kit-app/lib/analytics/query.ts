@@ -75,6 +75,7 @@ const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
 const dimensionSchema = z.enum(ANALYTICS_DIMENSIONS);
 const measureSchema = z.enum(ANALYTICS_MEASURES);
 const positiveIntegerSchema = z.coerce.number().int().positive();
+const pageSchema = positiveIntegerSchema.max(10_000);
 const idSchema = z.string().refine((value) => SAFE_ID_PATTERN.test(value));
 const isoDateSchema = z.string().refine(isValidIsoDate);
 
@@ -97,7 +98,7 @@ const querySchema = z
     dimensions: z.array(dimensionSchema).min(1).max(4).optional(),
     filters: filtersSchema.optional(),
     measures: z.array(measureSchema).min(1).max(4).optional(),
-    page: positiveIntegerSchema.optional(),
+    page: pageSchema.optional(),
     pageSize: positiveIntegerSchema.optional(),
   })
   .strict();
@@ -150,8 +151,9 @@ function buildFilterSummary(filters: AnalyticsFilters): string[] {
 function formatDateRange(from: string | undefined, to: string | undefined) {
   if (from && to) return `Từ ${formatDate(from)} đến ${formatDate(to)}`;
   if (from) return `Từ ${formatDate(from)}`;
+  if (to) return `Đến ${formatDate(to)}`;
 
-  return `Đến ${formatDate(to ?? "")}`;
+  return "Mọi thời gian";
 }
 
 function formatDate(value: string) {
