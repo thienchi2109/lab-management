@@ -5,7 +5,10 @@ import { describe, expect, test, vi } from "vitest";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-import { listSampleGridResultSummaries } from "./result-summary-server";
+import {
+  createSampleGridResultSummaryClient,
+  listSampleGridResultSummaries,
+} from "./result-summary-server";
 import {
   SampleGridAccessError,
   createSupabaseSampleGridPort,
@@ -35,6 +38,9 @@ const serverSource = readFileSync(
 describe("sample grid server contract", () => {
   test("keeps the result-summary adapter typed without disabling checks", () => {
     expect(serverSource).not.toContain("as never");
+    expect(serverSource).not.toContain(
+      "as unknown as SupabaseResultSummarySource"
+    );
     expect(serverSource).not.toContain("as { from(table: string): unknown }");
     expect(serverSource).not.toContain(
       "select(columns: string): QueryBuilder<T>"
@@ -120,6 +126,37 @@ describe("sample grid server contract", () => {
       SampleGridAccessError
     );
     expect(from).not.toHaveBeenCalled();
+  });
+
+  test("rejects malformed Supabase result-summary clients before querying", () => {
+    vi.mocked(getSupabaseAdminClient).mockReturnValue(
+      {} as ReturnType<typeof getSupabaseAdminClient>
+    );
+
+    expect(() => createSupabaseSampleGridPort()).toThrow(
+      "Supabase client không hỗ trợ đọc summary kết quả."
+    );
+  });
+
+  test("rejects malformed Supabase result-summary table clients", () => {
+    const client = {
+      from: vi.fn(() => ({})),
+    };
+    vi.mocked(getSupabaseAdminClient).mockReturnValue(
+      client as unknown as ReturnType<typeof getSupabaseAdminClient>
+    );
+
+    createSupabaseSampleGridPort();
+    const source = vi.mocked(createSampleGridResultSummaryClient).mock
+      .lastCall?.[0];
+
+    if (!source) {
+      throw new Error("Expected result-summary source adapter.");
+    }
+
+    expect(() => source.from("samples").select("id")).toThrow(
+      "Supabase table client không hỗ trợ đọc summary kết quả."
+    );
   });
 
   test("applies tenant, filter, sort, count, and range to Supabase reads", async () => {
