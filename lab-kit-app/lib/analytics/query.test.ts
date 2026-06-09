@@ -100,7 +100,7 @@ describe("analytics query contract", () => {
     expect(() =>
       parseAnalyticsQuery({
         filters: { receivedFrom: "2026-06-01" },
-        page: 1_000_001,
+        page: 501,
       })
     ).toThrow(AnalyticsQueryValidationError);
   });

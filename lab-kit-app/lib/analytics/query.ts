@@ -11,6 +11,9 @@ export const DEFAULT_ANALYTICS_PAGE_SIZE = 50;
 /** Page size tối đa để tránh đọc analytics quá rộng. */
 export const MAX_ANALYTICS_PAGE_SIZE = 200;
 
+/** Page tối đa để tránh offset analytics quá sâu trên database quan hệ. */
+export const MAX_ANALYTICS_PAGE = 500;
+
 /** Các dimension analytics được phép nhận từ input chưa tin cậy. */
 export const ANALYTICS_DIMENSIONS = [
   "receivedDate",
@@ -75,7 +78,7 @@ const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
 const dimensionSchema = z.enum(ANALYTICS_DIMENSIONS);
 const measureSchema = z.enum(ANALYTICS_MEASURES);
 const positiveIntegerSchema = z.coerce.number().int().positive();
-const pageSchema = positiveIntegerSchema.max(10_000);
+const pageSchema = positiveIntegerSchema.max(MAX_ANALYTICS_PAGE);
 const idSchema = z.string().refine((value) => SAFE_ID_PATTERN.test(value));
 const isoDateSchema = z.string().refine(isValidIsoDate);
 
