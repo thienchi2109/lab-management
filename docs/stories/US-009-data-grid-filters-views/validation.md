@@ -13,8 +13,8 @@ Proof bắt buộc:
   bản, và row actions.
 - US-009C verify compact/mobile mode và column visibility local/session.
 - US-009D verify group detail và desktop result column mode.
-- US-009E được verify nếu mở; nếu không mở, parent trace phải ghi lý do không
-  cần DB/RPC/index.
+- US-009E closeout theo hướng conditional no-op nếu không có bằng chứng cần
+  DB/RPC/index; parent trace phải ghi lý do không cần migration.
 
 ## Test Plan
 
@@ -42,7 +42,7 @@ scripts/bin/harness-cli story verify US-009C
 scripts/bin/harness-cli story verify US-009D
 ```
 
-Nếu US-009E được mở:
+US-009E conditional closeout:
 
 ```bash
 scripts/bin/harness-cli story verify US-009E
@@ -67,4 +67,5 @@ scripts/bin/harness-cli story verify US-009
 - Parent story packet created before implementation.
 - Parent split completed into US-009A, US-009B, US-009C, US-009D, and conditional
   US-009E before runtime implementation.
-- Implementation proof pending per slice.
+- US-009E closeout không tạo migration vì live DB/advisor/query plan chưa chứng
+  minh cần DB/RPC/index hardening.
