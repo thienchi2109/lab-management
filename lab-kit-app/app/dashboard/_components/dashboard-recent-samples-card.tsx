@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,66 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import type { DashboardOverviewRecentSample } from "@/lib/analytics/overview";
 
-const samples = [
-  {
-    code: "T06_00124",
-    customer: "Công ty Thủy sản Hùng Vương",
-    type: "Tôm thẻ chân trắng",
-    receivedAt: "03/06/2026",
-    result: "PCR (SẠCH)",
-    resultClassName: "text-emerald-600 dark:text-emerald-400",
-    status: "Đã duyệt",
-    badgeClassName: "border-0 bg-emerald-500 text-white hover:bg-emerald-600",
-  },
-  {
-    code: "T06_00123",
-    customer: "Nông trại Minh Phú",
-    type: "Nước ao nuôi",
-    receivedAt: "03/06/2026",
-    result: "PCR (NHIỄM - EHP)",
-    resultClassName: "text-destructive",
-    status: "Chờ duyệt",
-    badgeClassName:
-      "border-0 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-    badgeVariant: "secondary" as const,
-  },
-  {
-    code: "T06_00122",
-    customer: "Đại lý Ba Huân",
-    type: "Tôm sú",
-    receivedAt: "02/06/2026",
-    result: "PCR (SẠCH)",
-    resultClassName: "text-emerald-600 dark:text-emerald-400",
-    status: "Đã duyệt",
-    badgeClassName: "border-0 bg-emerald-500 text-white hover:bg-emerald-600",
-  },
-  {
-    code: "T06_00121",
-    customer: "Công ty CP Miền Trung",
-    type: "Nước nguồn",
-    receivedAt: "02/06/2026",
-    result: "Đang xử lý...",
-    resultClassName: "text-muted-foreground",
-    status: "Bản nháp",
-    badgeClassName: "border-border text-muted-foreground",
-    badgeVariant: "outline" as const,
-  },
-  {
-    code: "T06_00120",
-    customer: "Khách lẻ Trần Văn B",
-    type: "Tôm giống",
-    receivedAt: "01/06/2026",
-    result: "PCR (NHIỄM - WSSV)",
-    resultClassName: "text-destructive",
-    status: "Đã duyệt",
-    badgeClassName: "border-0 bg-emerald-500 text-white hover:bg-emerald-600",
-  },
-];
+type DashboardRecentSamplesCardProps = {
+  samples: DashboardOverviewRecentSample[];
+};
 
-function DashboardRecentSamplesCard() {
+function DashboardRecentSamplesCard({
+  samples,
+}: DashboardRecentSamplesCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -76,7 +27,7 @@ function DashboardRecentSamplesCard() {
             Mẫu xét nghiệm nhận gần đây
           </CardTitle>
           <CardDescription className="text-[10px]">
-            Danh sách các mẫu vừa cập nhật trong 48 giờ qua
+            Danh sách các mẫu vừa cập nhật trong 7 ngày qua
           </CardDescription>
         </div>
         <Button
@@ -104,6 +55,16 @@ function DashboardRecentSamplesCard() {
               </tr>
             </thead>
             <tbody>
+              {samples.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="p-3 text-center text-muted-foreground"
+                  >
+                    Chưa có mẫu trong khoảng thời gian này.
+                  </td>
+                </tr>
+              ) : null}
               {samples.map((sample, index) => (
                 <tr
                   key={sample.code}
@@ -119,13 +80,15 @@ function DashboardRecentSamplesCard() {
                   <td className="p-3">{sample.customer}</td>
                   <td className="p-3 text-muted-foreground">{sample.type}</td>
                   <td className="p-3">{sample.receivedAt}</td>
-                  <td className={`p-3 font-medium ${sample.resultClassName}`}>
+                  <td
+                    className={`p-3 font-medium ${resultToneClass[sample.resultTone]}`}
+                  >
                     {sample.result}
                   </td>
                   <td className="p-3 text-right">
                     <Badge
-                      variant={sample.badgeVariant ?? "default"}
-                      className={sample.badgeClassName}
+                      variant={statusVariant[sample.statusTone]}
+                      className={statusToneClass[sample.statusTone]}
                     >
                       {sample.status}
                     </Badge>
@@ -139,5 +102,31 @@ function DashboardRecentSamplesCard() {
     </Card>
   );
 }
+
+const resultToneClass: Record<
+  DashboardOverviewRecentSample["resultTone"],
+  string
+> = {
+  danger: "text-destructive",
+  muted: "text-muted-foreground",
+  success: "text-emerald-600 dark:text-emerald-400",
+};
+const statusVariant: Record<
+  DashboardOverviewRecentSample["statusTone"],
+  "default" | "outline" | "secondary"
+> = {
+  muted: "outline",
+  success: "default",
+  warning: "secondary",
+};
+const statusToneClass: Record<
+  DashboardOverviewRecentSample["statusTone"],
+  string
+> = {
+  muted: "border-border text-muted-foreground",
+  success: "border-0 bg-emerald-500 text-white hover:bg-emerald-600",
+  warning:
+    "border-0 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+};
 
 export { DashboardRecentSamplesCard };

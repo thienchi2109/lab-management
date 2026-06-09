@@ -6,25 +6,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import type { DashboardOverviewData } from "@/lib/analytics/overview";
 import { cn } from "@/lib/utils";
 
-const chartBars = [
-  { day: "28/5", value: "40", height: "h-[80px]", positiveHeight: "h-[8px]" },
-  { day: "29/5", value: "55", height: "h-[110px]", positiveHeight: "h-[15px]" },
-  { day: "30/5", value: "30", height: "h-[60px]", positiveHeight: "h-[0px]" },
-  { day: "31/5", value: "20", height: "h-[40px]", positiveHeight: "h-[4px]" },
-  { day: "01/6", value: "65", height: "h-[130px]", positiveHeight: "h-[24px]" },
-  { day: "02/6", value: "80", height: "h-[160px]", positiveHeight: "h-[10px]" },
-  {
-    day: "Hôm nay",
-    value: "52",
-    height: "h-[104px]",
-    positiveHeight: "h-[16px]",
-    active: true,
-  },
-];
+type DashboardTrendCardProps = {
+  trend: DashboardOverviewData["trend"];
+};
 
-function DashboardTrendCard() {
+function DashboardTrendCard({ trend }: DashboardTrendCardProps) {
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -34,7 +23,7 @@ function DashboardTrendCard() {
               Xu hướng nhận mẫu xét nghiệm
             </CardTitle>
             <CardDescription className="text-[10px]">
-              7 ngày gần nhất (28/05 - 03/06)
+              7 ngày gần nhất ({trend.dateRangeLabel})
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 text-xs">
@@ -55,7 +44,7 @@ function DashboardTrendCard() {
           <div className="w-full border-t border-border/40" />
         </div>
         <div className="relative z-10 flex h-full w-full items-end justify-between">
-          {chartBars.map((bar) => (
+          {trend.bars.map((bar) => (
             <div
               key={bar.day}
               className="flex flex-1 flex-col items-center gap-2"
@@ -63,21 +52,21 @@ function DashboardTrendCard() {
               <div
                 className={cn(
                   "group relative flex w-8 items-end justify-center rounded-t-sm",
-                  bar.height,
                   bar.active
                     ? "bg-primary hover:bg-primary/90"
                     : "bg-primary/20 hover:bg-primary/30"
                 )}
+                style={{ height: `${bar.samplePercent}%` }}
               >
                 <span className="absolute -top-6 rounded border border-border bg-popover px-1 text-[10px] font-semibold opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-                  {bar.value}
+                  {bar.sampleCount}
                 </span>
                 <div
                   className={cn(
                     "w-full rounded-t-sm",
-                    bar.positiveHeight,
                     bar.active ? "bg-destructive" : "bg-destructive/60"
                   )}
+                  style={{ height: `${bar.positivePercent}%` }}
                 />
               </div>
               <span
