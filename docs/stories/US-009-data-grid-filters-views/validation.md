@@ -69,3 +69,11 @@ scripts/bin/harness-cli story verify US-009
   US-009E before runtime implementation.
 - US-009E closeout không tạo migration vì live DB/advisor/query plan chưa chứng
   minh cần DB/RPC/index hardening.
+- Parent closeout trên `main` đã verify tất cả slice:
+  - `scripts/bin/harness-cli story verify US-009A` pass.
+  - `scripts/bin/harness-cli story verify US-009B` pass.
+  - `scripts/bin/harness-cli story verify US-009C` pass.
+  - `scripts/bin/harness-cli story verify US-009D` pass.
+  - `scripts/bin/harness-cli story verify US-009E` pass.
+- US-009 parent verify command được đổi từ placeholder fail sang chuỗi verify
+  các slice con.

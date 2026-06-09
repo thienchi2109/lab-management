@@ -2,7 +2,7 @@
 
 **Lane:** high-risk  
 **Phase:** 8  
-**Status:** planned  
+**Status:** implemented  
 **Affects:** điều phối các slice Phase 8 cho bảng dữ liệu mẫu, phân trang,
 bộ lọc, sắp xếp, responsive view, column visibility, group detail, và hardening
 dữ liệu nếu cần
@@ -12,14 +12,14 @@ dữ liệu nếu cần
 US-006 đã tạo bề mặt quản lý metadata mẫu và US-007 đã thêm nhập kết quả động
 theo nhóm/chỉ tiêu. US-008 đã bổ sung ảnh minh chứng cho từng mẫu.
 
-Ứng dụng vẫn chưa có bảng dữ liệu chính đủ dùng hằng ngày theo Phase 8 của
-`original_specs/SPEC-001.md`. Phạm vi Phase 8 ban đầu quá rộng cho một PR vì
-gom data contract, table UI, responsive layout, kết quả động, role behavior, và
-khả năng phát sinh DB/RPC/index.
+US-009 đã được chia và hoàn tất qua các slice US-009A đến US-009E. Bảng dữ liệu
+mẫu hiện có contract query server-side, UI grid chính, responsive/column
+visibility, result group detail/desktop column mode, và closeout DB/RPC/index
+theo hướng conditional no-op khi chưa có bằng chứng cần migration.
 
 ## Target Behavior
 
-US-009 là parent tracker để chia Phase 8 thành các slice nhỏ, có thể review và
+US-009 là parent tracker đã chia Phase 8 thành các slice nhỏ, có thể review và
 merge độc lập:
 
 - [US-009A](../US-009A-data-grid-query-contract/overview.md): query contract,
