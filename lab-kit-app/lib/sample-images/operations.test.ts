@@ -34,6 +34,15 @@ function createPort(
   };
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolver) => {
+    resolve = resolver;
+  });
+
+  return { promise, resolve };
+}
+
 describe("prepareSampleImageUpload", () => {
   test("rejects viewers before issuing a Cloudinary signature", async () => {
     await expect(
@@ -122,6 +131,35 @@ describe("confirmSampleImageUpload", () => {
         createPort()
       )
     ).rejects.toThrow("URL ảnh Cloudinary không hợp lệ.");
+  });
+
+  test("starts sample access and image slot checks before waiting", async () => {
+    const access = createDeferred<boolean>();
+    const slotCount = createDeferred<number>();
+    const port = createPort({
+      countImagesForSample: vi.fn().mockReturnValue(slotCount.promise),
+      sampleBelongsToOrganization: vi.fn().mockReturnValue(access.promise),
+    });
+
+    const confirmPromise = confirmSampleImageUpload(
+      "sample-1",
+      actor,
+      {
+        contentType: "image/jpeg",
+        publicId: "lab/org-1/sample-1/evidence-1",
+        secureUrl: "https://res.cloudinary.com/lab/image/upload/evidence-1",
+        sizeBytes: 2048,
+      },
+      port
+    );
+    await Promise.resolve();
+
+    expect(port.sampleBelongsToOrganization).toHaveBeenCalled();
+    expect(port.countImagesForSample).toHaveBeenCalled();
+
+    access.resolve(true);
+    slotCount.resolve(0);
+    await expect(confirmPromise).resolves.toEqual({ imageId: "image-1" });
   });
 });
 

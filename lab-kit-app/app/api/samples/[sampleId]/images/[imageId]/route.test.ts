@@ -45,6 +45,15 @@ const viewerSession: CurrentSession = {
 
 const params = Promise.resolve({ imageId: "image-1", sampleId: "sample-1" });
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolver) => {
+    resolve = resolver;
+  });
+
+  return { promise, resolve };
+}
+
 describe("/api/samples/[sampleId]/images/[imageId]", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -88,5 +97,29 @@ describe("/api/samples/[sampleId]/images/[imageId]", () => {
       },
       expect.anything()
     );
+  });
+
+  test("DELETE starts the auth lookup before route params resolve", async () => {
+    const paramsDeferred = createDeferred<{
+      imageId: string;
+      sampleId: string;
+    }>();
+    const sessionDeferred = createDeferred<CurrentSession>();
+    vi.mocked(getCurrentSession).mockReturnValue(sessionDeferred.promise);
+    vi.mocked(hasAnyRole).mockReturnValue(true);
+    vi.mocked(deleteSampleImage).mockResolvedValue(undefined);
+
+    const responsePromise = DELETE(new NextRequest("http://test.local"), {
+      params: paramsDeferred.promise,
+    });
+    await Promise.resolve();
+    const authCallsBeforeParams =
+      vi.mocked(getCurrentSession).mock.calls.length;
+
+    paramsDeferred.resolve({ imageId: "image-1", sampleId: "sample-1" });
+    sessionDeferred.resolve(editorSession);
+    await expect(responsePromise).resolves.toHaveProperty("status", 200);
+
+    expect(authCallsBeforeParams).toBe(1);
   });
 });

@@ -72,13 +72,17 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
           <input key={key} name="resultColumns" type="hidden" value={key} />
         ))}
         <div className="grid gap-3 md:grid-cols-[1fr_180px_190px_150px_150px_auto] md:items-end">
-          <label className="space-y-1.5 text-sm font-medium">
+          <label
+            className="space-y-1.5 text-sm font-medium"
+            htmlFor="sample-grid-search"
+          >
             <span>Tìm kiếm</span>
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
               <Input
                 className="pl-8"
                 defaultValue={page.query.search ?? ""}
+                id="sample-grid-search"
                 name="search"
                 placeholder="Mã mẫu hoặc khách hàng"
               />

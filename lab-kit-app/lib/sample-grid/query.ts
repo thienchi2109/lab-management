@@ -153,6 +153,7 @@ function parseSort(params: SampleGridSearchParams): SampleGridQuery["sort"] {
 function parseResultColumnKeys(params: SampleGridSearchParams) {
   const rawValues = allParams(params, "resultColumns");
   const keys: string[] = [];
+  const seen = new Set<string>();
 
   for (const rawValue of rawValues) {
     for (const key of rawValue.split(",")) {
@@ -161,8 +162,9 @@ function parseResultColumnKeys(params: SampleGridSearchParams) {
       if (
         normalized &&
         RESULT_COLUMN_KEY_PATTERN.test(normalized) &&
-        !keys.includes(normalized)
+        !seen.has(normalized)
       ) {
+        seen.add(normalized);
         keys.push(normalized);
       }
 

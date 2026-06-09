@@ -94,6 +94,16 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain("page=2");
   });
 
+  test("associates the search label with its input control", () => {
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent page={basePage} />
+    );
+
+    expect(html).toContain('for="sample-grid-search"');
+    expect(html).toContain('id="sample-grid-search"');
+    expect(html).toContain('name="search"');
+  });
+
   test("renders viewer rows with read-only actions", () => {
     const viewerPage: SampleGridPage = {
       ...basePage,

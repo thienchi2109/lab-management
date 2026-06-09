@@ -134,7 +134,7 @@ function buildSampleGroups(input: {
     groupMap.set(group.id, summary);
   }
 
-  return [...groupMap.values()].sort((a, b) =>
+  return Array.from(groupMap.values()).toSorted((a, b) =>
     a.name.localeCompare(b.name, "vi")
   );
 }

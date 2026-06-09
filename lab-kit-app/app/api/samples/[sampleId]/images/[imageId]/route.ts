@@ -18,8 +18,10 @@ export async function DELETE(
   context: RouteContext
 ): Promise<NextResponse> {
   try {
-    const { imageId, sampleId } = await context.params;
-    const actor = await requireSampleImageActor(true);
+    const [{ imageId, sampleId }, actor] = await Promise.all([
+      context.params,
+      requireSampleImageActor(true),
+    ]);
 
     await deleteSampleImage(
       sampleId,

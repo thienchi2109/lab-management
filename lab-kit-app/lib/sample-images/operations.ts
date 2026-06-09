@@ -125,8 +125,10 @@ export async function confirmSampleImageUpload(
   ensureCanWrite(actor);
   validateImageMetadata(input);
   validateCloudinaryResult(input);
-  await ensureSampleAccess(sampleId, actor, port);
-  await ensureImageSlotAvailable(sampleId, actor, port);
+  await Promise.all([
+    ensureSampleAccess(sampleId, actor, port),
+    ensureImageSlotAvailable(sampleId, actor, port),
+  ]);
 
   const duplicate = await port.findSampleImageByPublicId({
     organizationId: actor.organizationId,
