@@ -135,7 +135,11 @@ function parseSaveInput(value: unknown): SaveSampleResultsInput {
 }
 
 function parseResultItem(value: unknown) {
-  if (!isRecord(value) || typeof value.metricId !== "string") {
+  if (
+    !isRecord(value) ||
+    typeof value.metricId !== "string" ||
+    !Object.hasOwn(value, "value")
+  ) {
     throw new ResponseError(400, "Payload chỉ tiêu không hợp lệ.");
   }
 
