@@ -33,13 +33,9 @@ export type DashboardMetricRow = {
   name: string;
 };
 
-/** Dòng KIT tối thiểu cho card tồn kho dashboard. */
-export type DashboardKitRow = {
-  status: string;
-};
-
 /** Query builder Supabase tối thiểu cho dashboard overview. */
 export type DashboardQuery<T> = PromiseLike<{
+  count?: number | null;
   data: T[] | null;
   error: unknown;
 }> & {
@@ -49,7 +45,10 @@ export type DashboardQuery<T> = PromiseLike<{
   lte(column: string, value: unknown): DashboardQuery<T>;
   order(column: string, options?: { ascending: boolean }): DashboardQuery<T>;
   range(from: number, to: number): DashboardQuery<T>;
-  select(columns: string): DashboardQuery<T>;
+  select(
+    columns: string,
+    options?: { count: "exact"; head?: boolean }
+  ): DashboardQuery<T>;
 };
 
 /** Supabase source tối thiểu cho dashboard overview adapter. */

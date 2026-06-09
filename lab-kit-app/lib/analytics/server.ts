@@ -13,13 +13,18 @@ import {
 import type { AnalyticsQuery } from "./query";
 import type {
   DashboardConclusionRow,
-  DashboardKitRow,
   DashboardMetricRow,
   DashboardQuery,
   DashboardResultRow,
   DashboardSampleRow,
   DashboardSource,
 } from "./server-types";
+import {
+  assertPositiveLimit,
+  createDashboardSource,
+  readCount,
+  readRows,
+} from "./server-query";
 
 const SAMPLE_SELECT =
   "id, sample_code, customer_name, received_at, status, sample_types(name)";
@@ -60,16 +65,22 @@ export function createSupabaseDashboardOverviewPort(): DashboardOverviewReadPort
 
   return {
     async countKits(input) {
-      const rows = await readRows(
-        supabase
-          .from<DashboardKitRow>("kits")
-          .select("status")
-          .eq("organization_id", input.organizationId),
-        "Không thể tải số lượng KIT cho dashboard."
-      );
-      const available = rows.filter((row) => row.status === "in_stock").length;
+      const message = "Không thể tải số lượng KIT cho dashboard.";
+      const totalQuery = supabase
+        .from<{ id: string }>("kits")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", input.organizationId);
+      const availableQuery = supabase
+        .from<{ id: string }>("kits")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", input.organizationId)
+        .eq("status", "in_stock");
+      const [total, available] = await Promise.all([
+        readCount(totalQuery, message),
+        readCount(availableQuery, message),
+      ]);
 
-      return { available, total: rows.length };
+      return { available, total };
     },
     async listDataset(input) {
       assertPositiveLimit(input.query.limit);
@@ -193,12 +204,18 @@ async function buildPcrMetricRows(
     string,
     { positiveCount: number; sampleCount: number }
   >();
+  const sampleIdsByTitle = new Map<string, Set<string>>();
 
   for (const result of results) {
     const metric = metricById.get(result.result_metric_id);
     const title = metric?.name ?? metric?.code ?? "Không rõ chỉ tiêu";
     const counts = grouped.get(title) ?? { positiveCount: 0, sampleCount: 0 };
-    counts.sampleCount += 1;
+    const seenSampleIds = sampleIdsByTitle.get(title) ?? new Set<string>();
+    if (!seenSampleIds.has(result.sample_id)) {
+      counts.sampleCount += 1;
+      seenSampleIds.add(result.sample_id);
+      sampleIdsByTitle.set(title, seenSampleIds);
+    }
     if (isPositivePcrValue(result.value)) counts.positiveCount += 1;
     grouped.set(title, counts);
   }
@@ -299,28 +316,6 @@ function loadConclusions(
   );
 }
 
-async function readRows<T>(query: DashboardQuery<T>, message: string) {
-  const { data, error } = await query;
-
-  if (error) throw new Error(message);
-
-  return data ?? [];
-}
-
-function createDashboardSource(value: unknown): DashboardSource {
-  if (!isRecord(value) || typeof value.from !== "function") {
-    throw new Error("Supabase dashboard source không hợp lệ.");
-  }
-
-  return value as DashboardSource;
-}
-
-function assertPositiveLimit(limit: number) {
-  if (!Number.isInteger(limit) || limit <= 0) {
-    throw new Error("Giới hạn đọc dashboard phải lớn hơn 0.");
-  }
-}
-
 function groupConclusionsBySample(rows: DashboardConclusionRow[]) {
   const grouped = new Map<string, DashboardConclusionRow[]>();
 
@@ -343,8 +338,4 @@ function firstRelation<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null;
 
   return Array.isArray(value) ? (value[0] ?? null) : value;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

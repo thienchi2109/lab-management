@@ -246,13 +246,8 @@ function createDashboardClientDouble(
     })),
     select: vi.fn(() => query),
   };
-  const kitsQuery = {
-    eq: vi.fn(async () => ({
-      data: [{ status: "in_stock" }, { status: "used" }],
-      error: null,
-    })),
-    select: vi.fn(() => kitsQuery),
-  };
+  const kitQueries = [createCountQuery(2), createCountQuery(1)];
+  let kitQueryIndex = 0;
   const conclusionsQuery = {
     eq: vi.fn(() => conclusionsQuery),
     in: vi.fn(async () => ({
@@ -285,7 +280,7 @@ function createDashboardClientDouble(
   };
   const client = {
     from: vi.fn((table: string) => {
-      if (table === "kits") return kitsQuery;
+      if (table === "kits") return kitQueries[kitQueryIndex++];
       if (table === "sample_group_conclusions") {
         return options.conclusionsQuery ?? conclusionsQuery;
       }
@@ -328,6 +323,19 @@ function createDeferredQuery<T>(data: T[]) {
   };
 
   return { query, resolve };
+}
+
+function createCountQuery(count: number) {
+  type CountResult = { count: number; data: unknown[]; error: null };
+  const query = {
+    eq: vi.fn(() => query),
+    select: vi.fn(() => query),
+    then(resolve?: (value: CountResult) => unknown) {
+      return Promise.resolve({ count, data: [], error: null }).then(resolve);
+    },
+  };
+
+  return query;
 }
 
 function createSampleRow(id: string, sampleCode: string) {
