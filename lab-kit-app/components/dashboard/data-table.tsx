@@ -54,6 +54,7 @@ export function DashboardDataTable({
     ),
   }));
   const headerCells = visibleRows[0]?.cells ?? [];
+  const hasActions = visibleRows.some((row) => row.actions);
 
   return (
     <div className="overflow-hidden rounded-lg border bg-background">
@@ -71,7 +72,9 @@ export function DashboardDataTable({
                   {cell.header}
                 </th>
               ))}
-              <th className="px-4 py-3 text-right font-medium">Tác vụ</th>
+              {hasActions ? (
+                <th className="px-4 py-3 text-right font-medium">Tác vụ</th>
+              ) : null}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -91,7 +94,9 @@ export function DashboardDataTable({
                     {cell.content}
                   </td>
                 ))}
-                <td className="px-4 py-3 text-right">{row.actions}</td>
+                {hasActions ? (
+                  <td className="px-4 py-3 text-right">{row.actions}</td>
+                ) : null}
               </tr>
             ))}
           </tbody>
