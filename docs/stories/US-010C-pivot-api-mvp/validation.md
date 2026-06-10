@@ -30,4 +30,11 @@ scripts/bin/harness-cli story verify US-010C
 
 ## Acceptance Evidence
 
-Pending implementation.
+- 2026-06-10: Focused analytics route/contract tests pass với 3 files / 14
+  tests:
+  `cd lab-kit-app && bun run test lib/analytics/query.test.ts lib/analytics/operations.test.ts app/api/analytics/pivot/route.test.ts`.
+- 2026-06-10: `scripts/bin/harness-cli story verify US-010C` pass sau khi cập
+  nhật verify command sang
+  `cd lab-kit-app && bun run test && bun run quality && bun run docstring:check`;
+  full gate pass với 71 files / 250 tests, quality, React Doctor, Next build và
+  docstring gate.
