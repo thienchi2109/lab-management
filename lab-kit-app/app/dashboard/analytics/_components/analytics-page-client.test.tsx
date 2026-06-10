@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -21,6 +22,11 @@ const initialDataset = {
   ],
   totals: { sampleCount: 3, positiveCount: 1 },
   warnings: [],
+};
+
+type AnalyticsFetchResponse = {
+  json: () => Promise<unknown>;
+  ok: boolean;
 };
 
 describe("AnalyticsPageClient", () => {
@@ -147,6 +153,63 @@ describe("AnalyticsPageClient", () => {
     );
   });
 
+  test("keeps the newest dataset when an older request resolves later", async () => {
+    const requests: Array<
+      ReturnType<typeof createDeferred<AnalyticsFetchResponse>>
+    > = [];
+    const fetchMock = vi.fn(() => {
+      const request = createDeferred<AnalyticsFetchResponse>();
+      requests.push(request);
+
+      return request.promise;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { container } = render(
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+      />
+    );
+    const form = container.querySelector("form");
+
+    expect(form).toBeTruthy();
+
+    fireEvent.submit(form as HTMLFormElement);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getByLabelText("Đến ngày"), {
+      target: { value: "2026-06-09" },
+    });
+    fireEvent.submit(form as HTMLFormElement);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    await act(async () => {
+      requests[1]?.resolve(
+        createDatasetResponse("Từ 01/06/2026 đến 09/06/2026", "2026-06-09", 9)
+      );
+    });
+
+    await waitFor(() =>
+      expect(screen.getAllByText("9 mẫu").length).toBeGreaterThan(0)
+    );
+
+    await act(async () => {
+      requests[0]?.resolve(
+        createDatasetResponse("Từ 01/06/2026 đến 08/06/2026", "2026-06-08", 4)
+      );
+    });
+
+    await waitFor(() =>
+      expect(screen.getAllByText("9 mẫu").length).toBeGreaterThan(0)
+    );
+    expect(screen.queryByText("4 mẫu")).toBeNull();
+    expect(screen.getByText("Từ 01/06/2026 đến 09/06/2026")).toBeTruthy();
+  });
+
   test("renders an API error without dropping the last good dataset", async () => {
     vi.stubGlobal(
       "fetch",
@@ -211,3 +274,33 @@ describe("AnalyticsPageClient", () => {
     expect(screen.getAllByText("2026-06-01").length).toBeGreaterThan(0);
   });
 });
+
+function createDatasetResponse(
+  filterSummary: string,
+  receivedDate: string,
+  sampleCount: number
+): AnalyticsFetchResponse {
+  return {
+    ok: true,
+    json: async () => ({
+      filterSummary: [filterSummary],
+      rows: [
+        {
+          dimensionValues: { receivedDate },
+          measureValues: { positiveCount: 1, sampleCount },
+        },
+      ],
+      totals: { positiveCount: 1, sampleCount },
+      warnings: [],
+    }),
+  };
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+
+  return { promise, resolve };
+}

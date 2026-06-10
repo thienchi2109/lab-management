@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { AnalyticsFilterCard } from "./analytics-filter-card";
 import { mapAnalyticsRows } from "./analytics-page-format";
@@ -27,6 +27,7 @@ export function AnalyticsPageClient({
   initialDataset,
   initialFilters,
 }: AnalyticsPageClientProps) {
+  const activeRequestId = useRef(0);
   const [dataset, setDataset] = useState(initialDataset);
   const [query, setQuery] = useState<AnalyticsPageQueryState>({
     dimension: "receivedDate",
@@ -42,6 +43,8 @@ export function AnalyticsPageClient({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const requestId = activeRequestId.current + 1;
+    activeRequestId.current = requestId;
     setError(null);
     setIsLoading(true);
 
@@ -57,21 +60,27 @@ export function AnalyticsPageClient({
       });
       const payload = await response.json();
 
-      if (!response.ok) {
-        setError(getAnalyticsErrorMessage(payload));
-        return;
-      }
+      applyCurrentRequest(requestId, () => {
+        if (!response.ok) {
+          setError(getAnalyticsErrorMessage(payload));
+          return;
+        }
 
-      if (!isAnalyticsPivotDataset(payload)) {
-        setError("Không thể tải dữ liệu pivot analytics.");
-        return;
-      }
+        if (!isAnalyticsPivotDataset(payload)) {
+          setError("Không thể tải dữ liệu pivot analytics.");
+          return;
+        }
 
-      setDataset(payload);
+        setDataset(payload);
+      });
     } catch {
-      setError("Không thể tải dữ liệu pivot analytics.");
+      applyCurrentRequest(requestId, () => {
+        setError("Không thể tải dữ liệu pivot analytics.");
+      });
     } finally {
-      setIsLoading(false);
+      applyCurrentRequest(requestId, () => {
+        setIsLoading(false);
+      });
     }
   }
 
@@ -128,6 +137,12 @@ export function AnalyticsPageClient({
       ...current,
       filters: { ...current.filters, [key]: value || undefined },
     }));
+  }
+
+  function applyCurrentRequest(requestId: number, update: () => void) {
+    if (requestId === activeRequestId.current) {
+      update();
+    }
   }
 }
 
