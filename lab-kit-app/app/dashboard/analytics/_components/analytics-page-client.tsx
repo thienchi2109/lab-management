@@ -58,11 +58,16 @@ export function AnalyticsPageClient({
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.message ?? "Không thể tải dữ liệu pivot analytics.");
+        setError(getAnalyticsErrorMessage(payload));
         return;
       }
 
-      setDataset(payload as AnalyticsPivotDataset);
+      if (!isAnalyticsPivotDataset(payload)) {
+        setError("Không thể tải dữ liệu pivot analytics.");
+        return;
+      }
+
+      setDataset(payload);
     } catch {
       setError("Không thể tải dữ liệu pivot analytics.");
     } finally {
@@ -129,5 +134,55 @@ export function AnalyticsPageClient({
 function cleanFilters(filters: AnalyticsPageFilters) {
   return Object.fromEntries(
     Object.entries(filters).filter(([, value]) => value)
+  );
+}
+
+function getAnalyticsErrorMessage(payload: unknown) {
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "message" in payload &&
+    typeof payload.message === "string"
+  ) {
+    return payload.message;
+  }
+
+  return "Không thể tải dữ liệu pivot analytics.";
+}
+
+function isAnalyticsPivotDataset(
+  payload: unknown
+): payload is AnalyticsPivotDataset {
+  if (typeof payload !== "object" || payload === null) return false;
+
+  const value = payload as Partial<AnalyticsPivotDataset>;
+
+  return (
+    isStringArray(value.filterSummary) &&
+    Array.isArray(value.rows) &&
+    value.rows.every(isAnalyticsRow) &&
+    isRecord(value.totals) &&
+    isStringArray(value.warnings)
+  );
+}
+
+function isAnalyticsRow(row: unknown) {
+  if (typeof row !== "object" || row === null) return false;
+
+  const value = row as {
+    dimensionValues?: unknown;
+    measureValues?: unknown;
+  };
+
+  return isRecord(value.dimensionValues) && isRecord(value.measureValues);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
   );
 }

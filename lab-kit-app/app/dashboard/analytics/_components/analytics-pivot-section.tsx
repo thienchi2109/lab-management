@@ -35,7 +35,10 @@ export function AnalyticsPivotSection({
 }
 
 function PivotChart({ rows }: { rows: AnalyticsPivotDisplayRow[] }) {
-  const maxSamples = Math.max(...rows.map((row) => row.sampleCount), 1);
+  const maxSamples = rows.reduce(
+    (currentMax, row) => Math.max(currentMax, row.sampleCount),
+    1
+  );
 
   return (
     <Card className="rounded-lg">

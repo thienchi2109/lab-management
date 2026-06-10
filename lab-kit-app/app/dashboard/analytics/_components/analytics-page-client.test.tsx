@@ -145,4 +145,37 @@ describe("AnalyticsPageClient", () => {
     );
     expect(screen.getAllByText("2026-06-01").length).toBeGreaterThan(0);
   });
+
+  test("rejects malformed successful API responses without dropping the last good dataset", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          rows: [],
+          totals: {},
+          warnings: [],
+        }),
+      })
+    );
+
+    render(
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Áp dụng" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Không thể tải dữ liệu pivot analytics.")
+      ).toBeTruthy()
+    );
+    expect(screen.getAllByText("2026-06-01").length).toBeGreaterThan(0);
+  });
 });
