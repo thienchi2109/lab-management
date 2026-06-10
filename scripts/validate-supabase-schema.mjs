@@ -199,6 +199,11 @@ function main() {
     "Advisor fix migration must add missing foreign-key indexes",
   );
   assertContains(
+    allMigrations,
+    /create\s+index\s+if\s+not\s+exists\s+samples_org_received_at_idx\s+on\s+public\.samples\s*\(\s*organization_id\s*,\s*received_at\s+desc\s*\)/i,
+    "Analytics scale baseline must index samples by organization and received_at",
+  );
+  assertContains(
     advisorFixMigration,
     /drop\s+policy\s+if\s+exists\s+"editors can manage samples"/i,
     "Advisor fix migration must remove overlapping FOR ALL manager policies",
