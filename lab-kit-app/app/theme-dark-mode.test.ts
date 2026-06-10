@@ -5,11 +5,12 @@ import { describe, expect, test } from "vitest";
 const appDir = process.cwd();
 
 describe("dark mode theme contract", () => {
-  test("defines dark tokens for system color-scheme preference", () => {
+  test("keeps dark tokens in the class-based theme without media duplication", () => {
     const globalsCss = readFileSync(join(appDir, "app/globals.css"), "utf8");
 
-    expect(globalsCss).toContain("@media (prefers-color-scheme: dark)");
-    expect(globalsCss).toContain(":root:not(.light)");
+    expect(globalsCss).toContain(".dark {");
+    expect(globalsCss).not.toContain("@media (prefers-color-scheme: dark)");
+    expect(globalsCss).not.toContain(":root:not(.light)");
   });
 
   test("login page uses semantic background tokens", () => {
