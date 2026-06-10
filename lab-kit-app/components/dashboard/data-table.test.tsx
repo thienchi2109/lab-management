@@ -43,6 +43,27 @@ describe("DashboardDataTable", () => {
     expect(html).toContain("Thử đổi bộ lọc hoặc từ khóa tìm kiếm.");
   });
 
+  test("omits the actions column when rows do not expose actions", () => {
+    const html = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Bảng pivot analytics"
+        emptyTitle="Không có dữ liệu analytics"
+        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+        rows={[
+          {
+            id: "row-1",
+            cells: [
+              { header: "Ngày nhận mẫu", content: "2026-06-01" },
+              { header: "Tổng mẫu", content: "3 mẫu" },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(html).not.toContain("Tác vụ");
+  });
+
   test("applies responsive column metadata to desktop and mobile cells", () => {
     const html = renderToStaticMarkup(
       <DashboardDataTable
