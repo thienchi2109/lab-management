@@ -17,6 +17,8 @@ describe("LoginPage", () => {
     expect(html).toContain('for="password"');
     expect(html).toContain('name="password"');
     expect(html).not.toContain('placeholder="admin"');
+    expect(html).toContain("login-lab-illustration.png");
+    expect(html).toContain("Minh hoạ quy trình xét nghiệm");
   });
 
   test("marks invalid credential feedback as an accessible form error", async () => {

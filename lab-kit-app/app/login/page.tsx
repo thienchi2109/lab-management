@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { FlaskConical, Microscope } from "lucide-react";
+import Image from "next/image";
+import { FlaskConical } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { LoginSubmitButton } from "./login-submit-button";
@@ -156,30 +157,15 @@ function BrandMark() {
 
 function LabPreview() {
   return (
-    <div className="relative mt-10 h-[258px] rounded-sm bg-white shadow-[0_14px_34px_rgb(15_23_42/0.14)] ring-1 ring-slate-200/80 dark:bg-background dark:ring-border">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_22%,rgb(219_234_254/0.65),transparent_34%),linear-gradient(135deg,rgb(255_255_255),rgb(241_248_255))] dark:from-slate-950" />
-      <div className="relative grid h-full grid-cols-[1fr_150px] items-center gap-8 px-10">
-        <div className="relative h-36">
-          <div className="absolute left-6 top-16 size-20 rounded-[18px] bg-[#d7e7fb] shadow-sm ring-1 ring-blue-100" />
-          <div className="absolute left-24 top-7 size-16 rounded-[16px] bg-[#eff6ff] shadow-sm ring-1 ring-blue-100" />
-          <div className="absolute left-32 top-20 size-24 rounded-[22px] bg-[#e4effd] shadow-sm ring-1 ring-blue-100" />
-          <div className="absolute left-32 top-0 flex size-12 items-center justify-center rounded-full bg-[#c7ddf7] text-[#0f2744] shadow-sm">
-            <Microscope className="size-6" aria-hidden="true" />
-          </div>
-          <div className="absolute left-10 top-6 h-12 w-5 rounded-full bg-[#bdd7f3]" />
-          <div className="absolute left-16 top-2 h-16 w-5 rounded-full bg-[#dbeafe]" />
-          <div className="absolute bottom-2 left-4 h-1 w-56 rounded-full bg-[#cfe0f5]" />
-        </div>
-        <div className="space-y-4 pl-3 text-[#7d8796]">
-          <p className="text-sm font-semibold tracking-[0.08em]">
-            LABLINK LOGIN
-          </p>
-          <div className="space-y-3">
-            <div className="h-1.5 w-24 rounded-full bg-[#c8d2df]" />
-            <div className="h-1.5 w-32 rounded-full bg-[#d6dee9]" />
-          </div>
-        </div>
-      </div>
+    <div className="relative mt-10 overflow-hidden rounded-sm bg-white shadow-[0_14px_34px_rgb(15_23_42/0.14)] ring-1 ring-slate-200/80 dark:bg-background dark:ring-border">
+      <Image
+        src="/images/login-lab-illustration.png"
+        width={1200}
+        height={760}
+        sizes="(min-width: 1024px) 386px, 0px"
+        alt="Minh hoạ quy trình xét nghiệm với kính hiển vi, ống mẫu và bảng kết quả"
+        className="h-[258px] w-full object-cover"
+      />
     </div>
   );
 }
