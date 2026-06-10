@@ -82,29 +82,25 @@ const pageSchema = positiveIntegerSchema.max(MAX_ANALYTICS_PAGE);
 const idSchema = z.string().refine((value) => SAFE_ID_PATTERN.test(value));
 const isoDateSchema = z.string().refine(isValidIsoDate);
 
-const filtersSchema = z
-  .object({
-    companyId: idSchema.optional(),
-    customerId: idSchema.optional(),
-    kitTypeId: idSchema.optional(),
-    metricId: idSchema.optional(),
-    receivedFrom: isoDateSchema.optional(),
-    receivedTo: isoDateSchema.optional(),
-    resultGroupId: idSchema.optional(),
-    sampleTypeId: idSchema.optional(),
-    status: z.enum(SAMPLE_STATUSES).optional(),
-  })
-  .strict();
+const filtersSchema = z.strictObject({
+  companyId: idSchema.optional(),
+  customerId: idSchema.optional(),
+  kitTypeId: idSchema.optional(),
+  metricId: idSchema.optional(),
+  receivedFrom: isoDateSchema.optional(),
+  receivedTo: isoDateSchema.optional(),
+  resultGroupId: idSchema.optional(),
+  sampleTypeId: idSchema.optional(),
+  status: z.enum(SAMPLE_STATUSES).optional(),
+});
 
-const querySchema = z
-  .object({
-    dimensions: z.array(dimensionSchema).min(1).max(4).optional(),
-    filters: filtersSchema.optional(),
-    measures: z.array(measureSchema).min(1).max(4).optional(),
-    page: pageSchema.optional(),
-    pageSize: positiveIntegerSchema.optional(),
-  })
-  .strict();
+const querySchema = z.strictObject({
+  dimensions: z.array(dimensionSchema).min(1).max(4).optional(),
+  filters: filtersSchema.optional(),
+  measures: z.array(measureSchema).min(1).max(4).optional(),
+  page: pageSchema.optional(),
+  pageSize: positiveIntegerSchema.optional(),
+});
 
 /** Parse unknown analytics input into the internal query contract. */
 export function parseAnalyticsQuery(input: unknown): AnalyticsQuery {
