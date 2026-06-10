@@ -67,7 +67,10 @@ function PivotChart({ rows }: { rows: AnalyticsPivotDisplayRow[] }) {
                   <div
                     className="h-full rounded-full bg-primary"
                     style={{
-                      width: `${Math.max((row.sampleCount / maxSamples) * 100, 4)}%`,
+                      width:
+                        row.sampleCount === 0
+                          ? "0%"
+                          : `${Math.max((row.sampleCount / maxSamples) * 100, 4)}%`,
                     }}
                   />
                 </div>

@@ -52,6 +52,38 @@ describe("AnalyticsPageClient", () => {
     );
   });
 
+  test("does not render a minimum-width chart bar for zero sample rows", () => {
+    const zeroSampleDataset = {
+      filterSummary: ["Từ 01/06/2026 đến 08/06/2026"],
+      rows: [
+        {
+          dimensionValues: { receivedDate: "2026-06-01" },
+          measureValues: { sampleCount: 0, positiveCount: 0 },
+        },
+      ],
+      totals: { sampleCount: 0, positiveCount: 0 },
+      warnings: [],
+    };
+
+    const { container } = render(
+      <AnalyticsPageClient
+        initialDataset={zeroSampleDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+      />
+    );
+
+    const chart = screen.getByLabelText("Biểu đồ pivot analytics");
+    const chartBars = chart.querySelectorAll<HTMLDivElement>(".bg-primary");
+
+    expect(screen.getAllByText("0 mẫu").length).toBeGreaterThan(0);
+    expect(chartBars).toHaveLength(1);
+    expect(chartBars[0]?.style.width).toBe("0%");
+    expect(container.querySelector('[style*="width: 4%"]')).toBeNull();
+  });
+
   test("submits bounded filters to the pivot API and renders the returned dataset", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
