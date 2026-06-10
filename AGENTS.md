@@ -89,6 +89,26 @@ Use GitNexus after Code Review Graph has narrowed the candidate area:
    the affected symbols and flows match the intended scope.
 3. For renames, use `mcp__gitnexus.rename` in dry-run mode before editing.
 
+Use the generated GitNexus guidance as reference material only. Do not append
+the generated `gitnexus:start` block to `AGENTS.md`, and do not commit a
+generated `CLAUDE.md`, unless the task explicitly asks for a tooling/docs
+change. The repo-specific source of truth remains this file: Code Review Graph
+first, GitNexus after narrowing, and `rtk` for CLI commands.
+
+Practical GitNexus checks for this repo:
+
+- Before shared or non-obvious code edits, inspect the narrowed target with the
+  most specific GitNexus tool available for symbol context or impact.
+- Before commit, run `mcp__gitnexus.detect_changes` on the staged diff and
+  compare it with `git diff --cached --name-only`. If GitNexus omits newly
+  added files or only reports tracked shared symbols, state that limitation and
+  rely on Code Review Graph plus direct diff review for the missing files.
+- Treat GitNexus risk/process output as review evidence, not as permission to
+  widen issue scope. High or broad impact should trigger narrower tests or a
+  follow-up issue, not opportunistic refactors.
+- For renames, use `mcp__gitnexus.rename` in dry-run mode first, then review
+  both graph-backed edits and lower-confidence text matches before applying.
+
 Keep the GitNexus index current through the CLI:
 
 - Full analysis: `rtk gitnexus analyze /root/lab-management`
