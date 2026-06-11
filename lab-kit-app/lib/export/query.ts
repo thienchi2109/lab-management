@@ -14,14 +14,14 @@ export const DEFAULT_EXPORT_ROW_LIMIT = 1_000;
 /** Hard cap số dòng export để tránh đọc dataset quá rộng trong MVP. */
 export const EXPORT_HARD_ROW_LIMIT = 5_000;
 
-/** Dataset export được phép nhận từ client ở US-011A. */
-export type ExportDataset = "samples";
+/** Dataset export được phép nhận từ client ở US-011A/US-011C. */
+export type ExportDataset = "samples" | "results-normalized";
 
 /** Định dạng file export được whitelist. */
 export type ExportFormat = "csv" | "xlsx";
 
 /** Field export mẫu được whitelist. */
-export type ExportField =
+export type SampleExportField =
   | "billingStatus"
   | "customerName"
   | "kitBatch"
@@ -30,6 +30,24 @@ export type ExportField =
   | "sampleType"
   | "status"
   | "updatedAt";
+
+/** Field export kết quả chuẩn hóa được whitelist. */
+export type NormalizedResultsExportField =
+  | "customerName"
+  | "groupCode"
+  | "groupName"
+  | "kqChung"
+  | "metricCode"
+  | "metricName"
+  | "metricUnit"
+  | "receivedAt"
+  | "sampleCode"
+  | "sampleType"
+  | "status"
+  | "value";
+
+/** Field export được whitelist theo từng dataset. */
+export type ExportField = SampleExportField | NormalizedResultsExportField;
 
 /** Bộ lọc export đã parse từ input chưa tin cậy. */
 export type ExportFilters = {
@@ -42,10 +60,13 @@ export type ExportFilters = {
   status?: SampleStatus;
 };
 
-/** Query export đã normalize trước khi route hoặc read port đọc dữ liệu. */
-export type ExportQuery = {
-  dataset: ExportDataset;
-  fields: ExportField[];
+/** Phần query export chung đã normalize. */
+export type BaseExportQuery<
+  TDataset extends ExportDataset,
+  TField extends ExportField,
+> = {
+  dataset: TDataset;
+  fields: TField[];
   filters: ExportFilters;
   format: ExportFormat;
   rowLimit: number;
@@ -55,6 +76,18 @@ export type ExportQuery = {
     key: SampleGridSortKey;
   };
 };
+
+/** Query export mẫu đã normalize. */
+export type SampleExportQuery = BaseExportQuery<"samples", SampleExportField>;
+
+/** Query export kết quả chuẩn hóa đã normalize. */
+export type NormalizedResultsExportQuery = BaseExportQuery<
+  "results-normalized",
+  NormalizedResultsExportField
+>;
+
+/** Query export đã normalize trước khi route hoặc read port đọc dữ liệu. */
+export type ExportQuery = SampleExportQuery | NormalizedResultsExportQuery;
 
 /** Lỗi contract export có code ổn định cho API route tương lai. */
 export class ExportQueryValidationError extends Error {
@@ -74,7 +107,7 @@ export class ExportQueryValidationError extends Error {
 }
 
 const EXPORT_FORMATS = ["csv", "xlsx"] as const;
-const EXPORT_FIELDS = [
+const SAMPLE_EXPORT_FIELDS = [
   "billingStatus",
   "customerName",
   "kitBatch",
@@ -83,6 +116,20 @@ const EXPORT_FIELDS = [
   "sampleType",
   "status",
   "updatedAt",
+] as const;
+const NORMALIZED_RESULTS_EXPORT_FIELDS = [
+  "customerName",
+  "groupCode",
+  "groupName",
+  "kqChung",
+  "metricCode",
+  "metricName",
+  "metricUnit",
+  "receivedAt",
+  "sampleCode",
+  "sampleType",
+  "status",
+  "value",
 ] as const;
 const SAMPLE_EXPORT_SORT_KEYS = [
   "billingStatus",
@@ -115,17 +162,35 @@ const sortSchema = z.strictObject({
   direction: z.enum(["asc", "desc"]).optional(),
   key: z.enum(SAMPLE_EXPORT_SORT_KEYS),
 });
-const querySchema = z.strictObject({
-  dataset: z.literal("samples"),
-  fields: z.array(z.enum(EXPORT_FIELDS)).min(1).max(EXPORT_FIELDS.length),
+const baseQueryShape = {
   filters: filterSchema.optional(),
   format: z.enum(EXPORT_FORMATS),
   rowLimit: z.coerce.number().int().positive().optional(),
   search: z.string().optional(),
   sort: sortSchema.optional(),
+};
+const sampleQuerySchema = z.strictObject({
+  dataset: z.literal("samples"),
+  fields: z
+    .array(z.enum(SAMPLE_EXPORT_FIELDS))
+    .min(1)
+    .max(SAMPLE_EXPORT_FIELDS.length),
+  ...baseQueryShape,
 });
+const normalizedResultsQuerySchema = z.strictObject({
+  dataset: z.literal("results-normalized"),
+  fields: z
+    .array(z.enum(NORMALIZED_RESULTS_EXPORT_FIELDS))
+    .min(1)
+    .max(NORMALIZED_RESULTS_EXPORT_FIELDS.length),
+  ...baseQueryShape,
+});
+const querySchema = z.discriminatedUnion("dataset", [
+  sampleQuerySchema,
+  normalizedResultsQuerySchema,
+]);
 
-/** Parse unknown export input into the strict export query contract. */
+/** Parse input export chưa tin cậy vào contract query nghiêm ngặt. */
 export function parseExportQuery(input: unknown): ExportQuery {
   const result = querySchema.safeParse(input);
 
@@ -142,14 +207,26 @@ export function parseExportQuery(input: unknown): ExportQuery {
     );
   }
 
-  return {
-    dataset: result.data.dataset,
-    fields: result.data.fields,
+  const baseQuery = {
     filters: result.data.filters ?? {},
     format: result.data.format,
     rowLimit,
     search: normalizeSearch(result.data.search),
     sort: normalizeSort(result.data.sort),
+  };
+
+  if (result.data.dataset === "samples") {
+    return {
+      ...baseQuery,
+      dataset: result.data.dataset,
+      fields: result.data.fields,
+    };
+  }
+
+  return {
+    ...baseQuery,
+    dataset: result.data.dataset,
+    fields: result.data.fields,
   };
 }
 

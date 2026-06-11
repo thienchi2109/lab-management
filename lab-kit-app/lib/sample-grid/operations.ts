@@ -32,6 +32,7 @@ export type SampleGridResultMetricSummary = {
   id: string;
   code: string;
   name: string;
+  unit?: string | null;
   value: unknown;
 };
 
