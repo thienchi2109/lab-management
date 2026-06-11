@@ -23,6 +23,7 @@ type MetricRow = {
   result_group_id: string;
   code: string;
   name: string;
+  unit: string | null;
   sort_order: number;
 };
 
@@ -68,7 +69,7 @@ export type SupabaseResultSummarySource = {
   };
 };
 
-/** Adapt an ungenerated Supabase client to the result-summary query contract. */
+/** Bọc Supabase client chưa generated vào contract đọc summary kết quả. */
 export function createSampleGridResultSummaryClient(
   source: SupabaseResultSummarySource
 ): SupabaseLike {
@@ -83,7 +84,7 @@ export function createSampleGridResultSummaryClient(
   };
 }
 
-/** Load result summaries for the current sample grid page only. */
+/** Tải summary kết quả chỉ cho page sample grid hiện tại. */
 export async function listSampleGridResultSummaries(
   supabase: SupabaseLike,
   input: { organizationId: string; sampleIds: string[] }
@@ -185,7 +186,7 @@ function loadMetrics(
   return readRows<MetricRow>(
     supabase
       .from<MetricRow>("result_metrics")
-      .select("id, result_group_id, code, name, sort_order")
+      .select("id, result_group_id, code, name, unit, sort_order")
       .eq("organization_id", organizationId)
       .eq("is_active", true)
       .in("id", metricIds),

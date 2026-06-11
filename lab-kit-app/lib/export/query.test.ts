@@ -74,4 +74,42 @@ describe("export query contract", () => {
       sort: { direction: "asc", key: "customerName" },
     });
   });
+
+  test("normalizes a bounded normalized results export query", () => {
+    expect(
+      parseExportQuery({
+        dataset: "results-normalized",
+        fields: ["sampleCode", "groupName", "metricName", "value", "kqChung"],
+        filters: {
+          receivedTo: "2026-06-08",
+          sampleTypeId: "sample-type-1",
+        },
+        format: "xlsx",
+        rowLimit: 250,
+        search: "  PCR   dương tính  ",
+        sort: { direction: "desc", key: "receivedAt" },
+      })
+    ).toEqual({
+      dataset: "results-normalized",
+      fields: ["sampleCode", "groupName", "metricName", "value", "kqChung"],
+      filters: {
+        receivedTo: "2026-06-08",
+        sampleTypeId: "sample-type-1",
+      },
+      format: "xlsx",
+      rowLimit: 250,
+      search: "PCR dương tính",
+      sort: { direction: "desc", key: "receivedAt" },
+    });
+  });
+
+  test("rejects sample fields on normalized results exports", () => {
+    expect(() =>
+      parseExportQuery({
+        dataset: "results-normalized",
+        fields: ["sampleCode", "kitBatch", "auditPayload"],
+        format: "csv",
+      })
+    ).toThrow(ExportQueryValidationError);
+  });
 });

@@ -1,7 +1,6 @@
-import { utils, write } from "xlsx";
-
+import { buildTabularExportFile, type TabularExportFile } from "./files";
 import type { ExportActor } from "./permissions";
-import type { ExportField, ExportQuery } from "./query";
+import type { SampleExportField, SampleExportQuery } from "./query";
 import type {
   SampleGridPort,
   SampleGridRow,
@@ -19,18 +18,14 @@ import type {
 export type SampleExportActor = ExportActor;
 
 /** File export đã sẵn sàng trả về từ route handler. */
-export type SampleExportFile = {
-  body: Buffer;
-  contentType: string;
-  filename: string;
-};
+export type SampleExportFile = TabularExportFile;
 
 type BuildSampleExportOptions = {
   generatedAt?: Date;
 };
 
 const SAMPLE_EXPORT_COLUMNS: Record<
-  ExportField,
+  SampleExportField,
   {
     header: string;
     value(row: SampleGridRow): string;
@@ -73,9 +68,9 @@ const SAMPLE_EXPORT_COLUMNS: Record<
   },
 };
 
-/** Build a bounded tenant-scoped sample export file from the shared grid port. */
+/** Tạo file export mẫu có giới hạn dòng và scope tenant từ grid port chung. */
 export async function buildSampleExportFile(
-  query: ExportQuery,
+  query: SampleExportQuery,
   actor: SampleExportActor,
   port: SampleGridPort,
   options: BuildSampleExportOptions = {}
@@ -94,57 +89,21 @@ export async function buildSampleExportFile(
     },
   });
   const rows = toTableRows(query.fields, result.rows);
-  const dateStamp = formatDateStamp(options.generatedAt ?? new Date());
 
-  if (query.format === "xlsx") {
-    return {
-      body: toXlsxBuffer(rows),
-      contentType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      filename: `mau-xet-nghiem-${dateStamp}.xlsx`,
-    };
-  }
-
-  return {
-    body: Buffer.from(toCsv(rows), "utf8"),
-    contentType: "text/csv; charset=utf-8",
-    filename: `mau-xet-nghiem-${dateStamp}.csv`,
-  };
+  return await buildTabularExportFile({
+    basename: "mau-xet-nghiem",
+    format: query.format,
+    generatedAt: options.generatedAt,
+    rows,
+    sheetName: "Mẫu xét nghiệm",
+  });
 }
 
-function toTableRows(fields: ExportField[], rows: SampleGridRow[]) {
+function toTableRows(fields: SampleExportField[], rows: SampleGridRow[]) {
   const columns = fields.map((field) => SAMPLE_EXPORT_COLUMNS[field]);
 
   return [
     columns.map((column) => column.header),
     ...rows.map((row) => columns.map((column) => column.value(row))),
   ];
-}
-
-function toCsv(rows: string[][]) {
-  const lines = rows.map((row) =>
-    row.map((value) => escapeCsvValue(value)).join(",")
-  );
-
-  return lines.join("\r\n");
-}
-
-function toXlsxBuffer(rows: string[][]) {
-  const worksheet = utils.aoa_to_sheet(rows);
-  const workbook = utils.book_new();
-  utils.book_append_sheet(workbook, worksheet, "Mẫu xét nghiệm");
-
-  return write(workbook, { bookType: "xlsx", type: "buffer" }) as Buffer;
-}
-
-function escapeCsvValue(value: string) {
-  if (!/[",\n\r]/.test(value)) {
-    return value;
-  }
-
-  return `"${value.replaceAll('"', '""')}"`;
-}
-
-function formatDateStamp(date: Date) {
-  return date.toISOString().slice(0, 10);
 }

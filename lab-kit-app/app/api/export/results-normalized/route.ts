@@ -1,19 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { parseExportQuery } from "@/lib/export/query";
 import {
   exportDownloadResponse,
   exportError,
   requireExportActor,
 } from "@/lib/export/route-helpers";
-import { parseExportQuery } from "@/lib/export/query";
-import { buildSampleExportFile } from "@/lib/export/samples";
+import { buildNormalizedResultsExportFile } from "@/lib/export/results-normalized";
 import { createSupabaseSampleGridPort } from "@/lib/sample-grid/server";
 
-/** Export metadata mẫu theo tenant thành file download có giới hạn dòng. */
+/** Export kết quả mẫu chuẩn hóa theo tenant thành file download có giới hạn dòng. */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const query = parseExportQuery(await request.json());
-    if (query.dataset !== "samples") {
+    if (query.dataset !== "results-normalized") {
       return NextResponse.json(
         {
           error: "export_query_invalid",
@@ -23,9 +23,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
     const actor = await requireExportActor(
-      "Bạn không có quyền export dữ liệu mẫu."
+      "Bạn không có quyền export kết quả xét nghiệm."
     );
-    const file = await buildSampleExportFile(
+    const file = await buildNormalizedResultsExportFile(
       query,
       actor,
       createSupabaseSampleGridPort()
@@ -33,6 +33,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return exportDownloadResponse(file);
   } catch (error) {
-    return exportError(error, "Không thể export dữ liệu mẫu.");
+    return exportError(error, "Không thể export kết quả xét nghiệm.");
   }
 }

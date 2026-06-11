@@ -23,6 +23,7 @@ type MetricRow = {
   result_group_id: string;
   code: string;
   name: string;
+  unit?: string | null;
 };
 
 type GroupRow = {
@@ -127,6 +128,7 @@ function buildSampleGroups(input: {
       id: metric.id,
       code: metric.code,
       name: metric.name,
+      unit: metric.unit ?? null,
       value,
     });
     summary.totalMetrics += 1;

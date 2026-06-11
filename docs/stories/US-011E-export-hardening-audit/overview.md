@@ -17,6 +17,9 @@ phải đi qua proof Supabase namespace/project-ref trước khi write.
 - Ghi audit event tối thiểu cho export thành công/thất bại: actor, tenant, loại
   export, format, filter summary an toàn, số dòng và kết quả.
 - Có guard chống export quá lớn, retry dồn dập hoặc request bypass contract.
+- Giữ hard cap cho download trực tiếp, nhưng không được cắt bớt âm thầm: khi
+  số bản ghi khớp filter vượt `rowLimit`/hard cap, API phải trả lỗi có cấu
+  trúc và thông báo thân thiện yêu cầu người dùng thu hẹp filter.
 - Khảo sát live query plan sau US-011B/C; chỉ thêm migration/RPC/index nếu có
   bằng chứng rõ ràng.
 - Nếu cần DB write, chứng minh namespace `mcp__supabase_lab_management`,
@@ -39,16 +42,17 @@ phải đi qua proof Supabase namespace/project-ref trước khi write.
 
 - Lưu file export lâu dài.
 - Thêm queue/background worker nếu dataset MVP vẫn bounded.
+- Thêm async export job cho dataset lớn trong slice này nếu chưa có bằng chứng
+  dataset vượt MVP và quyết định sản phẩm riêng.
 - Sửa dữ liệu nghiệp vụ hoặc result-engine.
 - Mở rộng permission matrix ngoài `Export Excel/CSV`.
 
 ## Validation
 
-| Layer | Expected proof |
-| --- | --- |
-| Unit | Audit payload sanitizer và limit/rate helpers nếu có. |
-| Integration | Export ghi audit đúng actor/tenant và reject request vượt giới hạn. |
-| E2E | Có thể gom với US-011D nếu flow UI bao phủ lỗi hard cap. |
-| Platform | Supabase proof bắt buộc trước mọi DB write; React Doctor diff nếu chạm TS/TSX. |
-| Release | Story record cập nhật proof hoặc no-op evidence sau khảo sát. |
-
+| Layer       | Expected proof                                                                 |
+| ----------- | ------------------------------------------------------------------------------ |
+| Unit        | Audit payload sanitizer và limit/rate helpers nếu có.                          |
+| Integration | Export ghi audit đúng actor/tenant và reject request vượt giới hạn.            |
+| E2E         | Có thể gom với US-011D nếu flow UI bao phủ lỗi hard cap.                       |
+| Platform    | Supabase proof bắt buộc trước mọi DB write; React Doctor diff nếu chạm TS/TSX. |
+| Release     | Story record cập nhật proof hoặc no-op evidence sau khảo sát.                  |
