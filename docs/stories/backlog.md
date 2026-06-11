@@ -61,7 +61,18 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 10 — Export
 
-- US-011 — Export Excel/CSV (planned)
+- [US-011](US-011-export-excel-csv/overview.md) — Export Excel/CSV parent
+  tracker (planned)
+- [US-011A](US-011A-export-query-contract/overview.md) — Export Query Contract
+  & Permission Gate (planned)
+- [US-011B](US-011B-sample-export-mvp/overview.md) — Sample Export MVP
+  (planned)
+- [US-011C](US-011C-normalized-results-export/overview.md) — Normalized Results
+  Export (planned)
+- [US-011D](US-011D-export-ui-download-flow/overview.md) — Export UI & Download
+  Flow (planned)
+- [US-011E](US-011E-export-hardening-audit/overview.md) — Export Hardening,
+  Audit & Limits (planned conditional)
 
 ## Phase 11 — Hardening
 
