@@ -63,6 +63,21 @@ ghi rõ lý do fallback theo `frontend-testing-debugging`.
 - Agent Browser mobile recent-samples scroll proof: mobile card fallback renders
   sample label/value rows with no horizontal overflow, screenshot
   `/root/images/us016b-dashboard-mobile-recent.png`.
+- Follow-up font polish on the same PR switched the project font stack to the
+  Stitch reference family through `next/font`: global UI uses Geist, data/ID
+  mono uses JetBrains Mono.
+- Follow-up focused proof passed:
+  `cd lab-kit-app && bun run test app/global-font.test.ts app/theme-dark-mode.test.ts`.
+- Follow-up quality proof passed: `cd lab-kit-app && bun run quality`.
+- Agent Browser font proof on `/dashboard` at 1440x1000 and 390x844 confirmed
+  computed `html`/`body` font is Geist, `.font-mono` is JetBrains Mono,
+  Vietnamese text is present, no framework overlay, and no horizontal overflow;
+  screenshots:
+  `/root/images/us016b-font-dashboard-desktop.png`,
+  `/root/images/us016b-font-dashboard-mobile.png`.
+- Agent Browser clean-session `/login` proof at 1440x1000 confirmed computed
+  font is Geist, Vietnamese text is present, no framework overlay, and no
+  horizontal overflow; screenshot `/root/images/us016b-font-login-desktop.png`.
 
 ## Current Intake Evidence
 
