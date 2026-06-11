@@ -132,6 +132,36 @@ describe("normalized results export file builder", () => {
     );
   });
 
+  test("uses fallback text for values that cannot be serialized", async () => {
+    const circularValue: Record<string, unknown> = {};
+    circularValue.self = circularValue;
+
+    await expect(
+      buildNormalizedResultsExportFile(
+        { ...baseQuery, fields: ["value"] },
+        actor,
+        createPort([createSampleRow()], circularValue)
+      )
+    ).resolves.toMatchObject({
+      body: Buffer.from(
+        ["Giá trị", "[Giá trị không thể xuất]"].join("\r\n"),
+        "utf8"
+      ),
+    });
+    await expect(
+      buildNormalizedResultsExportFile(
+        { ...baseQuery, fields: ["value"] },
+        actor,
+        createPort([createSampleRow()], BigInt(12))
+      )
+    ).resolves.toMatchObject({
+      body: Buffer.from(
+        ["Giá trị", "[Giá trị không thể xuất]"].join("\r\n"),
+        "utf8"
+      ),
+    });
+  });
+
   test("preserves requested column order and builds readable XLSX", async () => {
     const file = await buildNormalizedResultsExportFile(
       {

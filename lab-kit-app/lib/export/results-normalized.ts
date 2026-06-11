@@ -174,7 +174,15 @@ function formatResultValue(value: unknown): string {
     }
   }
 
-  return JSON.stringify(value);
+  return stringifyUnknownResultValue(value);
+}
+
+function stringifyUnknownResultValue(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[Giá trị không thể xuất]";
+  }
 }
 
 function formatPcrValue(value: Record<string, unknown>) {
