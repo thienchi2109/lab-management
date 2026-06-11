@@ -69,12 +69,39 @@ describe("DashboardPageContent", () => {
       <DashboardPageContent overview={overview} />
     );
 
+    expect(html).not.toContain("Nguyễn Văn A");
+    expect(html).not.toContain("👋");
+    expect(html).not.toContain("Xuất báo cáo ngày");
     expect(html).toContain("Tổng số mẫu nhận");
     expect(html).toContain(">2<");
     expect(html).toContain("03/06 - 09/06");
     expect(html).toContain("DIV1");
     expect(html).toContain("T06_00999");
     expect(html).toContain("Công ty Kiểm thử");
+    expect(html).toContain("md:hidden");
+    expect(html).toContain('data-sample-column-key="code"');
     expect(html).not.toContain("T06_00124");
+  });
+
+  test("renders composed low-data states without fake sample rows", () => {
+    const emptyOverview: DashboardOverviewData = {
+      ...overview,
+      pcrMetrics: [],
+      recentSamples: [],
+      trend: {
+        bars: [],
+        dateRangeLabel: "03/06 - 09/06",
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <DashboardPageContent overview={emptyOverview} />
+    );
+
+    expect(html).toContain("Chưa có dữ liệu xu hướng");
+    expect(html).toContain("Chưa có dữ liệu PCR");
+    expect(html).toContain("Chưa có mẫu gần đây");
+    expect(html).not.toContain("LAB-2023");
+    expect(html).not.toContain("AQ-2023");
   });
 });

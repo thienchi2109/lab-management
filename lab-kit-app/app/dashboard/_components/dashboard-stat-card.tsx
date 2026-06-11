@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 type DashboardStatCardProps = {
   title: string;
   value: string;
+  accentClassName: string;
   icon: LucideIcon;
   iconClassName: string;
   children: React.ReactNode;
@@ -15,15 +16,21 @@ type DashboardStatCardProps = {
 function DashboardStatCard({
   title,
   value,
+  accentClassName,
   icon: Icon,
   iconClassName,
   children,
   valueClassName,
 }: DashboardStatCardProps) {
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md hover:ring-1 hover:ring-primary/10">
+    <Card
+      className={cn(
+        "overflow-hidden border-l-4 transition-colors hover:bg-muted/30",
+        accentClassName
+      )}
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <span className="text-xs font-semibold text-muted-foreground">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {title}
         </span>
         <div className={cn("rounded-lg p-2", iconClassName)}>
@@ -31,8 +38,15 @@ function DashboardStatCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className={cn("text-2xl font-bold", valueClassName)}>{value}</div>
-        <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+        <div
+          className={cn(
+            "font-mono text-2xl font-semibold tracking-tight tabular-nums",
+            valueClassName
+          )}
+        >
+          {value}
+        </div>
+        <p className="mt-2 flex items-center gap-1 text-[11px] leading-4 text-muted-foreground">
           {children}
         </p>
       </CardContent>

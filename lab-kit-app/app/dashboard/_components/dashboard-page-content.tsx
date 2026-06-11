@@ -11,7 +11,7 @@ type DashboardPageContentProps = {
 function DashboardPageContent({ overview }: DashboardPageContentProps) {
   return (
     <div className="flex flex-col gap-6 md:gap-8">
-      <DashboardHero />
+      <DashboardHero dateRangeLabel={overview.trend.dateRangeLabel} />
       <DashboardStatsGrid stats={overview.stats} />
       <DashboardMainGrid overview={overview} />
     </div>
