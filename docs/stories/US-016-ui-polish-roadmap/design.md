@@ -54,3 +54,32 @@ data-heavy internal dashboard:
 - use skeletons/structured states instead of generic spinners;
 - keep button labels short and accessible;
 - verify contrast, focus rings and mobile overflow.
+
+## Visual Baseline Sau US-016B
+
+Các story polish tiếp theo nên align với baseline đã khóa ở dashboard overview:
+
+- Typography: UI toàn cục dùng Geist; số liệu, mã mẫu, ngày giờ và chỉ số dùng
+  JetBrains Mono qua `font-mono` kèm `tabular-nums` khi cần scan theo cột.
+- Tone: clinical, yên tĩnh, utilitarian và data-first. Không dùng hero
+  marketing, emoji, decorative gradient hoặc copy cảm xúc trên màn hình nghiệp
+  vụ.
+- Layout: giữ dashboard shell hiện có, desktop topbar và mobile/tablet bottom
+  nav. Route content là stack dọc có nhịp rõ, không thêm sidebar trong US-016.
+- Surfaces: dùng nền zinc rất nhẹ, card viền mảnh, radius vừa phải, shadow tối
+  thiểu. Ưu tiên border, divide line và tonal layering hơn elevation nặng.
+- Accent: dùng accent theo nghĩa nghiệp vụ, không trang trí. Primary cho action
+  chính; emerald/amber/destructive chỉ cho trạng thái hoặc kết quả cần chú ý.
+- Metrics: số liệu chính phải lớn vừa đủ, có label ngắn, detail rõ và tránh
+  nhiều màu cạnh tranh. Empty/low-data state phải có chủ đích, không để khoảng
+  trắng giống lỗi tải dữ liệu.
+- Tables/lists: desktop ưu tiên `DashboardDataTable`; mobile ưu tiên card/row
+  fallback dễ đọc thay vì ép bảng ngang nếu thông tin có thể reflow an toàn.
+- Actions: bỏ CTA inert hoặc chưa có route rõ. Viewer không thấy affordance
+  chỉnh sửa sai quyền.
+- Responsive proof: mỗi story cần browser proof desktop và một viewport mobile,
+  gồm kiểm tra no framework overlay, no horizontal overflow và chữ tiếng Việt
+  không mất dấu.
+- Reference use: Stitch chỉ là nguồn visual direction. Không copy Material
+  Symbols, Tailwind CDN, Google Fonts link, fake data hoặc workflow không tồn
+  tại trong repo.
