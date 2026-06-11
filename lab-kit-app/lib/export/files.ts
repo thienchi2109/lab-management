@@ -1,8 +1,10 @@
-import { utils, write } from "xlsx";
+import { Buffer as NodeBuffer } from "node:buffer";
+
+import writeExcelFile from "write-excel-file/node";
 
 /** File export đã sẵn sàng trả về từ route handler. */
 export type TabularExportFile = {
-  body: Buffer;
+  body: NodeBuffer;
   contentType: string;
   filename: string;
 };
@@ -17,14 +19,14 @@ export type BuildTabularExportFileInput = {
 };
 
 /** Tạo file CSV hoặc XLSX từ bảng string đã có header ổn định. */
-export function buildTabularExportFile(
+export async function buildTabularExportFile(
   input: BuildTabularExportFileInput
-): TabularExportFile {
+): Promise<TabularExportFile> {
   const dateStamp = formatDateStamp(input.generatedAt ?? new Date());
 
   if (input.format === "xlsx") {
     return {
-      body: toXlsxBuffer(input.rows, input.sheetName),
+      body: await toXlsxBuffer(input.rows, input.sheetName),
       contentType:
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       filename: `${input.basename}-${dateStamp}.xlsx`,
@@ -32,7 +34,7 @@ export function buildTabularExportFile(
   }
 
   return {
-    body: Buffer.from(toCsv(input.rows), "utf8"),
+    body: NodeBuffer.from(toCsv(input.rows), "utf8"),
     contentType: "text/csv; charset=utf-8",
     filename: `${input.basename}-${dateStamp}.csv`,
   };
@@ -46,12 +48,11 @@ function toCsv(rows: string[][]) {
   return lines.join("\r\n");
 }
 
-function toXlsxBuffer(rows: string[][], sheetName: string) {
-  const worksheet = utils.aoa_to_sheet(rows);
-  const workbook = utils.book_new();
-  utils.book_append_sheet(workbook, worksheet, sheetName);
-
-  return write(workbook, { bookType: "xlsx", type: "buffer" }) as Buffer;
+async function toXlsxBuffer(
+  rows: string[][],
+  sheetName: string
+): Promise<NodeBuffer> {
+  return writeExcelFile(rows, { sheet: sheetName }).toBuffer();
 }
 
 function escapeCsvValue(value: string) {

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
+import { readWorksheetRows } from "@/lib/export/test-workbook";
 import type {
   SampleGridPort,
   SampleGridRow,
@@ -151,8 +152,8 @@ describe("POST /api/export/results-normalized", () => {
     expect(port.listSamples).not.toHaveBeenCalled();
   });
 
-  test("returns an XLSX download that SheetJS can read", async () => {
-    const { read, utils } = await import("xlsx");
+  test("returns a readable XLSX download", async () => {
+    vi.useRealTimers();
     vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
     vi.mocked(createSupabaseSampleGridPort).mockReturnValue(
       createPort([createSampleRow()])
@@ -164,22 +165,21 @@ describe("POST /api/export/results-normalized", () => {
         format: "xlsx",
       })
     );
-    const workbook = read(Buffer.from(await response.arrayBuffer()), {
-      type: "buffer",
-    });
+    const body = Buffer.from(await response.arrayBuffer());
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe(
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    expect(
-      utils.sheet_to_json(workbook.Sheets["Kết quả chuẩn hóa"], {
-        header: 1,
-      })
-    ).toEqual([
-      ["Mã mẫu", "Chỉ tiêu", "Đơn vị", "Giá trị"],
-      ["T6_00012", "pH", "", "7.8"],
-    ]);
+    expect(response.headers.get("content-disposition")).toMatch(
+      /^attachment; filename="ket-qua-chuan-hoa-\d{4}-\d{2}-\d{2}\.xlsx"$/
+    );
+    await expect(readWorksheetRows(body, "Kết quả chuẩn hóa")).resolves.toEqual(
+      [
+        ["Mã mẫu", "Chỉ tiêu", "Đơn vị", "Giá trị"],
+        ["T6_00012", "pH", "", "7.8"],
+      ]
+    );
   });
 });
 

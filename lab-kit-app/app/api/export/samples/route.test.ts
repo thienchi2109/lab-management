@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
+import { readWorksheetRows } from "@/lib/export/test-workbook";
 import type {
   SampleGridPort,
   SampleGridRow,
@@ -167,7 +168,7 @@ describe("POST /api/export/samples", () => {
   });
 
   test("returns an XLSX download when requested", async () => {
-    const { read, utils } = await import("xlsx");
+    vi.useRealTimers();
     vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
     const port = createPort([
       createSampleRow({
@@ -185,20 +186,19 @@ describe("POST /api/export/samples", () => {
         format: "xlsx",
       })
     );
-    const workbook = read(Buffer.from(await response.arrayBuffer()), {
-      type: "buffer",
-    });
+    const body = Buffer.from(await response.arrayBuffer());
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe(
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    expect(response.headers.get("content-disposition")).toBe(
-      'attachment; filename="mau-xet-nghiem-2026-06-08.xlsx"'
+    expect(response.headers.get("content-disposition")).toMatch(
+      /^attachment; filename="mau-xet-nghiem-\d{4}-\d{2}-\d{2}\.xlsx"$/
     );
-    expect(
-      utils.sheet_to_json(workbook.Sheets["Mẫu xét nghiệm"], { header: 1 })
-    ).toEqual([["Mã mẫu"], ["T6_00015"]]);
+    await expect(readWorksheetRows(body, "Mẫu xét nghiệm")).resolves.toEqual([
+      ["Mã mẫu"],
+      ["T6_00015"],
+    ]);
   });
 });
 

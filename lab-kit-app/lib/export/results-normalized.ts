@@ -91,7 +91,7 @@ export async function buildNormalizedResultsExportFile(
   });
   const rows = toTableRows(query.fields, flattenRows(result.rows, summaries));
 
-  return buildTabularExportFile({
+  return await buildTabularExportFile({
     basename: "ket-qua-chuan-hoa",
     format: query.format,
     generatedAt: options.generatedAt,
@@ -160,7 +160,10 @@ function formatResultValue(value: unknown): string {
   }
 
   if (Array.isArray(value)) {
-    return value.map(formatResultValue).filter(Boolean).join("; ");
+    return value
+      .map(formatResultValue)
+      .filter((item) => item !== "")
+      .join("; ");
   }
 
   if (isRecord(value)) {

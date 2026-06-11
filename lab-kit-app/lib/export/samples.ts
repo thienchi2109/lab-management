@@ -90,7 +90,7 @@ export async function buildSampleExportFile(
   });
   const rows = toTableRows(query.fields, result.rows);
 
-  return buildTabularExportFile({
+  return await buildTabularExportFile({
     basename: "mau-xet-nghiem",
     format: query.format,
     generatedAt: options.generatedAt,

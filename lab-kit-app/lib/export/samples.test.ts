@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 
-import { buildSampleExportFile, type SampleExportActor } from "./samples";
 import type { ExportQuery } from "./query";
+import { buildSampleExportFile, type SampleExportActor } from "./samples";
+import { readWorksheetRows } from "./test-workbook";
 import type {
   SampleGridPort,
   SampleGridRow,
@@ -100,7 +101,6 @@ describe("sample export file builder", () => {
   });
 
   test("builds an XLSX workbook with stable headers and requested columns", async () => {
-    const { read, utils } = await import("xlsx");
     const file = await buildSampleExportFile(
       {
         ...baseQuery,
@@ -120,14 +120,13 @@ describe("sample export file builder", () => {
       }
     );
 
-    const workbook = read(file.body, { type: "buffer" });
-    const sheet = workbook.Sheets["Mẫu xét nghiệm"];
-
     expect(file.contentType).toBe(
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
     expect(file.filename).toBe("mau-xet-nghiem-2026-06-08.xlsx");
-    expect(utils.sheet_to_json(sheet, { header: 1 })).toEqual([
+    await expect(
+      readWorksheetRows(file.body, "Mẫu xét nghiệm")
+    ).resolves.toEqual([
       ["Mã mẫu", "Khách hàng", "Trạng thái"],
       ["T6_00014", "Công ty A", "Hoàn tất"],
     ]);

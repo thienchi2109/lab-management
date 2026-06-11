@@ -5,6 +5,7 @@ import {
   type NormalizedResultsExportActor,
   type NormalizedResultsExportQuery,
 } from "./results-normalized";
+import { readWorksheetRows } from "./test-workbook";
 import type {
   SampleGridPort,
   SampleGridRow,
@@ -119,8 +120,19 @@ describe("normalized results export file builder", () => {
     expect(file.body.toString("utf8")).not.toContain("audit");
   });
 
+  test("preserves numeric zero and false values inside array results", async () => {
+    const file = await buildNormalizedResultsExportFile(
+      { ...baseQuery, fields: ["value"] },
+      actor,
+      createPort([createSampleRow()], [0, false, "", null])
+    );
+
+    expect(file.body.toString("utf8")).toBe(
+      ["Giá trị", "0; false"].join("\r\n")
+    );
+  });
+
   test("preserves requested column order and builds readable XLSX", async () => {
-    const { read, utils } = await import("xlsx");
     const file = await buildNormalizedResultsExportFile(
       {
         ...baseQuery,
@@ -130,23 +142,23 @@ describe("normalized results export file builder", () => {
       actor,
       createPort([createSampleRow()])
     );
-    const workbook = read(file.body, { type: "buffer" });
 
     expect(file.contentType).toBe(
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    expect(
-      utils.sheet_to_json(workbook.Sheets["Kết quả chuẩn hóa"], {
-        header: 1,
-      })
-    ).toEqual([
+    await expect(
+      readWorksheetRows(file.body, "Kết quả chuẩn hóa")
+    ).resolves.toEqual([
       ["Chỉ tiêu", "Đơn vị", "Giá trị", "Mã mẫu"],
       ["pH", "", "7.8", "T6_00012"],
     ]);
   });
 });
 
-function createPort(rows: SampleGridRow[]): SampleGridPort {
+function createPort(
+  rows: SampleGridRow[],
+  value: unknown = 7.8
+): SampleGridPort {
   return {
     async listSamples() {
       return { rows, totalCount: rows.length };
@@ -166,7 +178,7 @@ function createPort(rows: SampleGridRow[]): SampleGridPort {
                   id: "metric-1",
                   name: "pH",
                   unit: null,
-                  value: 7.8,
+                  value,
                 },
               ],
               name: "Hóa lý",
