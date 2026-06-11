@@ -56,11 +56,17 @@ async function toXlsxBuffer(
 }
 
 function escapeCsvValue(value: string) {
-  if (!/[",\n\r]/.test(value)) {
-    return value;
+  const safeValue = neutralizeFormulaValue(value);
+
+  if (!/[",\n\r]/.test(safeValue)) {
+    return safeValue;
   }
 
-  return `"${value.replaceAll('"', '""')}"`;
+  return `"${safeValue.replaceAll('"', '""')}"`;
+}
+
+function neutralizeFormulaValue(value: string) {
+  return /^[\s]*[=+\-@]/.test(value) ? `'${value}` : value;
 }
 
 function formatDateStamp(date: Date) {

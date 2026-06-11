@@ -100,6 +100,31 @@ describe("sample export file builder", () => {
     );
   });
 
+  test("neutralizes formula-like CSV values before escaping", async () => {
+    const file = await buildSampleExportFile(
+      {
+        ...baseQuery,
+        fields: ["customerName", "sampleCode", "kitBatch", "billingStatus"],
+      },
+      actor,
+      createPort([
+        createSampleRow({
+          billingStatus: "unpaid",
+          customerName: '=WEBSERVICE("https://example.test")',
+          kitSummary: " +SUM(1,2)",
+          sampleCode: "@T6_00013",
+        }),
+      ])
+    );
+
+    expect(file.body.toString("utf8")).toBe(
+      [
+        "Khách hàng,Mã mẫu,KIT,Thanh toán",
+        '"\'=WEBSERVICE(""https://example.test"")",\'@T6_00013,"\' +SUM(1,2)",Chưa thu',
+      ].join("\r\n")
+    );
+  });
+
   test("builds an XLSX workbook with stable headers and requested columns", async () => {
     const file = await buildSampleExportFile(
       {

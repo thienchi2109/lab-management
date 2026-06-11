@@ -162,6 +162,37 @@ describe("normalized results export file builder", () => {
     });
   });
 
+  test("keeps sample metadata when result summary is missing", async () => {
+    const file = await buildNormalizedResultsExportFile(
+      {
+        ...baseQuery,
+        fields: [
+          "sampleCode",
+          "customerName",
+          "groupCode",
+          "metricName",
+          "value",
+        ],
+      },
+      actor,
+      {
+        async listSamples() {
+          return { rows: [createSampleRow()], totalCount: 1 };
+        },
+        async listSampleResultSummaries() {
+          return {};
+        },
+      }
+    );
+
+    expect(file.body.toString("utf8")).toBe(
+      [
+        "Mã mẫu,Khách hàng,Mã nhóm,Chỉ tiêu,Giá trị",
+        "T6_00012,Công ty A,,,",
+      ].join("\r\n")
+    );
+  });
+
   test("preserves requested column order and builds readable XLSX", async () => {
     const file = await buildNormalizedResultsExportFile(
       {

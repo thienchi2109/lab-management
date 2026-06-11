@@ -106,26 +106,43 @@ function flattenRows(
 ) {
   return samples.flatMap((sample) => {
     const summary = summaries[sample.id];
-
-    return (summary?.groups ?? []).flatMap((group) =>
-      group.metrics.map(
-        (metric): NormalizedResultsExportRow => ({
-          customerName: sample.customerName ?? "",
+    const rows = (summary?.groups ?? []).flatMap((group) =>
+      group.metrics.map((metric) =>
+        createResultRow(sample, {
           groupCode: group.code,
           groupName: group.name,
           kqChung: group.kqChung ?? "",
           metricCode: metric.code,
           metricName: metric.name,
           metricUnit: metric.unit ?? "",
-          receivedAt: sample.receivedAt,
-          sampleCode: sample.sampleCode,
-          sampleType: sample.sampleTypeName,
-          status: formatSampleStatus(sample.status),
           value: formatResultValue(metric.value),
         })
       )
     );
+
+    return rows.length > 0 ? rows : [createResultRow(sample)];
   });
+}
+
+function createResultRow(
+  sample: SampleGridRow,
+  result: Partial<NormalizedResultsExportRow> = {}
+): NormalizedResultsExportRow {
+  return {
+    customerName: sample.customerName ?? "",
+    groupCode: "",
+    groupName: "",
+    kqChung: "",
+    metricCode: "",
+    metricName: "",
+    metricUnit: "",
+    receivedAt: sample.receivedAt,
+    sampleCode: sample.sampleCode,
+    sampleType: sample.sampleTypeName,
+    status: formatSampleStatus(sample.status),
+    value: "",
+    ...result,
+  };
 }
 
 function toTableRows(
