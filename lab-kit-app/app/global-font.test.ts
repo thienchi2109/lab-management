@@ -5,14 +5,20 @@ import { describe, expect, test } from "vitest";
 const appDir = join(process.cwd(), "app");
 
 describe("global font configuration", () => {
-  test("uses Be Vietnam Pro as the global sans font", () => {
+  test("uses the Stitch reference font stack globally", () => {
     const layout = readFileSync(join(appDir, "layout.tsx"), "utf8");
     const globals = readFileSync(join(appDir, "globals.css"), "utf8");
 
-    expect(layout).toContain("Be_Vietnam_Pro");
-    expect(layout).toContain('variable: "--font-be-vietnam-pro"');
-    expect(globals).toContain('"Be Vietnam Pro"');
+    expect(layout).toContain("Geist");
+    expect(layout).toContain("JetBrains_Mono");
+    expect(layout).toContain('variable: "--font-geist-sans"');
+    expect(layout).toContain('variable: "--font-jetbrains-mono"');
+    expect(layout).toContain('subsets: ["latin", "latin-ext"]');
+    expect(layout).toContain('subsets: ["latin", "latin-ext", "vietnamese"]');
+    expect(globals).toContain('"Geist"');
+    expect(globals).toContain('"JetBrains Mono"');
     expect(globals).toContain("--font-heading: var(--font-sans)");
     expect(globals).not.toContain("--font-sans: var(--font-sans)");
+    expect(globals).not.toContain("Be Vietnam Pro");
   });
 });

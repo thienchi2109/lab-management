@@ -2,24 +2,31 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-function DashboardHero() {
+type DashboardHeroProps = {
+  dateRangeLabel: string;
+};
+
+function DashboardHero({ dateRangeLabel }: DashboardHeroProps) {
   return (
-    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-      <div>
-        <h2 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          Xin chào, Nguyễn Văn A 👋
+    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Tổng quan vận hành
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+          Theo dõi mẫu, KIT và kết quả PCR
         </h2>
-        <p className="text-xs text-muted-foreground md:text-sm">
-          Chúc bạn một ngày làm việc hiệu quả. Dưới đây là tóm tắt hoạt động của
-          phòng lab.
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Dữ liệu 7 ngày gần nhất ({dateRangeLabel}) từ các lượt nhận mẫu và kết
+          quả đã ghi nhận.
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" className="h-9 text-xs">
-          Xuất báo cáo ngày
+      <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center">
+        <Button variant="outline" size="sm" className="h-9 text-xs" asChild>
+          <Link href="/dashboard/analytics">Xem analytics</Link>
         </Button>
         <Button size="sm" className="h-9 text-xs" asChild>
-          <Link href="/dashboard/samples">Nhập kết quả mới</Link>
+          <Link href="/dashboard/samples">Mở danh sách mẫu</Link>
         </Button>
       </div>
     </div>
