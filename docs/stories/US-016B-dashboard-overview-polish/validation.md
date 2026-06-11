@@ -53,6 +53,7 @@ ghi rõ lý do fallback theo `frontend-testing-debugging`.
 - `cd lab-kit-app && bun run docstring:check` passed.
 - `scripts/bin/harness-cli story verify US-016B` passed after replacing the
   non-executable verify description with the executable focused command.
+- Pull request: https://github.com/thienchi2109/lab-management/pull/56
 - Agent Browser desktop `/dashboard` at 1440x1000 with `admin / 123456@`: no
   framework overlay, dashboard text present, no horizontal overflow, screenshot
   `/root/images/us016b-dashboard-desktop.png`.
