@@ -41,6 +41,7 @@ describe("sample grid operations", () => {
         totalPages: 5,
       },
       capabilities: {
+        canExport: true,
         canEnterResults: true,
         canManageImages: true,
         canUpdateMetadata: true,
@@ -82,6 +83,7 @@ describe("sample grid operations", () => {
     );
 
     expect(page.capabilities).toEqual({
+      canExport: false,
       canEnterResults: false,
       canManageImages: false,
       canUpdateMetadata: false,

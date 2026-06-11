@@ -95,6 +95,7 @@ export type SampleGridPage = {
 
 /** Quyền hành động của người đọc trên sample grid hiện tại. */
 export type SampleGridCapabilities = {
+  canExport: boolean;
   canEnterResults: boolean;
   canManageImages: boolean;
   canUpdateMetadata: boolean;
@@ -192,6 +193,7 @@ function getSampleGridCapabilities(
   const canWrite = actor.role === "admin" || actor.role === "editor";
 
   return {
+    canExport: canWrite,
     canEnterResults: canWrite,
     canManageImages: canWrite,
     canUpdateMetadata: canWrite,

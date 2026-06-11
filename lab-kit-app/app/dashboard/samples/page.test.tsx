@@ -23,6 +23,7 @@ describe("SampleGridPage", () => {
   test("loads sample grid data from URL state", async () => {
     vi.mocked(getSampleGridPage).mockResolvedValue({
       capabilities: {
+        canExport: true,
         canEnterResults: true,
         canManageImages: true,
         canUpdateMetadata: false,
