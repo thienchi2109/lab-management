@@ -20,8 +20,10 @@ format được hỗ trợ, trạng thái đang tạo file hoặc lỗi khi data
 - Disable hoặc ẩn action theo permission gate, có thông báo rõ khi người dùng
   không được export.
 - Hỗ trợ chọn format CSV/XLSX bằng control nhỏ, không làm rối toolbar chính.
+- Payload UI phải truyền `rowLimit` export rõ ràng theo contract export; không
+  dùng page size hoặc page hiện tại của bảng làm giới hạn export ngầm.
 - Hiển thị pending, success và error state; lỗi vượt hard cap phải gợi ý thu hẹp
-  filter thay vì retry vô hạn.
+  filter bằng thông báo thân thiện thay vì retry vô hạn.
 - Flow mobile không ép bảng rộng hoặc che row actions hiện có.
 
 ## Affected Users
@@ -39,6 +41,7 @@ format được hỗ trợ, trạng thái đang tạo file hoặc lỗi khi data
 
 - Tạo endpoint export mới.
 - Thay đổi query contract của sample grid/analytics.
+- Thêm cursor/multi-page loop hoặc async export job cho dataset lớn.
 - Thêm chart, pivot behavior hoặc report view mới.
 - Lưu lịch sử file export trên server.
 
@@ -51,11 +54,10 @@ format được hỗ trợ, trạng thái đang tạo file hoặc lỗi khi data
 
 ## Validation
 
-| Layer | Expected proof |
-| --- | --- |
-| Unit | Permission/action state và format selector nếu tách được helper/component. |
-| Integration | UI gọi đúng endpoint, truyền filter hiện hành và xử lý lỗi có cấu trúc. |
-| E2E | Download happy path và lỗi không có quyền hoặc vượt giới hạn. |
-| Platform | React Doctor diff, responsive/browser screenshot nếu có UI. |
-| Release | Story record cập nhật proof sau khi implement. |
-
+| Layer       | Expected proof                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| Unit        | Permission/action state và format selector nếu tách được helper/component.                                |
+| Integration | UI gọi đúng endpoint, truyền filter hiện hành, truyền `rowLimit` export rõ ràng và xử lý lỗi có cấu trúc. |
+| E2E         | Download happy path và lỗi không có quyền hoặc vượt giới hạn.                                             |
+| Platform    | React Doctor diff, responsive/browser screenshot nếu có UI.                                               |
+| Release     | Story record cập nhật proof sau khi implement.                                                            |
