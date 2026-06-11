@@ -4,7 +4,7 @@ import type { CurrentSession } from "@/lib/auth/session";
 /** Permission sản phẩm cho chức năng Export Excel/CSV. */
 export const EXPORT_EXCEL_CSV_PERMISSION = "export:excel-csv";
 
-/** Grant quyền export được caller truyền vào sau khi đã đọc từ nguồn tin cậy. */
+/** Grant quyền export được caller truyền vào từ nguồn tin cậy đã đọc. */
 export type ExportPermissionGrant = {
   isActive: boolean;
   organizationId: string;

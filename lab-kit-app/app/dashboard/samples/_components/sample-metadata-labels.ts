@@ -1,21 +1,4 @@
-import type {
-  SampleBillingStatus,
-  SampleStatus,
-} from "@/lib/sample-metadata/schemas";
-
-/** Nhãn tiếng Việt cho trạng thái xử lý của mẫu xét nghiệm. */
-export const sampleStatusLabels: Record<SampleStatus, string> = {
-  draft: "Nháp",
-  received: "Đã nhận",
-  in_progress: "Đang xử lý",
-  completed: "Hoàn tất",
-  archived: "Lưu trữ",
-};
-
-/** Nhãn tiếng Việt cho trạng thái thanh toán của mẫu xét nghiệm. */
-export const billingStatusLabels: Record<SampleBillingStatus, string> = {
-  unpaid: "Chưa thu",
-  invoiced: "Đã xuất hóa đơn",
-  paid: "Đã thanh toán",
-  eom_credit: "Công nợ cuối tháng",
-};
+export {
+  billingStatusLabels,
+  sampleStatusLabels,
+} from "@/lib/sample-metadata/labels";
