@@ -97,6 +97,26 @@ describe("SampleExportControls", () => {
     });
   });
 
+  test("recovers from unexpected export request failures", async () => {
+    vi.mocked(requestSampleGridExport).mockRejectedValue(
+      new Error("unexpected export failure")
+    );
+
+    render(<SampleExportControls canExport={true} query={query} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Export mẫu" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Không thể export dữ liệu. Vui lòng thử lại.")
+      ).toBeTruthy();
+    });
+    expect(screen.getByRole("button", { name: "Export mẫu" })).toHaveProperty(
+      "disabled",
+      false
+    );
+  });
+
   test("disables export actions when the current UI state has no export permission", () => {
     render(<SampleExportControls canExport={false} query={query} />);
 

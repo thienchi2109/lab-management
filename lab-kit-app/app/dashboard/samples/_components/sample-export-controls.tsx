@@ -49,13 +49,20 @@ export function SampleExportControls({
     }
 
     setState({ status: "pending", message: "Đang tạo file export..." });
-    const result = await requestSampleGridExport({
-      dataset,
-      format,
-      query,
-      rowLimit: SAMPLE_GRID_EXPORT_ROW_LIMIT,
-    });
-    setState(result.state);
+    try {
+      const result = await requestSampleGridExport({
+        dataset,
+        format,
+        query,
+        rowLimit: SAMPLE_GRID_EXPORT_ROW_LIMIT,
+      });
+      setState(result.state);
+    } catch {
+      setState({
+        status: "error",
+        message: "Không thể export dữ liệu. Vui lòng thử lại.",
+      });
+    }
   }
 
   return (
