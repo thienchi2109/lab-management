@@ -24,6 +24,7 @@ import {
   useSampleGridHiddenColumnKeys,
   type SampleGridColumnPreference,
 } from "./sample-grid-column-preferences";
+import { ResultColumnModeControls } from "./sample-grid-result-column-controls";
 
 type SampleGridTableSectionProps = {
   page: SampleGridPage;
@@ -50,7 +51,6 @@ const sampleGridColumnPreferences = [
   { key: "billing", label: "Thanh toán" },
 ] as const satisfies readonly SampleGridColumnPreference[];
 
-/** Render phần bảng mẫu có tùy chọn ẩn/hiện cột lưu trong browser. */
 export function SampleGridTableSection({ page }: SampleGridTableSectionProps) {
   const hiddenColumnKeys = useSampleGridHiddenColumnKeys(
     sampleGridColumnPreferences
@@ -66,12 +66,22 @@ export function SampleGridTableSection({ page }: SampleGridTableSectionProps) {
 
       <DashboardDataTable
         caption="Danh sách mẫu xét nghiệm"
+        density="compact"
+        emptyAction={
+          <Link
+            className="text-sm font-medium text-primary hover:underline"
+            href="/dashboard/samples"
+          >
+            Xóa bộ lọc
+          </Link>
+        }
         emptyDescription="Thử đổi từ khóa, bộ lọc hoặc quay lại trang đầu."
         emptyTitle="Không có mẫu phù hợp"
         hiddenColumnKeys={hiddenColumnKeys}
         rows={page.rows.map((sample) =>
           toTableRow(sample, page, resultColumnLabelByKey)
         )}
+        tone="workspace"
       />
     </>
   );
@@ -82,16 +92,17 @@ function toTableRow(
   page: SampleGridPage,
   resultColumnLabelByKey: Map<string, string>
 ): DashboardDataTableRow {
-  const actionLabel =
-    page.capabilities.canEnterResults || page.capabilities.canManageImages
-      ? "Kết quả & ảnh"
-      : "Xem kết quả & ảnh";
   const resultSummaryIndex = buildResultSummaryIndex(
     sample.resultSummary?.groups ?? []
   );
 
   return {
     id: sample.id,
+    mobilePrimaryAction: (
+      <Button asChild size="sm">
+        <Link href={`/dashboard/samples/${sample.id}/results`}>Mở kết quả</Link>
+      </Button>
+    ),
     cells: [
       {
         columnKey: "sample",
@@ -163,41 +174,14 @@ function toTableRow(
     actions: (
       <Button asChild size="sm" variant="outline">
         <Link href={`/dashboard/samples/${sample.id}/results`}>
-          {actionLabel}
+          {page.capabilities.canEnterResults ||
+          page.capabilities.canManageImages
+            ? "Kết quả & ảnh"
+            : "Xem kết quả & ảnh"}
         </Link>
       </Button>
     ),
   };
-}
-
-function ResultColumnModeControls({ page }: { page: SampleGridPage }) {
-  if (page.resultColumnOptions.length === 0) {
-    return null;
-  }
-
-  return (
-    <fieldset className="rounded-lg border bg-background p-4">
-      <legend className="px-1 text-sm font-medium">Cột kết quả desktop</legend>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {page.resultColumnOptions.map((option) => {
-          const selected = page.selectedResultColumnKeys.includes(option.key);
-
-          return (
-            <Button
-              key={option.key}
-              asChild
-              size="sm"
-              variant={selected ? "default" : "outline"}
-            >
-              <Link href={buildResultColumnHref(page, option.key, selected)}>
-                {option.label}
-              </Link>
-            </Button>
-          );
-        })}
-      </div>
-    </fieldset>
-  );
 }
 
 function ResultGroupDetail({
@@ -302,31 +286,6 @@ function formatResultValue(value: unknown) {
   }
 
   return String(value);
-}
-
-function buildResultColumnHref(
-  page: SampleGridPage,
-  key: string,
-  selected: boolean
-) {
-  const params = new URLSearchParams();
-  const nextKeys = selected
-    ? page.selectedResultColumnKeys.filter((item) => item !== key)
-    : [...page.selectedResultColumnKeys, key].slice(0, 3);
-
-  if (page.query.search) params.set("search", page.query.search);
-  if (page.query.filters.status)
-    params.set("status", page.query.filters.status);
-  if (page.query.filters.billingStatus) {
-    params.set("billingStatus", page.query.filters.billingStatus);
-  }
-  params.set("sort", page.query.sort.key);
-  params.set("dir", page.query.sort.direction);
-  params.set("page", "1");
-  params.set("pageSize", String(page.query.pageSize));
-  for (const nextKey of nextKeys) params.append("resultColumns", nextKey);
-
-  return `/dashboard/samples?${params.toString()}`;
 }
 
 function formatBillingStatus(status: string) {

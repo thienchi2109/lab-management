@@ -125,4 +125,59 @@ describe("DashboardDataTable", () => {
     expect(html).not.toContain("LOT-001");
     expect(html).not.toContain('data-sample-column-key="lot"');
   });
+
+  test("supports polished dense tables with row tone, mobile primary action, and empty action", () => {
+    const emptyHtml = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Danh sách mẫu"
+        density="compact"
+        emptyAction={<a href="/dashboard/samples">Xóa bộ lọc</a>}
+        emptyDescription="Thử đổi từ khóa hoặc quay lại trang đầu."
+        emptyTitle="Không có mẫu phù hợp"
+        rows={[]}
+        tone="workspace"
+      />
+    );
+
+    expect(emptyHtml).toContain("border-border/50");
+    expect(emptyHtml).toContain("Xóa bộ lọc");
+
+    const rowHtml = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Danh sách mẫu"
+        density="compact"
+        emptyDescription="Thử đổi từ khóa hoặc quay lại trang đầu."
+        emptyTitle="Không có mẫu phù hợp"
+        rows={[
+          {
+            id: "sample-1",
+            rowTone: "highlight",
+            mobilePrimaryAction: (
+              <a href="/dashboard/samples/sample-1/results">Mở kết quả</a>
+            ),
+            cells: [
+              {
+                columnKey: "sample",
+                header: "Mã mẫu",
+                content: "T6_90007",
+                primary: true,
+              },
+              { header: "Trạng thái", content: "Đã nhận" },
+            ],
+            actions: (
+              <a href="/dashboard/samples/sample-1/results">Kết quả & ảnh</a>
+            ),
+          },
+        ]}
+        tone="workspace"
+      />
+    );
+
+    expect(rowHtml).toContain("bg-card");
+    expect(rowHtml).toContain("hover:bg-primary/5");
+    expect(rowHtml).toContain("border-l-primary");
+    expect(rowHtml).toContain("py-2.5");
+    expect(rowHtml).toContain("md:hidden");
+    expect(rowHtml).toContain("Mở kết quả");
+  });
 });
