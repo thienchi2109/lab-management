@@ -2,7 +2,7 @@
 
 **Lane:** high-risk
 **Phase:** 10
-**Status:** planned conditional
+**Status:** implemented
 **Affects:** audit export, rate/size guard, khảo sát live DB/RPC/index và các
 hardening cần thiết sau khi US-011A-D chứng minh nhu cầu
 
@@ -56,3 +56,26 @@ phải đi qua proof Supabase namespace/project-ref trước khi write.
 | E2E         | Có thể gom với US-011D nếu flow UI bao phủ lỗi hard cap.                       |
 | Platform    | Supabase proof bắt buộc trước mọi DB write; React Doctor diff nếu chạm TS/TSX. |
 | Release     | Story record cập nhật proof hoặc no-op evidence sau khảo sát.                  |
+
+## Implementation Evidence
+
+- Implemented on branch `feature/us-011e-export-hardening-audit` and opened as
+  PR #62: <https://github.com/thienchi2109/lab-management/pull/62>.
+- Server export routes now audit successful exports and actor-resolved failures
+  with actor, tenant, dataset, format, safe filter summary, row limit and row
+  count or error code.
+- Runtime row-limit guard rejects `totalCount > rowLimit` before file creation
+  instead of silently truncating matching rows.
+- Export rate guard rejects repeated per-actor export attempts before reading
+  the sample data port.
+- Invalid payloads and unauthenticated/unauthorized requests do not write audit
+  events because no trusted actor/tenant has been resolved.
+- Live Supabase read proof used namespace `mcp__supabase_lab_management` for
+  expected project-ref `tuuqgpzgollcerqqszjr`; `public.audit_events` already
+  has `organization_id`, `actor_id`, `action`, `entity_table`, `entity_id` and
+  `event_payload`, so no migration was applied.
+- Verification on 2026-06-12:
+  `cd lab-kit-app && bun run test` passed 85 files / 313 tests;
+  `bun run quality` passed; `bun run docstring:check` passed;
+  `scripts/bin/harness-cli story verify US-011E` passed.
+- Harness trace #108 recorded.

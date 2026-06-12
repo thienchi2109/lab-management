@@ -156,12 +156,30 @@ describe("sample export file builder", () => {
       ["T6_00014", "Công ty A", "Hoàn tất"],
     ]);
   });
+
+  test("rejects matching rows above rowLimit instead of truncating silently", async () => {
+    await expect(
+      buildSampleExportFile(
+        { ...baseQuery, rowLimit: 1 },
+        actor,
+        createPort([createSampleRow()], { totalCount: 2 })
+      )
+    ).rejects.toMatchObject({
+      code: "export_row_limit_exceeded",
+      message:
+        "Số bản ghi khớp bộ lọc vượt giới hạn export. Vui lòng thu hẹp bộ lọc và thử lại.",
+      status: 400,
+    });
+  });
 });
 
-function createPort(rows: SampleGridRow[]): SampleGridPort {
+function createPort(
+  rows: SampleGridRow[],
+  options: { totalCount?: number } = {}
+): SampleGridPort {
   return {
     async listSamples() {
-      return { rows, totalCount: rows.length };
+      return { rows, totalCount: options.totalCount ?? rows.length };
     },
   };
 }

@@ -1,4 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 
 import { exportDownloadResponse } from "./route-helpers";
 
@@ -8,6 +10,7 @@ describe("exportDownloadResponse", () => {
       body: Buffer.from([1, 2, 3]),
       contentType: "text/csv; charset=utf-8",
       filename: 'báo-cáo "T6" \\ mẫu.csv',
+      rowCount: 1,
     });
 
     expect(response.headers.get("content-disposition")).toBe(

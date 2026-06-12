@@ -7,6 +7,7 @@ export type TabularExportFile = {
   body: NodeBuffer;
   contentType: string;
   filename: string;
+  rowCount: number;
 };
 
 /** Input để tạo file bảng CSV/XLSX từ rows đã normalize. */
@@ -30,6 +31,7 @@ export async function buildTabularExportFile(
       contentType:
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       filename: `${input.basename}-${dateStamp}.xlsx`,
+      rowCount: rowCount(input.rows),
     };
   }
 
@@ -37,7 +39,12 @@ export async function buildTabularExportFile(
     body: NodeBuffer.from(toCsv(input.rows), "utf8"),
     contentType: "text/csv; charset=utf-8",
     filename: `${input.basename}-${dateStamp}.csv`,
+    rowCount: rowCount(input.rows),
   };
+}
+
+function rowCount(rows: string[][]) {
+  return Math.max(0, rows.length - 1);
 }
 
 function toCsv(rows: string[][]) {

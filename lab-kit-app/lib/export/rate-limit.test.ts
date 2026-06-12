@@ -1,0 +1,82 @@
+import { afterEach, describe, expect, test } from "vitest";
+
+import {
+  assertExportRateLimit,
+  getExportRateLimitBucketCountForTests,
+  resetExportRateLimitForTests,
+} from "./rate-limit";
+
+const actor = {
+  organizationId: "org-1",
+  profileId: "profile-1",
+  role: "editor" as const,
+};
+
+describe("assertExportRateLimit", () => {
+  afterEach(() => {
+    delete process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE;
+    resetExportRateLimitForTests();
+  });
+
+  test("cleans expired buckets when another actor exports later", () => {
+    assertExportRateLimit({
+      actor,
+      dataset: "samples",
+      now: 0,
+    });
+
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "profile-2" },
+      dataset: "samples",
+      now: 60_000,
+    });
+
+    expect(getExportRateLimitBucketCountForTests()).toBe(1);
+  });
+
+  test("does not scan every expired bucket on one request", () => {
+    for (let index = 0; index < 12; index += 1) {
+      assertExportRateLimit({
+        actor: { ...actor, profileId: `profile-${index}` },
+        dataset: "samples",
+        now: 0,
+      });
+    }
+
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "profile-current" },
+      dataset: "samples",
+      now: 60_000,
+    });
+
+    expect(getExportRateLimitBucketCountForTests()).toBeGreaterThan(1);
+  });
+
+  test("continues cleanup past active buckets at the front", () => {
+    for (let index = 0; index < 10; index += 1) {
+      assertExportRateLimit({
+        actor: { ...actor, profileId: `active-${index}` },
+        dataset: "samples",
+        now: 30_000,
+      });
+    }
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "expired-later" },
+      dataset: "samples",
+      now: 0,
+    });
+
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "current-1" },
+      dataset: "samples",
+      now: 60_000,
+    });
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "current-2" },
+      dataset: "samples",
+      now: 60_000,
+    });
+
+    expect(getExportRateLimitBucketCountForTests()).toBe(12);
+  });
+});

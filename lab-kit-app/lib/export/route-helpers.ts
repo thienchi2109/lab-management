@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
 
+import { createSupabaseExportAuditPort, recordExportAuditEvent } from "./audit";
+import { ExportLimitError } from "./limits";
 import { resolveExportActor, type ExportActor } from "./permissions";
-import { ExportQueryValidationError } from "./query";
+import { ExportQueryValidationError, type ExportQuery } from "./query";
+import { ExportRateLimitError } from "./rate-limit";
 import type { TabularExportFile } from "./files";
 
 /** Lỗi HTTP có code ổn định cho route export. */
@@ -66,7 +69,38 @@ export function exportError(error: unknown, fallbackMessage: string) {
     return jsonError(error.status, error.code, error.message);
   }
 
+  if (error instanceof ExportLimitError) {
+    return jsonError(error.status, error.code, error.message);
+  }
+
+  if (error instanceof ExportRateLimitError) {
+    return jsonError(error.status, error.code, error.message);
+  }
+
   return jsonError(500, "export_failed", fallbackMessage);
+}
+
+/** Ghi audit thất bại nếu đã có actor/query, không che mất lỗi export gốc. */
+export async function recordFailedExportAuditEvent(input: {
+  actor: ExportActor | null;
+  error: unknown;
+  query: ExportQuery | null;
+}) {
+  if (!input.actor || !input.query) return;
+
+  try {
+    await recordExportAuditEvent(createSupabaseExportAuditPort(), {
+      actor: input.actor,
+      error: input.error,
+      query: input.query,
+      result: "failed",
+    });
+  } catch (auditError) {
+    console.error("Không thể ghi audit failure export.", {
+      auditError,
+      exportError: input.error,
+    });
+  }
 }
 
 function getExportOrganizationId(session: CurrentSession | null) {

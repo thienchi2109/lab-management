@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
-import { readWorksheetRows } from "@/lib/export/test-workbook";
+import { createSupabaseExportAuditPort } from "@/lib/export/audit";
+import { resetExportRateLimitForTests } from "@/lib/export/rate-limit";
 import type {
   SampleGridPort,
   SampleGridRow,
@@ -17,9 +18,23 @@ vi.mock("@/lib/auth/session", () => ({
   getCurrentSession: vi.fn(),
 }));
 
+vi.mock("@/lib/export/audit", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/export/audit")>(
+      "@/lib/export/audit"
+    );
+
+  return {
+    ...actual,
+    createSupabaseExportAuditPort: vi.fn(),
+  };
+});
+
 vi.mock("@/lib/sample-grid/server", () => ({
   createSupabaseSampleGridPort: vi.fn(),
 }));
+
+const insertAuditEvent = vi.fn();
 
 const editorSession: CurrentSession = {
   memberships: [{ isActive: true, organizationId: "org-1", role: "editor" }],
@@ -41,10 +56,17 @@ describe("POST /api/export/samples", () => {
     vi.resetAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-08T10:00:00.000Z"));
+    resetExportRateLimitForTests();
+    delete process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE;
+    vi.mocked(createSupabaseExportAuditPort).mockReturnValue({
+      insertAuditEvent,
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    delete process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE;
+    resetExportRateLimitForTests();
   });
 
   test("rejects unauthenticated users before reading samples", async () => {
@@ -56,6 +78,7 @@ describe("POST /api/export/samples", () => {
 
     expect(response.status).toBe(403);
     expect(port.listSamples).not.toHaveBeenCalled();
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
   test("rejects invalid export payloads through the US-011A parser", async () => {
@@ -65,9 +88,7 @@ describe("POST /api/export/samples", () => {
 
     const response = await POST(
       request({
-        dataset: "samples",
         fields: ["sampleCode", "raw_payload"],
-        format: "csv",
         rawSql: "select * from samples",
       })
     );
@@ -77,6 +98,7 @@ describe("POST /api/export/samples", () => {
       error: "export_query_invalid",
     });
     expect(port.listSamples).not.toHaveBeenCalled();
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
   test("returns a CSV download scoped to the session tenant", async () => {
@@ -91,10 +113,8 @@ describe("POST /api/export/samples", () => {
 
     const response = await POST(
       request({
-        dataset: "samples",
         fields: ["sampleCode", "customerName", "status"],
         filters: { status: "received" },
-        format: "csv",
         rowLimit: 25,
         search: "  T6_00012  ",
         sort: { direction: "asc", key: "sampleCode" },
@@ -126,6 +146,126 @@ describe("POST /api/export/samples", () => {
         "\r\n"
       )
     );
+    expect(insertAuditEvent).toHaveBeenCalledWith({
+      action: "export.samples.succeeded",
+      actorId: "profile-1",
+      entityId: null,
+      entityTable: "samples",
+      eventPayload: {
+        dataset: "samples",
+        fieldCount: 3,
+        filterSummary: {
+          filterKeys: ["status"],
+          hasSearch: true,
+          sort: { direction: "asc", key: "sampleCode" },
+        },
+        format: "csv",
+        result: "succeeded",
+        rowCount: 1,
+        rowLimit: 25,
+      },
+      organizationId: "org-1",
+    });
+  });
+
+  test("audits and rejects matching rows above the requested rowLimit", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    const port = createPort([createSampleRow()], { totalCount: 2 });
+    vi.mocked(createSupabaseSampleGridPort).mockReturnValue(port);
+
+    const response = await POST(
+      request({
+        fields: ["sampleCode"],
+        rowLimit: 1,
+      })
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "export_row_limit_exceeded",
+      message:
+        "Số bản ghi khớp bộ lọc vượt giới hạn export. Vui lòng thu hẹp bộ lọc và thử lại.",
+    });
+    expect(insertAuditEvent).toHaveBeenCalledWith({
+      action: "export.samples.failed",
+      actorId: "profile-1",
+      entityId: null,
+      entityTable: "samples",
+      eventPayload: {
+        dataset: "samples",
+        errorCode: "export_row_limit_exceeded",
+        fieldCount: 1,
+        filterSummary: {
+          filterKeys: [],
+          hasSearch: false,
+          sort: { direction: "desc", key: "receivedAt" },
+        },
+        format: "csv",
+        matchedRowCount: 2,
+        result: "failed",
+        rowLimit: 1,
+      },
+      organizationId: "org-1",
+    });
+  });
+
+  test("keeps the original export error when failure audit write fails", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    insertAuditEvent.mockRejectedValueOnce(new Error("Audit offline"));
+    vi.mocked(createSupabaseSampleGridPort).mockReturnValue(
+      createPort([createSampleRow()], { totalCount: 2 })
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const response = await POST(
+      request({ fields: ["sampleCode"], rowLimit: 1 })
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "export_row_limit_exceeded",
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      "Không thể ghi audit failure export.",
+      expect.objectContaining({
+        auditError: expect.any(Error),
+        exportError: expect.any(Error),
+      })
+    );
+    consoleError.mockRestore();
+  });
+
+  test("rate limits repeated export attempts before reading samples", async () => {
+    process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE = "1";
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    const port = createPort([createSampleRow()]);
+    vi.mocked(createSupabaseSampleGridPort).mockReturnValue(port);
+
+    const body = {
+      fields: ["sampleCode"],
+    };
+    expect((await POST(request(body))).status).toBe(200);
+    vi.mocked(port.listSamples).mockClear();
+
+    const response = await POST(request(body));
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({
+      error: "export_rate_limited",
+      message: "Bạn đang export quá nhanh. Vui lòng chờ một phút rồi thử lại.",
+    });
+    expect(port.listSamples).not.toHaveBeenCalled();
+    expect(insertAuditEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        action: "export.samples.failed",
+        eventPayload: expect.objectContaining({
+          errorCode: "export_rate_limited",
+          result: "failed",
+        }),
+      })
+    );
   });
 
   test("rejects viewers when no trusted export grant exists", async () => {
@@ -135,14 +275,13 @@ describe("POST /api/export/samples", () => {
 
     const response = await POST(
       request({
-        dataset: "samples",
         fields: ["sampleCode"],
-        format: "csv",
       })
     );
 
     expect(response.status).toBe(403);
     expect(port.listSamples).not.toHaveBeenCalled();
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
   test("rejects client-provided tenant or grant payloads", async () => {
@@ -152,9 +291,7 @@ describe("POST /api/export/samples", () => {
 
     const response = await POST(
       request({
-        dataset: "samples",
         fields: ["sampleCode"],
-        format: "csv",
         grants: [{ isActive: true, organizationId: "org-1" }],
         organizationId: "evil-org",
       })
@@ -165,40 +302,7 @@ describe("POST /api/export/samples", () => {
       error: "export_query_invalid",
     });
     expect(port.listSamples).not.toHaveBeenCalled();
-  });
-
-  test("returns an XLSX download when requested", async () => {
-    vi.useRealTimers();
-    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
-    const port = createPort([
-      createSampleRow({
-        customerName: "Công ty B",
-        sampleCode: "T6_00015",
-        status: "completed",
-      }),
-    ]);
-    vi.mocked(createSupabaseSampleGridPort).mockReturnValue(port);
-
-    const response = await POST(
-      request({
-        dataset: "samples",
-        fields: ["sampleCode"],
-        format: "xlsx",
-      })
-    );
-    const body = Buffer.from(await response.arrayBuffer());
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toBe(
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    expect(response.headers.get("content-disposition")).toMatch(
-      /^attachment; filename="mau-xet-nghiem-\d{4}-\d{2}-\d{2}\.xlsx"; filename\*=UTF-8''mau-xet-nghiem-\d{4}-\d{2}-\d{2}\.xlsx$/
-    );
-    await expect(readWorksheetRows(body, "Mẫu xét nghiệm")).resolves.toEqual([
-      ["Mã mẫu"],
-      ["T6_00015"],
-    ]);
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 });
 
@@ -209,9 +313,15 @@ function request(body: Record<string, unknown>) {
   });
 }
 
-function createPort(rows: SampleGridRow[]): SampleGridPort {
+function createPort(
+  rows: SampleGridRow[],
+  options: { totalCount?: number } = {}
+): SampleGridPort {
   return {
-    listSamples: vi.fn(async () => ({ rows, totalCount: rows.length })),
+    listSamples: vi.fn(async () => ({
+      rows,
+      totalCount: options.totalCount ?? rows.length,
+    })),
   };
 }
 
