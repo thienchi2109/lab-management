@@ -13,6 +13,7 @@ import { assertExportRateLimit } from "@/lib/export/rate-limit";
 import {
   exportDownloadResponse,
   exportError,
+  recordFailedExportAuditEvent,
   requireExportActor,
 } from "@/lib/export/route-helpers";
 import { buildNormalizedResultsExportFile } from "@/lib/export/results-normalized";
@@ -53,18 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return exportDownloadResponse(file);
   } catch (error) {
-    if (actor && query) {
-      try {
-        await recordExportAuditEvent(createSupabaseExportAuditPort(), {
-          actor,
-          error,
-          query,
-          result: "failed",
-        });
-      } catch (auditError) {
-        return exportError(auditError, "Không thể export kết quả xét nghiệm.");
-      }
-    }
+    await recordFailedExportAuditEvent({ actor, error, query });
 
     return exportError(error, "Không thể export kết quả xét nghiệm.");
   }

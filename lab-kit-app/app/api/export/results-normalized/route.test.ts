@@ -198,6 +198,34 @@ describe("POST /api/export/results-normalized", () => {
     expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
+  test("keeps the original export error when failure audit write fails", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    insertAuditEvent.mockRejectedValueOnce(new Error("Audit offline"));
+    vi.mocked(createSupabaseSampleGridPort).mockReturnValue(
+      createPort([createSampleRow()], { totalCount: 2 })
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const response = await POST(
+      request({ fields: ["sampleCode", "value"], rowLimit: 1 })
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "export_row_limit_exceeded",
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      "Không thể ghi audit failure export.",
+      expect.objectContaining({
+        auditError: expect.any(Error),
+        exportError: expect.any(Error),
+      })
+    );
+    consoleError.mockRestore();
+  });
+
   test("returns a readable XLSX download", async () => {
     vi.useRealTimers();
     vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
@@ -240,9 +268,15 @@ function request(body: Record<string, unknown>) {
   });
 }
 
-function createPort(rows: SampleGridRow[]): SampleGridPort {
+function createPort(
+  rows: SampleGridRow[],
+  options: { totalCount?: number } = {}
+): SampleGridPort {
   return {
-    listSamples: vi.fn(async () => ({ rows, totalCount: rows.length })),
+    listSamples: vi.fn(async () => ({
+      rows,
+      totalCount: options.totalCount ?? rows.length,
+    })),
     listSampleResultSummaries: vi.fn(async () => ({
       "sample-1": {
         groups: [

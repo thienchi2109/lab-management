@@ -32,6 +32,8 @@ export function assertExportRateLimit(input: {
   if (maxRequests <= 0) return;
 
   const now = input.now ?? Date.now();
+  pruneExpiredBuckets(now);
+
   const key = [
     input.actor.organizationId,
     input.actor.profileId,
@@ -56,6 +58,11 @@ export function resetExportRateLimitForTests() {
   buckets.clear();
 }
 
+/** Đếm bucket rate-limit trong Vitest để khóa cleanup bucket hết hạn. */
+export function getExportRateLimitBucketCountForTests() {
+  return buckets.size;
+}
+
 function readMaxRequestsPerMinute() {
   const parsed = Number(process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE);
   if (Number.isInteger(parsed) && parsed >= 0) {
@@ -63,4 +70,12 @@ function readMaxRequestsPerMinute() {
   }
 
   return DEFAULT_EXPORT_RATE_LIMIT_MAX_PER_MINUTE;
+}
+
+function pruneExpiredBuckets(now: number) {
+  for (const [key, bucket] of buckets) {
+    if (now >= bucket.resetAt) {
+      buckets.delete(key);
+    }
+  }
 }

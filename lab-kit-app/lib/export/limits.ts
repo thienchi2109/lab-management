@@ -1,5 +1,5 @@
 /** Thông báo ổn định khi filter khớp nhiều dòng hơn giới hạn export trực tiếp. */
-export const EXPORT_ROW_LIMIT_EXCEEDED_MESSAGE =
+const EXPORT_ROW_LIMIT_EXCEEDED_MESSAGE =
   "Số bản ghi khớp bộ lọc vượt giới hạn export. Vui lòng thu hẹp bộ lọc và thử lại.";
 
 /** Lỗi giới hạn export có code ổn định cho route và test tích hợp. */

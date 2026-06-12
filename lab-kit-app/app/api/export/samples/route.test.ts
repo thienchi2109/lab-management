@@ -209,6 +209,34 @@ describe("POST /api/export/samples", () => {
     });
   });
 
+  test("keeps the original export error when failure audit write fails", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    insertAuditEvent.mockRejectedValueOnce(new Error("Audit offline"));
+    vi.mocked(createSupabaseSampleGridPort).mockReturnValue(
+      createPort([createSampleRow()], { totalCount: 2 })
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const response = await POST(
+      request({ fields: ["sampleCode"], rowLimit: 1 })
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "export_row_limit_exceeded",
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      "Không thể ghi audit failure export.",
+      expect.objectContaining({
+        auditError: expect.any(Error),
+        exportError: expect.any(Error),
+      })
+    );
+    consoleError.mockRestore();
+  });
+
   test("rate limits repeated export attempts before reading samples", async () => {
     process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE = "1";
     vi.mocked(getCurrentSession).mockResolvedValue(editorSession);

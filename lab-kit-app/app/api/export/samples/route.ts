@@ -8,6 +8,7 @@ import type { ExportActor } from "@/lib/export/permissions";
 import {
   exportDownloadResponse,
   exportError,
+  recordFailedExportAuditEvent,
   requireExportActor,
 } from "@/lib/export/route-helpers";
 import { assertExportRateLimit } from "@/lib/export/rate-limit";
@@ -48,18 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return exportDownloadResponse(file);
   } catch (error) {
-    if (actor && query) {
-      try {
-        await recordExportAuditEvent(createSupabaseExportAuditPort(), {
-          actor,
-          error,
-          query,
-          result: "failed",
-        });
-      } catch (auditError) {
-        return exportError(auditError, "Không thể export dữ liệu mẫu.");
-      }
-    }
+    await recordFailedExportAuditEvent({ actor, error, query });
 
     return exportError(error, "Không thể export dữ liệu mẫu.");
   }
