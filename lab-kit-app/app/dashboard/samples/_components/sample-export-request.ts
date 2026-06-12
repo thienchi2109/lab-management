@@ -145,9 +145,52 @@ function readMessage(value: unknown) {
 
 function filenameFrom(response: Response) {
   const header = response.headers.get("content-disposition");
-  const match = /filename="([^"]+)"/.exec(header ?? "");
 
-  return match?.[1] ?? null;
+  if (!header) {
+    return null;
+  }
+
+  return parseDispositionFilename(header);
+}
+
+function parseDispositionFilename(header: string) {
+  const encodedFilename = readDispositionParam(header, "filename*");
+
+  if (encodedFilename) {
+    return decodeDispositionFilename(encodedFilename);
+  }
+
+  return readDispositionParam(header, "filename");
+}
+
+function readDispositionParam(header: string, name: string) {
+  for (const segment of header.split(";")) {
+    const match = /^\s*([^=]+)=(.*)$/.exec(segment);
+
+    if (!match || match[1]?.trim().toLowerCase() !== name) {
+      continue;
+    }
+
+    return unquote(match[2]?.trim() ?? "");
+  }
+
+  return null;
+}
+
+function decodeDispositionFilename(value: string) {
+  const encodedValue = value.match(/^[^']*'[^']*'(.*)$/)?.[1] ?? value;
+
+  try {
+    return decodeURIComponent(encodedValue);
+  } catch {
+    return encodedValue;
+  }
+}
+
+function unquote(value: string) {
+  return value.startsWith('"') && value.endsWith('"')
+    ? value.slice(1, -1)
+    : value;
 }
 
 function fallbackFilename(input: RequestSampleGridExportInput) {

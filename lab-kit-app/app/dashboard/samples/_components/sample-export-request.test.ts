@@ -124,6 +124,47 @@ describe("requestSampleGridExport", () => {
     expect(JSON.parse(String(init?.body))).not.toHaveProperty("search");
   });
 
+  test("uses encoded and unquoted content-disposition filenames", async () => {
+    const clickDownload = vi.fn();
+
+    await requestSampleGridExport(
+      { dataset: "samples", format: "csv", query: gridQuery },
+      {
+        clickDownload,
+        fetcher: vi.fn(async () =>
+          response({
+            body: "csv",
+            contentDisposition:
+              "attachment; filename*=UTF-8''mau-xet-nghiem%20T6.csv",
+          })
+        ),
+      }
+    );
+
+    expect(clickDownload).toHaveBeenCalledWith(
+      expect.any(Blob),
+      "mau-xet-nghiem T6.csv"
+    );
+
+    await requestSampleGridExport(
+      { dataset: "samples", format: "xlsx", query: gridQuery },
+      {
+        clickDownload,
+        fetcher: vi.fn(async () =>
+          response({
+            body: "xlsx",
+            contentDisposition: "attachment; filename=mau-xet-nghiem.xlsx",
+          })
+        ),
+      }
+    );
+
+    expect(clickDownload).toHaveBeenLastCalledWith(
+      expect.any(Blob),
+      "mau-xet-nghiem.xlsx"
+    );
+  });
+
   test("normalizes permission and row-limit errors for the UI", async () => {
     await expect(
       requestSampleGridExport(
@@ -178,18 +219,22 @@ describe("requestSampleGridExport", () => {
 
 function response({
   body,
+  contentDisposition,
   filename,
   ok = true,
   status = 200,
 }: {
   body: BodyInit;
+  contentDisposition?: string;
   filename?: string;
   ok?: boolean;
   status?: number;
 }) {
   const headers = new Headers();
 
-  if (filename) {
+  if (contentDisposition) {
+    headers.set("content-disposition", contentDisposition);
+  } else if (filename) {
     headers.set("content-disposition", `attachment; filename="${filename}"`);
   }
 
