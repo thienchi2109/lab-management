@@ -37,8 +37,8 @@ Nếu cần sửa shared component, story triển khai phải:
 | --- | --- | --- |
 | US-016A | `/login` | Sign-in form, auth feedback, responsive entry |
 | US-016B | `/dashboard` | Overview cards, trend, PCR metrics, recent samples |
-| US-016C | `/dashboard/analytics` | Filters, pivot chart/table, summary states |
-| US-016D | `/dashboard/samples` | Sample grid, filters, row actions, mobile cards |
+| US-016C | `/dashboard/samples` | Sample grid, filters, row actions, mobile cards |
+| US-016D | `/dashboard/analytics` | Filters, pivot chart/table, summary states |
 | US-016E | `/dashboard/users` | Admin user table, filters, create/edit dialogs |
 
 ## Taste Skill Use

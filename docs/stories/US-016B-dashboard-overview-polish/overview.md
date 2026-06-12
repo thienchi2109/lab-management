@@ -106,5 +106,5 @@ marketing hero và không decorative gradient.
 - Không đổi API, database query, date range contract hoặc refresh strategy.
 - Không thêm client cache mới.
 - Không đổi dashboard shell sang sidebar.
-- Không mở rộng US-016C analytics/pivot, US-016D samples grid hoặc US-016E user
+- Không mở rộng US-016C samples grid, US-016D analytics/pivot hoặc US-016E user
   management.

@@ -2,7 +2,7 @@
 
 ## Proof Strategy
 
-US-016C hoàn tất khi `/dashboard/analytics` polish xong mà US-010C/US-010D
+US-016D hoàn tất khi `/dashboard/analytics` polish xong mà US-010C/US-010D
 contracts vẫn pass.
 
 ## Test Plan

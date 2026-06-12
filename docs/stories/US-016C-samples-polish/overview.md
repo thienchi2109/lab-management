@@ -1,8 +1,8 @@
-# US-016D - Polish samples grid
+# US-016C - Polish samples grid
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -37,6 +37,15 @@ cẩn thận để tăng scanability nhưng không phá table contract.
 - Nếu cần sửa `DashboardDataTable`, tách hoặc ghi rõ blast radius vì có thể ảnh
   hưởng analytics/users.
 - Không làm đẹp bằng cách ẩn thông tin nghiệp vụ quan trọng.
+- Sau implementation, samples dùng shared `DashboardDataTable` với biến thể
+  `density="compact"` và `tone="workspace"` thay vì tạo table riêng. Các polish
+  tiếp theo nên ưu tiên mở rộng shared surface bằng prop hẹp, có default giữ
+  hành vi cũ, rồi chứng minh lại caller liên quan.
+- Mobile nên có một primary action riêng cho card khi desktop action text dài.
+  Pattern đã dùng: desktop giữ `Kết quả & ảnh` theo quyền, mobile dùng
+  `Mở kết quả` để giảm nhiễu và tăng vùng chạm.
+- Empty state nên có hành động reset rõ khi người dùng đang ở trang/filter
+  không có dữ liệu; với samples là link `Xóa bộ lọc` về `/dashboard/samples`.
 
 ## Non-Goals
 

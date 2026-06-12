@@ -37,16 +37,16 @@ US-016 chia rollout thành các story nhỏ, review và merge độc lập:
 - [US-016A](../US-016A-sign-in-polish/overview.md): polish trang đăng nhập.
 - [US-016B](../US-016B-dashboard-overview-polish/overview.md): polish dashboard
   overview.
-- [US-016C](../US-016C-analytics-polish/overview.md): polish analytics và pivot.
-- [US-016D](../US-016D-samples-polish/overview.md): polish samples grid.
+- [US-016C](../US-016C-samples-polish/overview.md): polish samples grid.
+- [US-016D](../US-016D-analytics-polish/overview.md): polish analytics và pivot.
 - [US-016E](../US-016E-users-polish/overview.md): polish user management.
 
 Thứ tự khuyến nghị:
 
 1. US-016A để khóa trải nghiệm entry và auth error state.
 2. US-016B để thiết lập ngôn ngữ visual cho dashboard nội bộ.
-3. US-016C vì đã có analytics UI MVP và proof browser gần đây.
-4. US-016D vì bảng mẫu có nhiều trạng thái và rủi ro responsive cao hơn.
+3. US-016C vì bảng mẫu có nhiều trạng thái và rủi ro responsive cao hơn.
+4. US-016D vì đã có analytics UI MVP và proof browser gần đây.
 5. US-016E sau cùng vì trang users chạm quyền admin và dialog/form nhiều hơn.
 
 ## Affected Users
