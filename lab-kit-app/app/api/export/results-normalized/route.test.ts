@@ -113,7 +113,7 @@ describe("POST /api/export/results-normalized", () => {
         "text/csv; charset=utf-8"
       );
       expect(response.headers.get("content-disposition")).toBe(
-        'attachment; filename="ket-qua-chuan-hoa-2026-06-08.csv"'
+        "attachment; filename=\"ket-qua-chuan-hoa-2026-06-08.csv\"; filename*=UTF-8''ket-qua-chuan-hoa-2026-06-08.csv"
       );
       expect(await response.text()).toBe(
         [
@@ -172,7 +172,7 @@ describe("POST /api/export/results-normalized", () => {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
     expect(response.headers.get("content-disposition")).toMatch(
-      /^attachment; filename="ket-qua-chuan-hoa-\d{4}-\d{2}-\d{2}\.xlsx"$/
+      /^attachment; filename="ket-qua-chuan-hoa-\d{4}-\d{2}-\d{2}\.xlsx"; filename\*=UTF-8''ket-qua-chuan-hoa-\d{4}-\d{2}-\d{2}\.xlsx$/
     );
     await expect(readWorksheetRows(body, "Kết quả chuẩn hóa")).resolves.toEqual(
       [

@@ -47,7 +47,9 @@ export async function requireExportActor(
 export function exportDownloadResponse(file: TabularExportFile) {
   return new NextResponse(Uint8Array.from(file.body), {
     headers: {
-      "content-disposition": `attachment; filename="${file.filename}"`,
+      "content-disposition": `attachment; ${encodeDispositionFilename(
+        file.filename
+      )}`,
       "content-type": file.contentType,
     },
     status: 200,
@@ -82,4 +84,32 @@ function getExportOrganizationId(session: CurrentSession | null) {
 
 function jsonError(status: number, code: string, message: string) {
   return NextResponse.json({ error: code, message }, { status });
+}
+
+function encodeDispositionFilename(filename: string) {
+  return [
+    `filename="${escapeQuotedFilename(asciiFallbackFilename(filename))}"`,
+    `filename*=UTF-8''${encode5987Value(filename)}`,
+  ].join("; ");
+}
+
+function asciiFallbackFilename(filename: string) {
+  return (
+    filename
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\x20-\x7E]/g, "_")
+      .replace(/[\r\n]/g, "_") || "download"
+  );
+}
+
+function escapeQuotedFilename(filename: string) {
+  return filename.replace(/["\\]/g, "\\$&");
+}
+
+function encode5987Value(value: string) {
+  return encodeURIComponent(value).replace(
+    /['()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`
+  );
 }

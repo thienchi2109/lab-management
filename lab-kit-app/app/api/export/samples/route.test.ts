@@ -106,7 +106,7 @@ describe("POST /api/export/samples", () => {
       "text/csv; charset=utf-8"
     );
     expect(response.headers.get("content-disposition")).toBe(
-      'attachment; filename="mau-xet-nghiem-2026-06-08.csv"'
+      "attachment; filename=\"mau-xet-nghiem-2026-06-08.csv\"; filename*=UTF-8''mau-xet-nghiem-2026-06-08.csv"
     );
     expect(port.listSamples).toHaveBeenCalledWith({
       organizationId: "org-1",
@@ -193,7 +193,7 @@ describe("POST /api/export/samples", () => {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
     expect(response.headers.get("content-disposition")).toMatch(
-      /^attachment; filename="mau-xet-nghiem-\d{4}-\d{2}-\d{2}\.xlsx"$/
+      /^attachment; filename="mau-xet-nghiem-\d{4}-\d{2}-\d{2}\.xlsx"; filename\*=UTF-8''mau-xet-nghiem-\d{4}-\d{2}-\d{2}\.xlsx$/
     );
     await expect(readWorksheetRows(body, "Mẫu xét nghiệm")).resolves.toEqual([
       ["Mã mẫu"],
