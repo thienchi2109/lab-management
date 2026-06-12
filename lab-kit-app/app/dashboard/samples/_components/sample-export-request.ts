@@ -296,7 +296,7 @@ function downloadBlob(blob: Blob, filename: string) {
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

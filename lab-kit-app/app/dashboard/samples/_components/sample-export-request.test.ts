@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { SampleGridQuery } from "@/lib/sample-grid/query";
 
@@ -21,6 +21,12 @@ const gridQuery: SampleGridQuery = {
 type ExportFetch = typeof fetch;
 
 describe("requestSampleGridExport", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
   test("posts sample export payload with current filters and explicit row limit", async () => {
     const fetcher = vi.fn<ExportFetch>(async () => {
       return response({ body: "csv", filename: "mau-xet-nghiem.csv" });
@@ -231,6 +237,39 @@ describe("requestSampleGridExport", () => {
         message: "Không thể tải file export. Vui lòng thử lại.",
       },
     });
+  });
+
+  test("delays object URL revocation until after the download click task", async () => {
+    vi.useFakeTimers();
+    const anchor = { click: vi.fn(), download: "", href: "" };
+    const createElement = vi.fn(() => anchor);
+    const createObjectURL = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:sample-export");
+    const revokeObjectURL = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => {});
+    vi.stubGlobal("document", { createElement });
+
+    await requestSampleGridExport(
+      { dataset: "samples", format: "csv", query: gridQuery },
+      {
+        fetcher: vi.fn(async () =>
+          response({ body: "csv", filename: "mau-xet-nghiem.csv" })
+        ),
+      }
+    );
+
+    expect(createElement).toHaveBeenCalledWith("a");
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchor.href).toBe("blob:sample-export");
+    expect(anchor.download).toBe("mau-xet-nghiem.csv");
+    expect(anchor.click).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:sample-export");
   });
 
   test("normalizes permission and row-limit errors for the UI", async () => {
