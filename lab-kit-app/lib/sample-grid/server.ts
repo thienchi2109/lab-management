@@ -20,6 +20,7 @@ import {
   listSampleGridResultSummaries,
   type SupabaseResultSummarySource,
 } from "./result-summary-server";
+import { listSampleGridResultColumnOptions } from "./result-column-options-server";
 
 type SampleGridDbRow = {
   billing_status: string;
@@ -150,6 +151,9 @@ export function createSupabaseSampleGridPort(): SampleGridPort {
     },
     async listSampleResultSummaries(input) {
       return listSampleGridResultSummaries(resultSummaryClient, input);
+    },
+    async listResultColumnOptions(input) {
+      return listSampleGridResultColumnOptions(resultSummaryClient, input);
     },
   };
 }

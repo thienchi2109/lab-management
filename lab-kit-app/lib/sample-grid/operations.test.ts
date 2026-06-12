@@ -109,6 +109,12 @@ describe("sample grid operations", () => {
           "sample-2": createResultSummary("group-1", "metric-1", "SẠCH"),
         };
       },
+      async listResultColumnOptions() {
+        return [
+          { key: "group:group-1", label: "PCR" },
+          { key: "metric:metric-1", label: "PCR / WSSV" },
+        ];
+      },
     };
 
     const page = await listSampleGridPage(
@@ -136,6 +142,74 @@ describe("sample grid operations", () => {
     expect(page.rows[0].resultSummary).toEqual(
       createResultSummary("group-1", "metric-1", "NHIỄM")
     );
+  });
+
+  test("keeps result column options stable when page result summaries differ", async () => {
+    const optionCalls: unknown[] = [];
+    const port = {
+      async listSamples(input) {
+        return {
+          rows: [
+            createSampleRow(
+              input.query.page === 1 ? "sample-1" : "sample-2",
+              input.query.page === 1 ? "T6_00012" : "T6_00013"
+            ),
+          ],
+          totalCount: 2,
+        };
+      },
+      async listSampleResultSummaries(input) {
+        return {
+          [input.sampleIds[0] ?? "sample-1"]:
+            input.sampleIds[0] === "sample-1"
+              ? createResultSummary("group-1", "metric-1", "NHIỄM")
+              : createResultSummary("group-2", "metric-2", "SẠCH"),
+        };
+      },
+      async listResultColumnOptions(input) {
+        optionCalls.push(input);
+        return [
+          { key: "group:group-1", label: "PCR" },
+          { key: "metric:metric-1", label: "PCR / WSSV" },
+          { key: "group:group-2", label: "Vi sinh" },
+          { key: "metric:metric-2", label: "Vi sinh / Vibrio" },
+        ];
+      },
+    } satisfies SampleGridPort & {
+      listResultColumnOptions(input: {
+        organizationId: string;
+        sampleTypeId?: string;
+      }): Promise<{ key: string; label: string }[]>;
+    };
+
+    const [firstPage, secondPage] = await Promise.all([
+      listSampleGridPage(
+        { page: "1", resultColumns: "metric:metric-2" },
+        actor,
+        port
+      ),
+      listSampleGridPage(
+        { page: "2", resultColumns: "metric:metric-1" },
+        actor,
+        port
+      ),
+    ]);
+
+    expect(firstPage.resultColumnOptions).toEqual(
+      secondPage.resultColumnOptions
+    );
+    expect(firstPage.resultColumnOptions).toEqual([
+      { key: "group:group-1", label: "PCR" },
+      { key: "metric:metric-1", label: "PCR / WSSV" },
+      { key: "group:group-2", label: "Vi sinh" },
+      { key: "metric:metric-2", label: "Vi sinh / Vibrio" },
+    ]);
+    expect(firstPage.selectedResultColumnKeys).toEqual(["metric:metric-2"]);
+    expect(secondPage.selectedResultColumnKeys).toEqual(["metric:metric-1"]);
+    expect(optionCalls).toEqual([
+      { organizationId: "org-1", sampleTypeId: undefined },
+      { organizationId: "org-1", sampleTypeId: undefined },
+    ]);
   });
 
   test("keeps the sample page usable when result summary loading fails", async () => {

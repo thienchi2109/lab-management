@@ -70,6 +70,10 @@ export type SampleGridPort = {
     organizationId: string;
     query: SampleGridQuery;
   }): Promise<SampleGridPortResult>;
+  listResultColumnOptions?(input: {
+    organizationId: string;
+    sampleTypeId?: string;
+  }): Promise<SampleGridResultColumnOption[]>;
   listSampleResultSummaries?(input: {
     organizationId: string;
     sampleIds: string[];
@@ -113,7 +117,7 @@ export async function listSampleGridPage(
     query,
   });
   const rows = await attachResultSummaries(result.rows, actor, port);
-  const resultColumnOptions = buildResultColumnOptions(rows);
+  const resultColumnOptions = await loadResultColumnOptions(query, actor, port);
   const totalPages =
     result.totalCount > 0 ? Math.ceil(result.totalCount / query.pageSize) : 0;
 
@@ -163,28 +167,24 @@ async function attachResultSummaries(
   }));
 }
 
-function buildResultColumnOptions(
-  rows: SampleGridRow[]
-): SampleGridResultColumnOption[] {
-  const options = new Map<string, SampleGridResultColumnOption>();
-
-  for (const row of rows) {
-    for (const group of row.resultSummary?.groups ?? []) {
-      options.set(`group:${group.id}`, {
-        key: `group:${group.id}`,
-        label: group.name,
-      });
-
-      for (const metric of group.metrics) {
-        options.set(`metric:${metric.id}`, {
-          key: `metric:${metric.id}`,
-          label: `${group.name} / ${metric.name}`,
-        });
-      }
-    }
+async function loadResultColumnOptions(
+  query: SampleGridQuery,
+  actor: SampleGridActor,
+  port: SampleGridPort
+): Promise<SampleGridResultColumnOption[]> {
+  if (!port.listResultColumnOptions) {
+    return [];
   }
 
-  return [...options.values()];
+  try {
+    return await port.listResultColumnOptions({
+      organizationId: actor.organizationId,
+      sampleTypeId: query.filters.sampleTypeId,
+    });
+  } catch (error) {
+    console.error("Failed to fetch sample grid result column options:", error);
+    return [];
+  }
 }
 
 function getSampleGridCapabilities(
