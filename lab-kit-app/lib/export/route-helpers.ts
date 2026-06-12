@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
 
+import { ExportLimitError } from "./limits";
 import { resolveExportActor, type ExportActor } from "./permissions";
 import { ExportQueryValidationError } from "./query";
+import { ExportRateLimitError } from "./rate-limit";
 import type { TabularExportFile } from "./files";
 
 /** Lỗi HTTP có code ổn định cho route export. */
@@ -63,6 +65,14 @@ export function exportError(error: unknown, fallbackMessage: string) {
   }
 
   if (error instanceof ExportRouteError) {
+    return jsonError(error.status, error.code, error.message);
+  }
+
+  if (error instanceof ExportLimitError) {
+    return jsonError(error.status, error.code, error.message);
+  }
+
+  if (error instanceof ExportRateLimitError) {
     return jsonError(error.status, error.code, error.message);
   }
 

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import {
   buildNormalizedResultsExportFile,
@@ -214,17 +214,37 @@ describe("normalized results export file builder", () => {
       ["pH", "", "7.8", "T6_00012"],
     ]);
   });
+
+  test("rejects matching rows above rowLimit before reading result summaries", async () => {
+    const port = createPort([createSampleRow()], 7.8, { totalCount: 2 });
+
+    await expect(
+      buildNormalizedResultsExportFile(
+        { ...baseQuery, rowLimit: 1 },
+        actor,
+        port
+      )
+    ).rejects.toMatchObject({
+      code: "export_row_limit_exceeded",
+      message:
+        "Số bản ghi khớp bộ lọc vượt giới hạn export. Vui lòng thu hẹp bộ lọc và thử lại.",
+      status: 400,
+    });
+    expect(port.listSampleResultSummaries).not.toHaveBeenCalled();
+  });
 });
 
 function createPort(
   rows: SampleGridRow[],
-  value: unknown = 7.8
+  value: unknown = 7.8,
+  options: { totalCount?: number } = {}
 ): SampleGridPort {
   return {
-    async listSamples() {
-      return { rows, totalCount: rows.length };
-    },
-    async listSampleResultSummaries() {
+    listSamples: vi.fn(async () => ({
+      rows,
+      totalCount: options.totalCount ?? rows.length,
+    })),
+    listSampleResultSummaries: vi.fn(async () => {
       return {
         "sample-1": {
           groups: [
@@ -248,7 +268,7 @@ function createPort(
           ],
         },
       };
-    },
+    }),
   };
 }
 

@@ -1,4 +1,5 @@
 import { buildTabularExportFile, type TabularExportFile } from "./files";
+import { assertExportRowCountWithinLimit } from "./limits";
 import type { ExportActor } from "./permissions";
 import type { SampleExportField, SampleExportQuery } from "./query";
 import type {
@@ -88,6 +89,7 @@ export async function buildSampleExportFile(
       sort: query.sort,
     },
   });
+  assertExportRowCountWithinLimit(result.totalCount, query.rowLimit);
   const rows = toTableRows(query.fields, result.rows);
 
   return await buildTabularExportFile({

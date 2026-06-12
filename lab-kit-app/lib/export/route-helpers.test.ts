@@ -8,6 +8,7 @@ describe("exportDownloadResponse", () => {
       body: Buffer.from([1, 2, 3]),
       contentType: "text/csv; charset=utf-8",
       filename: 'báo-cáo "T6" \\ mẫu.csv',
+      rowCount: 1,
     });
 
     expect(response.headers.get("content-disposition")).toBe(

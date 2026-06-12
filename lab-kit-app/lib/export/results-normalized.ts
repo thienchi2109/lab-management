@@ -1,4 +1,5 @@
 import { buildTabularExportFile, type TabularExportFile } from "./files";
+import { assertExportRowCountWithinLimit } from "./limits";
 import type { ExportActor } from "./permissions";
 import type {
   NormalizedResultsExportField,
@@ -85,6 +86,7 @@ export async function buildNormalizedResultsExportFile(
       sort: query.sort,
     },
   });
+  assertExportRowCountWithinLimit(result.totalCount, query.rowLimit);
   const summaries = await port.listSampleResultSummaries({
     organizationId: actor.organizationId,
     sampleIds: result.rows.map((row) => row.id),

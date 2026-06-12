@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
+import { createSupabaseExportAuditPort } from "@/lib/export/audit";
+import { resetExportRateLimitForTests } from "@/lib/export/rate-limit";
 import { readWorksheetRows } from "@/lib/export/test-workbook";
 import type {
   SampleGridPort,
@@ -17,9 +19,23 @@ vi.mock("@/lib/auth/session", () => ({
   getCurrentSession: vi.fn(),
 }));
 
+vi.mock("@/lib/export/audit", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/export/audit")>(
+      "@/lib/export/audit"
+    );
+
+  return {
+    ...actual,
+    createSupabaseExportAuditPort: vi.fn(),
+  };
+});
+
 vi.mock("@/lib/sample-grid/server", () => ({
   createSupabaseSampleGridPort: vi.fn(),
 }));
+
+const insertAuditEvent = vi.fn();
 
 const editorSession: CurrentSession = {
   memberships: [{ isActive: true, organizationId: "org-1", role: "editor" }],
@@ -46,10 +62,17 @@ describe("POST /api/export/results-normalized", () => {
     vi.resetAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-08T10:00:00.000Z"));
+    resetExportRateLimitForTests();
+    delete process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE;
+    vi.mocked(createSupabaseExportAuditPort).mockReturnValue({
+      insertAuditEvent,
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    delete process.env.EXPORT_RATE_LIMIT_MAX_PER_MINUTE;
+    resetExportRateLimitForTests();
   });
 
   test("rejects unauthenticated users before reading results", async () => {
@@ -62,6 +85,7 @@ describe("POST /api/export/results-normalized", () => {
     expect(response.status).toBe(403);
     expect(port.listSamples).not.toHaveBeenCalled();
     expect(port.listSampleResultSummaries).not.toHaveBeenCalled();
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
   test("rejects invalid payloads and client-provided tenant or grant data", async () => {
@@ -86,6 +110,7 @@ describe("POST /api/export/results-normalized", () => {
       error: "export_query_invalid",
     });
     expect(port.listSamples).not.toHaveBeenCalled();
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -138,6 +163,26 @@ describe("POST /api/export/results-normalized", () => {
         organizationId: "org-1",
         sampleIds: ["sample-1"],
       });
+      expect(insertAuditEvent).toHaveBeenCalledWith({
+        action: "export.results_normalized.succeeded",
+        actorId: session.profile.id,
+        entityId: null,
+        entityTable: "sample_results",
+        eventPayload: {
+          dataset: "results-normalized",
+          fieldCount: 5,
+          filterSummary: {
+            filterKeys: ["status"],
+            hasSearch: true,
+            sort: { direction: "asc", key: "sampleCode" },
+          },
+          format: "csv",
+          result: "succeeded",
+          rowCount: 1,
+          rowLimit: 25,
+        },
+        organizationId: "org-1",
+      });
     }
   );
 
@@ -150,6 +195,7 @@ describe("POST /api/export/results-normalized", () => {
 
     expect(response.status).toBe(403);
     expect(port.listSamples).not.toHaveBeenCalled();
+    expect(insertAuditEvent).not.toHaveBeenCalled();
   });
 
   test("returns a readable XLSX download", async () => {
