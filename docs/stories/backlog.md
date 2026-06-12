@@ -76,7 +76,8 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 11 — Hardening
 
-- US-012 — Audit, Hardening & UX Polish (planned)
+- [US-012](US-012-audit-hardening-safety-ux/overview.md) — Kiểm toán, gia cố
+  bảo mật và UX an toàn (planned)
 
 ## Phase 12 — Release
 

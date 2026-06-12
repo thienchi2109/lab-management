@@ -139,6 +139,35 @@ describe("/api/analytics/pivot", () => {
       warnings: [],
     });
   });
+
+  test("does not expose internal analytics errors to clients", async () => {
+    const port: AnalyticsReadPort = {
+      async listDataset() {
+        throw new Error("service_role secret leaked from analytics storage");
+      },
+    };
+    vi.mocked(getCurrentSession).mockResolvedValue(viewerSession);
+    vi.mocked(createSupabaseDashboardOverviewPort).mockReturnValue(
+      port as ReturnType<typeof createSupabaseDashboardOverviewPort>
+    );
+
+    const response = await POST(
+      createRequest({
+        dimensions: ["receivedDate"],
+        filters: {
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        },
+        measures: ["sampleCount"],
+      })
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      status: "error",
+      message: "Không thể tải dữ liệu pivot analytics.",
+    });
+  });
 });
 
 function createRequest(body: unknown) {

@@ -11,6 +11,7 @@ import {
 import {
   createGroupAction,
   initialResultConfigurationActionState,
+  updateMetricAction,
 } from "./actions";
 
 vi.mock("next/cache", () => ({
@@ -42,6 +43,17 @@ const session: CurrentSession = {
     username: "admin",
   },
   memberships: [{ organizationId: "org-1", role: "admin", isActive: true }],
+};
+
+const editorSession: CurrentSession = {
+  ...session,
+  profile: {
+    id: "user-editor",
+    displayName: "Editor",
+    email: "editor@example.com",
+    username: "editor",
+  },
+  memberships: [{ organizationId: "org-1", role: "editor", isActive: true }],
 };
 
 function createGroupForm() {
@@ -95,5 +107,30 @@ describe("createGroupAction", () => {
 
     expect(result.status).toBe("error");
     expect(createResultGroup).not.toHaveBeenCalled();
+  });
+
+  test("rejects editor result-configuration writes before parsing or storage", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    vi.mocked(hasAnyRole).mockImplementation((memberships, roles) => {
+      return memberships.some((membership) => {
+        return membership.isActive && roles.includes(membership.role);
+      });
+    });
+
+    const result = await updateMetricAction(
+      initialResultConfigurationActionState,
+      new FormData()
+    );
+
+    expect(result).toEqual({
+      status: "error",
+      message:
+        "Không thể lưu cấu hình chỉ tiêu. Kiểm tra thông tin và thử lại.",
+    });
+    expect(hasAnyRole).toHaveBeenCalledWith(editorSession.memberships, [
+      "admin",
+    ]);
+    expect(getResultConfigurationActor).not.toHaveBeenCalled();
+    expect(createSupabaseResultConfigurationPort).not.toHaveBeenCalled();
   });
 });

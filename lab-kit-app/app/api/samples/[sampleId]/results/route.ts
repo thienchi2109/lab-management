@@ -175,7 +175,7 @@ function jsonError(error: unknown, fallback: string) {
   return NextResponse.json(
     {
       status: "error",
-      message: error instanceof Error ? error.message : fallback,
+      message: fallback,
     },
     { status: 500 }
   );

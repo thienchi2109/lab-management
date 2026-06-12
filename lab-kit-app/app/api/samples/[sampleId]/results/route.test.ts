@@ -201,6 +201,31 @@ describe("/api/samples/[sampleId]/results", () => {
     );
   });
 
+  test("PUT does not expose internal error messages to clients", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
+    vi.mocked(hasAnyRole).mockReturnValue(true);
+    vi.mocked(saveSampleResults).mockRejectedValue(
+      new Error("service_role secret leaked from storage")
+    );
+
+    const response = await PUT(
+      new NextRequest("http://test.local", {
+        method: "PUT",
+        body: JSON.stringify({
+          results: [{ metricId: "metric-1", value: 7.8 }],
+          groupConclusions: [],
+        }),
+      }),
+      { params }
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      status: "error",
+      message: "Không thể lưu kết quả xét nghiệm.",
+    });
+  });
+
   test("PUT rejects result items without a value before calling the domain", async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(editorSession);
     vi.mocked(hasAnyRole).mockReturnValue(true);
