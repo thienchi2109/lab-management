@@ -84,6 +84,29 @@ check(
     /description:/.test(rootPage)
 );
 
+const resultsNormalizedExport = file("lib/export/results-normalized.ts");
+check(
+  "normalized results export formats arrays in one pass",
+  !/\.map\(formatResultValue\)\s*\.filter\(/.test(resultsNormalizedExport)
+);
+
+const exportRouteHelpers = file("lib/export/route-helpers.ts");
+check(
+  "export route error stays internal to route helpers",
+  !/export\s+class\s+ExportRouteError\b/.test(exportRouteHelpers)
+);
+
+const rootLayout = file("app/layout.tsx");
+check(
+  "color scheme init script is imported from tracked source",
+  exists("lib/theme/color-scheme-init.ts") &&
+    !exists("public/color-scheme-init.js") &&
+    rootLayout.includes('from "@/lib/theme/color-scheme-init"') &&
+    rootLayout.includes('id="color-scheme-init"') &&
+    rootLayout.includes("COLOR_SCHEME_INIT_SCRIPT") &&
+    !rootLayout.includes('src="/color-scheme-init.js"')
+);
+
 const dashboardPage = file("app/dashboard/page.tsx");
 check(
   "dashboard page delegates to focused component",

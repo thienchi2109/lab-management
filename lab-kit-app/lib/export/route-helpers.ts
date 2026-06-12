@@ -10,7 +10,7 @@ import { ExportRateLimitError } from "./rate-limit";
 import type { TabularExportFile } from "./files";
 
 /** Lỗi HTTP có code ổn định cho route export. */
-export class ExportRouteError extends Error {
+class ExportRouteError extends Error {
   readonly code: string;
   readonly status: number;
 

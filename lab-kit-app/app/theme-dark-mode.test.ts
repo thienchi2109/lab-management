@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
@@ -22,13 +22,21 @@ describe("dark mode theme contract", () => {
 
   test("root layout applies the class-based dark theme from system preference", () => {
     const rootLayout = readFileSync(join(appDir, "app/layout.tsx"), "utf8");
-    const colorSchemeScript = readFileSync(
-      join(appDir, "public/color-scheme-init.js"),
-      "utf8"
+    const colorSchemeScriptPath = join(
+      appDir,
+      "lib/theme/color-scheme-init.ts"
     );
+    const colorSchemeScript = existsSync(colorSchemeScriptPath)
+      ? readFileSync(colorSchemeScriptPath, "utf8")
+      : "";
 
-    expect(rootLayout).toContain('src="/color-scheme-init.js"');
+    expect(existsSync(colorSchemeScriptPath)).toBe(true);
+    expect(existsSync(join(appDir, "public/color-scheme-init.js"))).toBe(false);
+    expect(rootLayout).toContain('from "@/lib/theme/color-scheme-init"');
+    expect(rootLayout).toContain('id="color-scheme-init"');
     expect(rootLayout).toContain('strategy="beforeInteractive"');
+    expect(rootLayout).toContain("COLOR_SCHEME_INIT_SCRIPT");
+    expect(rootLayout).not.toContain('src="/color-scheme-init.js"');
     expect(rootLayout).not.toContain("dangerouslySetInnerHTML");
     expect(colorSchemeScript).toContain("prefers-color-scheme: dark");
     expect(colorSchemeScript).toContain('classList.toggle("dark"');

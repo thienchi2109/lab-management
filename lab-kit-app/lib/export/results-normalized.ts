@@ -179,10 +179,17 @@ function formatResultValue(value: unknown): string {
   }
 
   if (Array.isArray(value)) {
-    return value
-      .map(formatResultValue)
-      .filter((item) => item !== "")
-      .join("; ");
+    const parts: string[] = [];
+
+    for (const item of value) {
+      const formatted = formatResultValue(item);
+
+      if (formatted !== "") {
+        parts.push(formatted);
+      }
+    }
+
+    return parts.join("; ");
   }
 
   if (isRecord(value)) {

@@ -32,3 +32,26 @@
   `cd lab-kit-app && bun run test:react-doctor-cleanup`, and
   `git diff --check` passed.
 
+## Issue #61 Follow-up Evidence
+
+- RED:
+  `cd lab-kit-app && bun run test:react-doctor-cleanup` failed on the three
+  new regression checks for one-pass normalized result arrays, internal-only
+  `ExportRouteError`, and tracked-source color scheme init. `cd lab-kit-app &&
+  bun run test app/theme-dark-mode.test.ts` failed before the source module
+  existed.
+- GREEN focused:
+  `cd lab-kit-app && bun run test:react-doctor-cleanup`; `cd lab-kit-app &&
+  bun run test app/theme-dark-mode.test.ts lib/export/results-normalized.test.ts
+  lib/export/route-helpers.test.ts app/api/export/samples/route.test.ts
+  app/api/export/results-normalized/route.test.ts`.
+- React Doctor:
+  `cd lab-kit-app && bun run react-doctor:verbose` on React Doctor v0.5.1
+  scanned 257 files and reported `No issues found!`; `cd lab-kit-app && bun run
+  react-doctor:diff` also passed.
+- Full gate:
+  `cd lab-kit-app && bun run quality` and `cd lab-kit-app && bun run
+  docstring:check` passed.
+- Scope:
+  no migration, Supabase write, async export job, cursor loop, audit/rate-limit
+  change, or product behavior change.

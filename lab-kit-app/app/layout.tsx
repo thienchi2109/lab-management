@@ -3,6 +3,7 @@ import { Geist, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { COLOR_SCHEME_INIT_SCRIPT } from "@/lib/theme/color-scheme-init";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Script src="/color-scheme-init.js" strategy="beforeInteractive" />
+        <Script id="color-scheme-init" strategy="beforeInteractive">
+          {COLOR_SCHEME_INIT_SCRIPT}
+        </Script>
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
