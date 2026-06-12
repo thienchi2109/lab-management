@@ -59,7 +59,8 @@ phải đi qua proof Supabase namespace/project-ref trước khi write.
 
 ## Implementation Evidence
 
-- Implemented on branch `feature/us-011e-export-hardening-audit`.
+- Implemented on branch `feature/us-011e-export-hardening-audit` and opened as
+  PR #62: <https://github.com/thienchi2109/lab-management/pull/62>.
 - Server export routes now audit successful exports and actor-resolved failures
   with actor, tenant, dataset, format, safe filter summary, row limit and row
   count or error code.
@@ -77,3 +78,4 @@ phải đi qua proof Supabase namespace/project-ref trước khi write.
   `cd lab-kit-app && bun run test` passed 85 files / 313 tests;
   `bun run quality` passed; `bun run docstring:check` passed;
   `scripts/bin/harness-cli story verify US-011E` passed.
+- Harness trace #108 recorded.
