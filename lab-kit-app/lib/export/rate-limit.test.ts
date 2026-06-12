@@ -33,4 +33,22 @@ describe("assertExportRateLimit", () => {
 
     expect(getExportRateLimitBucketCountForTests()).toBe(1);
   });
+
+  test("does not scan every expired bucket on one request", () => {
+    for (let index = 0; index < 12; index += 1) {
+      assertExportRateLimit({
+        actor: { ...actor, profileId: `profile-${index}` },
+        dataset: "samples",
+        now: 0,
+      });
+    }
+
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "profile-current" },
+      dataset: "samples",
+      now: 60_000,
+    });
+
+    expect(getExportRateLimitBucketCountForTests()).toBeGreaterThan(1);
+  });
 });

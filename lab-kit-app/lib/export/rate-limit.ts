@@ -3,6 +3,7 @@ import type { ExportDataset } from "./query";
 
 const DEFAULT_EXPORT_RATE_LIMIT_MAX_PER_MINUTE = 20;
 const EXPORT_RATE_LIMIT_WINDOW_MS = 60_000;
+const EXPORT_RATE_LIMIT_PRUNE_MAX_PER_REQUEST = 10;
 
 type ExportRateLimitBucket = {
   count: number;
@@ -73,7 +74,15 @@ function readMaxRequestsPerMinute() {
 }
 
 function pruneExpiredBuckets(now: number) {
+  let scanned = 0;
+
   for (const [key, bucket] of buckets) {
+    if (scanned >= EXPORT_RATE_LIMIT_PRUNE_MAX_PER_REQUEST) {
+      break;
+    }
+
+    scanned += 1;
+
     if (now >= bucket.resetAt) {
       buckets.delete(key);
     }
