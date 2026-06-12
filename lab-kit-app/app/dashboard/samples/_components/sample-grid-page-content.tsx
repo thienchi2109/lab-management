@@ -10,6 +10,7 @@ import {
   billingStatusLabels,
   sampleStatusLabels,
 } from "./sample-metadata-labels";
+import { SampleExportControls } from "./sample-export-controls";
 import { SampleGridTableSection } from "./sample-grid-table-section";
 
 type SampleGridPageContentProps = {
@@ -57,8 +58,14 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
             quyền theo tổ chức.
           </p>
         </div>
-        <div className="text-sm text-muted-foreground">
-          Hiển thị {visibleFrom}-{visibleTo} / {page.pageInfo.totalCount} mẫu
+        <div className="flex flex-col gap-3 md:items-end">
+          <div className="text-sm text-muted-foreground">
+            Hiển thị {visibleFrom}-{visibleTo} / {page.pageInfo.totalCount} mẫu
+          </div>
+          <SampleExportControls
+            canExport={page.capabilities.canExport}
+            query={page.query}
+          />
         </div>
       </div>
 

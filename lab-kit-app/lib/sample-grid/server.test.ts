@@ -91,6 +91,7 @@ describe("sample grid server contract", () => {
     expect(page.rows).toHaveLength(1);
     expect(page.capabilities).toEqual({
       canEnterResults: false,
+      canExport: false,
       canManageImages: false,
       canUpdateMetadata: false,
     });

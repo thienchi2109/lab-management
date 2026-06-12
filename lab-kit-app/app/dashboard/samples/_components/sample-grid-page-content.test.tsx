@@ -17,6 +17,7 @@ const tableSectionSource = readFileSync(
 
 const basePage: SampleGridPage = {
   capabilities: {
+    canExport: true,
     canEnterResults: true,
     canManageImages: true,
     canUpdateMetadata: false,
@@ -78,6 +79,9 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain("/dashboard/samples/sample-1/results");
     expect(html).toContain("Kết quả &amp; ảnh");
     expect(html).toContain("Trang tiếp");
+    expect(html).toContain("Export dữ liệu");
+    expect(html).toContain("Export mẫu");
+    expect(html).toContain("Export kết quả");
   });
 
   test("keeps URL state in controls and resets page on new filtering", () => {
@@ -108,6 +112,7 @@ describe("SampleGridPageContent", () => {
     const viewerPage: SampleGridPage = {
       ...basePage,
       capabilities: {
+        canExport: false,
         canEnterResults: false,
         canManageImages: false,
         canUpdateMetadata: false,
