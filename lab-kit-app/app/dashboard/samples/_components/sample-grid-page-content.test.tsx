@@ -126,6 +126,27 @@ describe("SampleGridPageContent", () => {
     expect(html).not.toContain(">Kết quả &amp; ảnh<");
   });
 
+  test("uses the polished workspace table variant for dense samples scanning", () => {
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent page={basePage} />
+    );
+
+    expect(html).toContain("bg-card");
+    expect(html).toContain("hover:bg-primary/5");
+    expect(html).toContain("py-2.5");
+    expect(html).toContain("Mở kết quả");
+  });
+
+  test("renders a reset action in the polished empty table state", () => {
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent page={{ ...basePage, rows: [] }} />
+    );
+
+    expect(html).toContain("Không có mẫu phù hợp");
+    expect(html).toContain("Xóa bộ lọc");
+    expect(html).toContain('href="/dashboard/samples"');
+  });
+
   test("marks lower-priority columns for responsive hiding and preferences", () => {
     const html = renderToStaticMarkup(
       <SampleGridPageContent page={basePage} />
@@ -192,7 +213,7 @@ describe("SampleGridPageContent", () => {
   test("builds result column label lookup once per page render", () => {
     const toTableRowBody = tableSectionSource.slice(
       tableSectionSource.indexOf("function toTableRow"),
-      tableSectionSource.indexOf("function ResultColumnModeControls")
+      tableSectionSource.indexOf("function ResultGroupDetail")
     );
 
     expect(toTableRowBody).not.toContain("resultColumnLabelByKey = new Map");
