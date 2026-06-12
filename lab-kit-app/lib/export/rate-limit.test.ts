@@ -51,4 +51,32 @@ describe("assertExportRateLimit", () => {
 
     expect(getExportRateLimitBucketCountForTests()).toBeGreaterThan(1);
   });
+
+  test("continues cleanup past active buckets at the front", () => {
+    for (let index = 0; index < 10; index += 1) {
+      assertExportRateLimit({
+        actor: { ...actor, profileId: `active-${index}` },
+        dataset: "samples",
+        now: 30_000,
+      });
+    }
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "expired-later" },
+      dataset: "samples",
+      now: 0,
+    });
+
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "current-1" },
+      dataset: "samples",
+      now: 60_000,
+    });
+    assertExportRateLimit({
+      actor: { ...actor, profileId: "current-2" },
+      dataset: "samples",
+      now: 60_000,
+    });
+
+    expect(getExportRateLimitBucketCountForTests()).toBe(12);
+  });
 });

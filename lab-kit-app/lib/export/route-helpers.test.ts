@@ -1,4 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 
 import { exportDownloadResponse } from "./route-helpers";
 

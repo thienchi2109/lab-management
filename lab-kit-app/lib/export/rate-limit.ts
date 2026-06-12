@@ -76,15 +76,19 @@ function readMaxRequestsPerMinute() {
 function pruneExpiredBuckets(now: number) {
   let scanned = 0;
 
-  for (const [key, bucket] of buckets) {
-    if (scanned >= EXPORT_RATE_LIMIT_PRUNE_MAX_PER_REQUEST) {
-      break;
-    }
+  while (scanned < EXPORT_RATE_LIMIT_PRUNE_MAX_PER_REQUEST) {
+    const next = buckets.keys().next();
+    if (next.done) break;
 
+    const key = next.value;
+    const bucket = buckets.get(key);
+    if (!bucket) break;
+
+    buckets.delete(key);
     scanned += 1;
 
-    if (now >= bucket.resetAt) {
-      buckets.delete(key);
+    if (now < bucket.resetAt) {
+      buckets.set(key, bucket);
     }
   }
 }
