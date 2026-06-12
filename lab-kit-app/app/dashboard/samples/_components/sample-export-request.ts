@@ -56,35 +56,35 @@ export async function requestSampleGridExport(
   options: RequestSampleGridExportOptions = {}
 ): Promise<{ state: SampleGridExportState }> {
   const fetcher = options.fetcher ?? fetch;
+  let response: Response;
 
   try {
-    const response = await fetcher(endpointFor(input.dataset), {
+    response = await fetcher(endpointFor(input.dataset), {
       body: JSON.stringify(payloadFor(input)),
       headers: { "content-type": "application/json" },
       method: "POST",
     });
+  } catch {
+    return { state: networkErrorState() };
+  }
 
-    if (!response.ok) {
-      return { state: await errorState(response) };
-    }
+  if (!response.ok) {
+    return { state: await errorState(response) };
+  }
 
+  try {
     const blob = await response.blob();
     const filename = filenameFrom(response) ?? fallbackFilename(input);
     const clickDownload = options.clickDownload ?? downloadBlob;
 
     clickDownload(blob, filename);
-
-    return {
-      state: { status: "success", message: "Đã tải file export." },
-    };
   } catch {
-    return {
-      state: {
-        status: "error",
-        message: "Đã xảy ra lỗi kết nối mạng. Vui lòng thử lại.",
-      },
-    };
+    return { state: genericExportErrorState() };
   }
+
+  return {
+    state: { status: "success", message: "Đã tải file export." },
+  };
 }
 
 function endpointFor(dataset: SampleGridExportDataset) {
@@ -164,17 +164,72 @@ function parseDispositionFilename(header: string) {
 }
 
 function readDispositionParam(header: string, name: string) {
-  for (const segment of header.split(";")) {
-    const match = /^\s*([^=]+)=(.*)$/.exec(segment);
+  for (const segment of splitDispositionSegments(header)) {
+    const separator = findParamSeparator(segment);
 
-    if (!match || match[1]?.trim().toLowerCase() !== name) {
+    if (separator === -1) {
       continue;
     }
 
-    return unquote(match[2]?.trim() ?? "");
+    const paramName = segment.slice(0, separator).trim().toLowerCase();
+
+    if (paramName !== name) {
+      continue;
+    }
+
+    return unquote(segment.slice(separator + 1).trim());
   }
 
   return null;
+}
+
+function splitDispositionSegments(header: string) {
+  const segments: string[] = [];
+  let segment = "";
+  let escaped = false;
+  let quoted = false;
+
+  for (const char of header) {
+    if (escaped) {
+      segment += char;
+      escaped = false;
+      continue;
+    }
+
+    if (quoted && char === "\\") {
+      segment += char;
+      escaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      quoted = !quoted;
+      segment += char;
+      continue;
+    }
+
+    if (!quoted && char === ";") {
+      segments.push(segment);
+      segment = "";
+      continue;
+    }
+
+    segment += char;
+  }
+
+  segments.push(segment);
+
+  return segments;
+}
+
+function findParamSeparator(segment: string) {
+  for (let index = 0; index < segment.length; index += 1) {
+    if (segment[index] === "=") {
+      return index;
+    }
+  }
+
+  return -1;
 }
 
 function decodeDispositionFilename(value: string) {
@@ -188,9 +243,43 @@ function decodeDispositionFilename(value: string) {
 }
 
 function unquote(value: string) {
-  return value.startsWith('"') && value.endsWith('"')
-    ? value.slice(1, -1)
-    : value;
+  if (!value.startsWith('"') || !value.endsWith('"')) {
+    return value;
+  }
+
+  let result = "";
+  let escaped = false;
+
+  for (const char of value.slice(1, -1)) {
+    if (escaped) {
+      result += char;
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    result += char;
+  }
+
+  return escaped ? `${result}\\` : result;
+}
+
+function networkErrorState(): SampleGridExportState {
+  return {
+    status: "error",
+    message: "Đã xảy ra lỗi kết nối mạng. Vui lòng thử lại.",
+  };
+}
+
+function genericExportErrorState(): SampleGridExportState {
+  return {
+    status: "error",
+    message: "Không thể tải file export. Vui lòng thử lại.",
+  };
 }
 
 function fallbackFilename(input: RequestSampleGridExportInput) {

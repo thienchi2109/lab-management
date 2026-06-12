@@ -165,6 +165,74 @@ describe("requestSampleGridExport", () => {
     );
   });
 
+  test("uses quoted content-disposition filenames with semicolons and escaped quotes", async () => {
+    const clickDownload = vi.fn();
+
+    await requestSampleGridExport(
+      { dataset: "samples", format: "csv", query: gridQuery },
+      {
+        clickDownload,
+        fetcher: vi.fn(async () =>
+          response({
+            body: "csv",
+            contentDisposition:
+              'attachment; filename="mau-xet-nghiem; \\"T6\\".csv"; size=12',
+          })
+        ),
+      }
+    );
+
+    expect(clickDownload).toHaveBeenCalledWith(
+      expect.any(Blob),
+      'mau-xet-nghiem; "T6".csv'
+    );
+  });
+
+  test("reports generic export errors when the browser download fails", async () => {
+    await expect(
+      requestSampleGridExport(
+        { dataset: "samples", format: "csv", query: gridQuery },
+        {
+          clickDownload: vi.fn(() => {
+            throw new Error("blocked download");
+          }),
+          fetcher: vi.fn(async () =>
+            response({ body: "csv", filename: "mau-xet-nghiem.csv" })
+          ),
+        }
+      )
+    ).resolves.toMatchObject({
+      state: {
+        status: "error",
+        message: "Không thể tải file export. Vui lòng thử lại.",
+      },
+    });
+  });
+
+  test("reports generic export errors when the response body cannot be read", async () => {
+    const headers = new Headers();
+    headers.set("content-disposition", 'attachment; filename="broken.csv"');
+    const failedResponse = {
+      blob: vi.fn(async () => {
+        throw new Error("body stream failed");
+      }),
+      headers,
+      ok: true,
+    } as unknown as Response;
+
+    await expect(
+      requestSampleGridExport(
+        { dataset: "samples", format: "csv", query: gridQuery },
+        { clickDownload: vi.fn(), fetcher: vi.fn(async () => failedResponse) }
+      )
+    ).resolves.toMatchObject({
+      state: {
+        status: "error",
+        message: "Không thể tải file export. Vui lòng thử lại.",
+      },
+    });
+  });
+
   test("normalizes permission and row-limit errors for the UI", async () => {
     await expect(
       requestSampleGridExport(
