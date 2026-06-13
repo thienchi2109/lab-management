@@ -22,7 +22,13 @@ const defaultMeasures: AnalyticsPageMeasure[] = [
   "positiveCount",
 ];
 
-/** Render Analytics Page & Pivot UI MVP với filter bounded và table responsive. */
+const metricToneClasses = {
+  default: "border-border/70 bg-card",
+  positive: "border-emerald-500/20 bg-emerald-500/5",
+  warning: "border-amber-500/20 bg-amber-500/5",
+};
+
+/** Render Analytics Page & Pivot UI với bộ lọc giới hạn và bảng responsive. */
 export function AnalyticsPageClient({
   initialDataset,
   initialFilters,
@@ -40,6 +46,8 @@ export function AnalyticsPageClient({
     () => mapAnalyticsRows(dataset, query.dimension),
     [dataset, query.dimension]
   );
+  const sampleTotal = getMeasureTotal(dataset, "sampleCount");
+  const positiveTotal = getMeasureTotal(dataset, "positiveCount");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,9 +104,16 @@ export function AnalyticsPageClient({
             analytics đã giới hạn phạm vi.
           </p>
         </div>
+        <output
+          aria-label="Quyền truy cập analytics"
+          className="inline-flex w-fit items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-xs"
+        >
+          <span className="size-2 rounded-full bg-primary" />
+          Chỉ đọc
+        </output>
       </div>
 
-      <div>
+      <section className="space-y-3">
         <AnalyticsFilterCard
           dimension={query.dimension}
           filters={query.filters}
@@ -110,22 +125,48 @@ export function AnalyticsPageClient({
           onSubmit={handleSubmit}
         />
         {error ? (
-          <p className="mt-3 text-sm font-medium text-destructive">{error}</p>
+          <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm font-medium text-destructive">
+            {error}
+          </p>
         ) : null}
-      </div>
+      </section>
 
-      <section className="rounded-lg border bg-background p-4">
-        <h2 className="text-sm font-medium">Tóm tắt bộ lọc</h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {dataset.filterSummary.map((item) => (
-            <span
-              key={item}
-              className="rounded-md border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
+      <section
+        aria-label="Tóm tắt bộ lọc đã áp dụng"
+        className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-sm text-primary"
+      >
+        <span className="font-semibold">Đang áp dụng</span>
+        {dataset.filterSummary.map((item) => (
+          <span
+            key={item}
+            className="rounded-full border border-primary/15 bg-background px-2.5 py-1 text-xs text-primary/80"
+          >
+            {item}
+          </span>
+        ))}
+      </section>
+
+      <section
+        aria-label="Tổng quan analytics"
+        className="grid gap-3 md:grid-cols-3"
+      >
+        <AnalyticsMetricCard
+          label="Tổng mẫu"
+          value={formatTotalCount(sampleTotal)}
+          detail="Tổng số mẫu trong bộ lọc hiện tại"
+        />
+        <AnalyticsMetricCard
+          label="Dương tính"
+          value={formatTotalCount(positiveTotal)}
+          detail="Số mẫu dương tính trong bộ lọc hiện tại"
+          tone="positive"
+        />
+        <AnalyticsMetricCard
+          label="Tỷ lệ"
+          value={formatTotalPositiveRate(sampleTotal, positiveTotal)}
+          detail="Dương tính / tổng mẫu"
+          tone="warning"
+        />
       </section>
 
       <AnalyticsPivotSection rows={rows} dimension={query.dimension} />
@@ -144,6 +185,56 @@ export function AnalyticsPageClient({
       update();
     }
   }
+}
+
+function AnalyticsMetricCard({
+  detail,
+  label,
+  tone = "default",
+  value,
+}: {
+  detail: string;
+  label: string;
+  tone?: "default" | "positive" | "warning";
+  value: string;
+}) {
+  return (
+    <article
+      className={`rounded-lg border p-4 shadow-xs ${metricToneClasses[tone]}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-sm font-medium text-muted-foreground">
+          {label}
+        </span>
+        <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground tabular-nums">
+          tổng
+        </span>
+      </div>
+      <div className="mt-2 font-mono text-2xl font-semibold tracking-tight tabular-nums">
+        {value}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
+    </article>
+  );
+}
+
+function getMeasureTotal(
+  dataset: AnalyticsPivotDataset,
+  measure: AnalyticsPageMeasure
+) {
+  const value = dataset.totals[measure];
+
+  return typeof value === "number" ? value : 0;
+}
+
+function formatTotalCount(value: number) {
+  return `${value.toLocaleString("vi-VN")} mẫu`;
+}
+
+function formatTotalPositiveRate(sampleTotal: number, positiveTotal: number) {
+  if (sampleTotal === 0) return "0.0%";
+
+  return `${((positiveTotal / sampleTotal) * 100).toFixed(1)}%`;
 }
 
 function cleanFilters(filters: AnalyticsPageFilters) {

@@ -4,7 +4,12 @@ import {
   DashboardDataTable,
   type DashboardDataTableRow,
 } from "@/components/dashboard/data-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 
 import {
   formatPositiveRate,
@@ -41,12 +46,15 @@ function PivotChart({ rows }: { rows: AnalyticsPivotDisplayRow[] }) {
   );
 
   return (
-    <Card className="rounded-lg">
+    <Card className="rounded-lg border-border/70">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BarChart3 className="size-4" />
-          Pivot/chart MVP
-        </CardTitle>
+        <h2 className="flex items-center gap-2 text-base font-semibold">
+          <BarChart3 className="size-4 text-primary" />
+          Phân bố pivot
+        </h2>
+        <CardDescription>
+          So sánh số mẫu theo chiều pivot đang chọn.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div aria-label="Biểu đồ pivot analytics" className="space-y-3">
@@ -59,7 +67,7 @@ function PivotChart({ rows }: { rows: AnalyticsPivotDisplayRow[] }) {
               <div key={row.id} className="grid gap-1.5">
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="truncate font-medium">{row.label}</span>
-                  <span className="shrink-0 text-muted-foreground">
+                  <span className="shrink-0 font-mono text-muted-foreground tabular-nums">
                     {formatSampleCount(row.sampleCount)}
                   </span>
                 </div>
@@ -105,13 +113,20 @@ function PivotTable({
   }));
 
   return (
-    <section>
-      <h2 className="mb-3 text-sm font-medium">Bảng pivot analytics</h2>
+    <section className="rounded-lg border border-border/70 bg-card p-4">
+      <div className="mb-3">
+        <h2 className="text-base font-semibold">Chi tiết pivot</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Bảng dùng cùng dữ liệu với biểu đồ và tự chuyển sang card trên mobile.
+        </p>
+      </div>
       <DashboardDataTable
         caption="Bảng pivot analytics"
+        density="compact"
         emptyTitle="Không có dữ liệu analytics"
         emptyDescription="Thử đổi khoảng ngày hoặc trạng thái mẫu."
         rows={tableRows}
+        tone="workspace"
       />
     </section>
   );

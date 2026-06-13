@@ -6,9 +6,11 @@ import {
   fireEvent,
   render,
   screen,
+  within,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 import { AnalyticsPageClient } from "./analytics-page-client";
 
@@ -30,6 +32,21 @@ type AnalyticsFetchResponse = {
 };
 
 describe("AnalyticsPageClient", () => {
+  beforeAll(() => {
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -56,6 +73,36 @@ describe("AnalyticsPageClient", () => {
     expect(screen.getAllByText("Bảng pivot analytics").length).toBeGreaterThan(
       0
     );
+  });
+
+  test("renders the polished command-bar filter, applied summary, totals, and read-only status", () => {
+    render(
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole("form", { name: "Bộ lọc analytics dạng command bar" })
+    ).toBeTruthy();
+    const accessStatus = screen.getByRole("status", {
+      name: "Quyền truy cập analytics",
+    });
+    expect(accessStatus.textContent?.includes("Chỉ đọc")).toBe(true);
+    expect(screen.getByText("Đang áp dụng")).toBeTruthy();
+    const totals = within(
+      screen.getByRole("region", { name: "Tổng quan analytics" })
+    );
+    expect(totals.getByText("Tổng mẫu")).toBeTruthy();
+    expect(totals.getByText("3 mẫu")).toBeTruthy();
+    expect(totals.getByText("Dương tính")).toBeTruthy();
+    expect(totals.getByText("1 mẫu")).toBeTruthy();
+    expect(totals.getByText("Tỷ lệ")).toBeTruthy();
+    expect(totals.getByText("33.3%")).toBeTruthy();
   });
 
   test("does not render a minimum-width chart bar for zero sample rows", () => {
@@ -90,7 +137,26 @@ describe("AnalyticsPageClient", () => {
     expect(container.querySelector('[style*="width: 4%"]')).toBeNull();
   });
 
+  test("uses polished analytics copy instead of MVP labels for chart and table", () => {
+    render(
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { name: "Phân bố pivot" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Chi tiết pivot" })
+    ).toBeTruthy();
+    expect(screen.queryByText("Pivot/chart MVP")).toBeNull();
+  });
+
   test("submits bounded filters to the pivot API and renders the returned dataset", async () => {
+    const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -123,13 +189,13 @@ describe("AnalyticsPageClient", () => {
     fireEvent.change(screen.getByLabelText("Đến ngày"), {
       target: { value: "2026-06-09" },
     });
-    fireEvent.change(screen.getByLabelText("Trạng thái"), {
-      target: { value: "completed" },
-    });
-    fireEvent.change(screen.getByLabelText("Chiều pivot"), {
-      target: { value: "pcrMetric" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Áp dụng" }));
+    await user.click(screen.getByRole("combobox", { name: "Trạng thái" }));
+    await user.click(await screen.findByRole("option", { name: "Hoàn tất" }));
+    await user.click(screen.getByRole("combobox", { name: "Chiều pivot" }));
+    await user.click(
+      await screen.findByRole("option", { name: "Chỉ tiêu PCR" })
+    );
+    await user.click(screen.getByRole("button", { name: "Áp dụng" }));
 
     await waitFor(() =>
       expect(screen.getAllByText("DIV1").length).toBeGreaterThan(0)
