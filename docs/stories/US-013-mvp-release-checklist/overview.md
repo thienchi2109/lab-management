@@ -2,7 +2,7 @@
 
 **Lane:** high-risk
 **Phase:** 12
-**Status:** planned
+**Status:** partial
 **Affects:** điều phối checklist release MVP, cấu hình production, deploy Vercel,
 smoke test luồng chính, backup/restore cơ bản và tài liệu vận hành
 
@@ -59,6 +59,14 @@ Release operator có một checklist tuần tự để xác nhận:
 - README hoặc runbook vận hành được tạo trong story này
 - Hướng dẫn vai trò Admin, Editor và Viewer được tạo trong story này
 
+## Created Docs
+
+- `docs/operations/release-runbook.md`
+- `docs/operations/admin-guide.md`
+- `docs/operations/editor-guide.md`
+- `docs/operations/viewer-guide.md`
+- `docs/stories/US-013-mvp-release-checklist/validation.md`
+
 ## Non-Goals
 
 - Không thêm tính năng nghiệp vụ mới ngoài checklist release.
@@ -113,3 +121,9 @@ Release operator có một checklist tuần tự để xác nhận:
 - Ghi rõ môi trường deploy, commit SHA, migration state và hạn chế còn lại.
 - Ghi validation report nếu release verification phát hiện gap hoặc cần bằng
   chứng chi tiết cho handoff.
+
+## Current Release State
+
+Production deploy đã sẵn sàng tại `https://aquatic-lab.vercel.app` với
+deployment `dpl_A3P763tgSnTd9VNetZhwMmBJEua4`. US-013 vẫn là partial vì issue
+#70 còn chặn tiêu chí nhập kết quả chất lượng nước.
