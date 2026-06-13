@@ -10,6 +10,11 @@
 - Always prefer context-mode tools first for gathering, searching, reading, or
   summarizing context. Use `rtk` as the fallback or for short shell commands
   when context-mode is not appropriate.
+- For Vercel CLI work in this repo, always use the repo-specific Vercel access
+  token via a temporary environment variable such as `VERCEL_TOKEN=... vercel
+  ...`. Do not use global Vercel auth, do not run `vercel login` or
+  `vercel logout`, and do not switch the global account because other repos on
+  this machine depend on that credential.
 - Before modifying code, read Code Review Graph first for a compact map of
   relevant files, symbols, flows, and impact. Use GitNexus/`rg` only after the
   graph narrows the blast radius.

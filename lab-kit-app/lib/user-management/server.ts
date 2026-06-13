@@ -2,6 +2,7 @@ import "server-only";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
 import { hasAnyRole } from "@/lib/auth/permissions";
+// react-doctor-disable-next-line react-doctor/supabase-client-owned-authz-field -- Luồng quản trị người dùng chỉ chạy server-side khi đã kiểm tra admin và ghi audit.
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import type { ManagedMembership } from "./last-admin";
