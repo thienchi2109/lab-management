@@ -247,3 +247,53 @@ Additional review evidence captured on 2026-06-13:
 - Harness story verification:
   `scripts/bin/harness-cli story verify ISSUE-31-set-based-sample-results-rpc`
   passed 4 files / 22 tests plus `node scripts/validate-supabase-schema.mjs`.
+
+Second OCR review evidence captured on 2026-06-13:
+
+- Review comment on
+  `20260613021126_dedupe_sample_results_rpc_inputs.sql:24-28` was verified as
+  valid for that historical migration but already resolved by the later
+  parent-row lock migration `20260613025244_lock_sample_results_rpc_parent_rows.sql`.
+- Review comment on
+  `20260613025244_lock_sample_results_rpc_parent_rows.sql:35-43` was verified
+  as partially actionable. PostgreSQL locking with `LIMIT` does not lock every
+  scanned row, but the query still benefited from choosing a deterministic
+  template ID first and then locking that exact row.
+- RED TDD:
+  `cd lab-kit-app && bun run test lib/sample-results/schema-contract.test.ts`
+  failed because the latest RPC selected and locked the active template in one
+  top-level `order by created_at desc limit 1 for share` statement.
+- Added forward-only migration
+  `supabase/migrations/20260613032412_lock_sample_results_rpc_selected_template_id.sql`.
+  The RPC now uses a `selected_template` CTE ordered by
+  `created_at desc, id desc`, then joins back to `public.result_templates rt`
+  and locks only that selected row with `for share of rt`.
+- Supabase apply:
+  `mcp__supabase_lab_management.apply_migration` with name
+  `lock_sample_results_rpc_selected_template_id` returned `success: true`.
+- Live migration history after apply includes
+  `20260613032412 lock_sample_results_rpc_selected_template_id`.
+- Live function verification:
+  `uses_selected_template_cte=true`, `deterministic_template_order=true`,
+  `locks_template_alias=true`, `locks_sample_row=true`,
+  `uses_ordinality=true`, `dedupes_metrics=true`, `dedupes_groups=true`,
+  `security_definer=true`, `config=[search_path=public]`.
+- Live privileges after apply: `EXECUTE` for `postgres` owner and
+  `service_role`; `authenticated` and `anon` remain without `EXECUTE`.
+- Live cleanup verification passed with two active templates sharing the same
+  `created_at`:
+  - expected selected template was the deterministic higher UUID
+    `ffffffff-ffff-ffff-ffff-ffffffff0031`;
+  - duplicate `metricId` entries still collapsed to 1 `sample_results` row;
+  - duplicate `groupId` entries still collapsed to 1 group conclusion row;
+  - latest duplicate metric value won with `metric_status=positive`;
+  - latest duplicate group conclusion won with `group_conclusion=Mới`;
+  - audit still records exactly 1 event;
+  - cleanup proof: `leftover_organizations=0` for slug
+    `issue-31-selected-template-%`.
+- GREEN/focused regression:
+  `cd lab-kit-app && bun run test lib/sample-results/schema-contract.test.ts lib/sample-results/operations.test.ts lib/sample-results/server.test.ts app/api/samples/[sampleId]/results/route.test.ts`
+  passed 4 files / 22 tests.
+- Root-cwd schema contract:
+  `./lab-kit-app/node_modules/.bin/vitest run lab-kit-app/lib/sample-results/schema-contract.test.ts --config lab-kit-app/vitest.config.ts`
+  passed 1 file / 4 tests.

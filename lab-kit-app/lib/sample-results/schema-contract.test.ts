@@ -63,7 +63,7 @@ describe("sample results schema contract", () => {
       /from\s+public\.samples[\s\S]+?where[\s\S]+?id\s*=\s*p_sample_id[\s\S]+?organization_id\s*=\s*p_organization_id[\s\S]+?for\s+share/i
     );
     expect(definition).toMatch(
-      /from\s+public\.result_templates[\s\S]+?where[\s\S]+?organization_id\s*=\s*p_organization_id[\s\S]+?sample_type_id\s*=\s*sample_type[\s\S]+?is_active\s*=\s*true[\s\S]+?order\s+by\s+created_at\s+desc[\s\S]+?limit\s+1[\s\S]+?for\s+share/i
+      /with\s+selected_template\s+as\s*\([\s\S]+?from\s+public\.result_templates[\s\S]+?where[\s\S]+?organization_id\s*=\s*p_organization_id[\s\S]+?sample_type_id\s*=\s*sample_type[\s\S]+?is_active\s*=\s*true[\s\S]+?order\s+by\s+created_at\s+desc\s*,\s*id\s+desc[\s\S]+?limit\s+1[\s\S]+?\)\s*select\s+rt\.id\s+into\s+template_id\s+from\s+public\.result_templates\s+rt[\s\S]+?for\s+share/i
     );
   });
 
