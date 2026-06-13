@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useReducer } from "react";
-import { Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Plus, Search, SlidersHorizontal, X } from "lucide-react";
 
 import { FilterSelect } from "@/components/dashboard/filter-select";
 import { Button } from "@/components/ui/button";
@@ -40,9 +40,13 @@ export function UserManagementClient({
       status: state.status,
     });
   }, [state.role, state.search, state.status, users]);
+  const hasActiveFilters =
+    state.search.trim() !== "" ||
+    state.role !== "all" ||
+    state.status !== "all";
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
@@ -55,16 +59,30 @@ export function UserManagementClient({
         <Button
           type="button"
           size="lg"
+          className="w-full sm:w-fit"
           onClick={() => dispatch({ type: "openCreate" })}
         >
-          <Plus className="size-4" />
+          <Plus data-icon="inline-start" />
           Thêm người dùng
         </Button>
       </div>
 
       <UserSummaryStrip summary={summary} />
 
-      <section className="rounded-lg border bg-background p-4">
+      <section className="rounded-lg border bg-card p-3 sm:p-4">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold">Tìm nhanh người dùng</h2>
+            <p className="text-xs text-muted-foreground">
+              Tìm kiếm là thao tác chính trên mobile
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <SlidersHorizontal className="size-3.5" />
+            Đang hiển thị {filteredUsers.length}/{users.length}
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -74,10 +92,10 @@ export function UserManagementClient({
                 dispatch({ type: "setSearch", value: event.target.value })
               }
               className="pl-8"
-              placeholder="Tìm theo tên, username, email"
+              placeholder="Tên, username hoặc email"
             />
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
             <FilterSelect
               label="Vai trò"
               value={state.role}
@@ -109,16 +127,18 @@ export function UserManagementClient({
                 ["inactive", "Tạm khóa"],
               ]}
             />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!hasActiveFilters}
+              onClick={() => dispatch({ type: "clearFilters" })}
+            >
+              <X data-icon="inline-start" />
+              Xóa bộ lọc
+            </Button>
           </div>
         </div>
       </section>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <SlidersHorizontal className="size-4" />
-          Đang hiển thị {filteredUsers.length}/{users.length} người dùng
-        </div>
-      </div>
 
       <UserTable
         users={filteredUsers}
@@ -149,6 +169,7 @@ type UserManagementAction =
   | { type: "setSearch"; value: string }
   | { type: "setRole"; value: UserManagementState["role"] }
   | { type: "setStatus"; value: UserManagementState["status"] }
+  | { type: "clearFilters" }
   | { type: "openCreate" }
   | { type: "openEdit"; user: ManagedUser }
   | { type: "closeDialog" };
@@ -164,6 +185,8 @@ function userManagementReducer(
       return { ...state, role: action.value };
     case "setStatus":
       return { ...state, status: action.value };
+    case "clearFilters":
+      return { ...state, search: "", role: "all", status: "all" };
     case "openCreate":
       return { ...state, creating: true, editingUser: null };
     case "openEdit":
