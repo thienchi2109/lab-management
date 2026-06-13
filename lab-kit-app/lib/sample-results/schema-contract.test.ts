@@ -34,7 +34,7 @@ describe("sample results schema contract", () => {
     );
     expect(definition).toMatch(/security\s+definer/i);
     expect(definition).toMatch(/set\s+search_path\s*=\s*public/i);
-    expect(definition).toMatch(/jsonb_to_recordset/i);
+    expect(definition).toMatch(/jsonb_(to_recordset|array_elements)/i);
     expect(definition).not.toMatch(
       /\bfor\s+\w+\s+in\s+select[\s\S]+?\bloop\b/i
     );
@@ -44,6 +44,14 @@ describe("sample results schema contract", () => {
     expect(definition).toMatch(
       /insert\s+into\s+public\.sample_group_conclusions[\s\S]+select[\s\S]+from\s+parsed_conclusions[\s\S]+on\s+conflict\s*\(\s*sample_id\s*,\s*result_group_id\s*\)/i
     );
+  });
+
+  test("deduplicates repeated result metrics and group conclusions before upsert", () => {
+    const definition = readLatestSampleResultsRpcDefinition();
+
+    expect(definition).toMatch(/with\s+ordinality/i);
+    expect(definition).toMatch(/distinct\s+on\s*\(\s*metric_id\s*\)/i);
+    expect(definition).toMatch(/distinct\s+on\s*\(\s*group_id\s*\)/i);
   });
 
   test("keeps the audit RPC restricted to service role execution", () => {

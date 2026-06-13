@@ -163,3 +163,43 @@ Implementation evidence captured on 2026-06-12:
 - Quality:
   `cd lab-kit-app && bun run quality` passed typecheck, ESLint strict,
   Prettier check, React Doctor, and Next build.
+
+Follow-up review evidence captured on 2026-06-13:
+
+- Review comments on duplicate `metricId`/`groupId` payload entries were
+  verified as valid. A live rollback repro against
+  `20260612155744 set_based_sample_results_rpc` raised PostgreSQL
+  `cardinality_violation` with message
+  `ON CONFLICT DO UPDATE command cannot affect row a second time`.
+- RED TDD:
+  `cd lab-kit-app && bun run test lib/sample-results/schema-contract.test.ts`
+  failed because latest RPC definition did not contain `WITH ORDINALITY`,
+  `DISTINCT ON (metric_id)`, or `DISTINCT ON (group_id)`.
+- Added forward-only migration
+  `supabase/migrations/20260613021126_dedupe_sample_results_rpc_inputs.sql`.
+  The RPC now deduplicates by input array order and uses last-write-wins for
+  repeated `metricId` or `groupId`.
+- GREEN/focused regression:
+  `cd lab-kit-app && bun run test lib/sample-results/schema-contract.test.ts lib/sample-results/operations.test.ts lib/sample-results/server.test.ts app/api/samples/[sampleId]/results/route.test.ts`
+  passed 4 files / 21 tests.
+- Schema script:
+  `node scripts/validate-supabase-schema.mjs` passed.
+- Supabase apply:
+  `mcp__supabase_lab_management.apply_migration` with name
+  `dedupe_sample_results_rpc_inputs` returned `success: true`.
+- Live migration history after apply includes
+  `20260613021126 dedupe_sample_results_rpc_inputs`.
+- Live function verification:
+  `uses_ordinality=true`, `dedupes_metrics=true`, `dedupes_groups=true`,
+  `security_definer=true`, `config=[search_path=public]`.
+- Live privileges after follow-up apply: `EXECUTE` for `postgres` owner and
+  `service_role`.
+- Live duplicate rollback verification passed:
+  - duplicate `metricId` entries no longer raise cardinality violation;
+  - duplicate `groupId` entries no longer raise cardinality violation;
+  - result value keeps the last duplicate value;
+  - group conclusion keeps the last duplicate text;
+  - audit still records exactly one event;
+  - transaction rolled back.
+- Fixture cleanup proof: `leftover_organizations=0` for slugs
+  `issue-31-dedupe-%` and `issue-31-dup-%`.
