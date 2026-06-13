@@ -2,6 +2,10 @@
 
 import { Edit3, ShieldCheck } from "lucide-react";
 
+import {
+  DashboardDataTable,
+  type DashboardDataTableRow,
+} from "@/components/dashboard/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ManagedUser } from "@/lib/user-management/users";
@@ -20,88 +24,50 @@ const roleLabels: Record<ManagedUser["role"], string> = {
 };
 
 export function UserTable({ users, onEdit }: UserTableProps) {
-  if (users.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed bg-background p-8 text-center">
-        <p className="font-medium">Không có người dùng phù hợp</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Thử đổi từ khóa tìm kiếm hoặc bộ lọc vai trò/trạng thái.
-        </p>
-      </div>
-    );
-  }
+  const rows = users.map((user): DashboardDataTableRow => {
+    return {
+      id: user.membershipId,
+      rowTone: user.role === "admin" ? "highlight" : "default",
+      cells: [
+        {
+          columnKey: "identity",
+          header: "Người dùng",
+          content: <UserIdentity user={user} />,
+          primary: true,
+          mobileClassName: "flex-col items-start gap-2",
+        },
+        {
+          columnKey: "role",
+          header: "Vai trò",
+          content: <RoleBadge role={user.role} />,
+        },
+        {
+          columnKey: "status",
+          header: "Trạng thái",
+          content: <StatusBadge isActive={user.isActive} />,
+        },
+        {
+          columnKey: "updated",
+          header: "Cập nhật",
+          content: formatUserUpdatedDate(user.updatedAt),
+        },
+      ],
+      actions: <EditButton user={user} onEdit={onEdit} />,
+      mobilePrimaryAction: (
+        <EditButton user={user} onEdit={onEdit} mobileLabel />
+      ),
+    };
+  });
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-background">
-      <div className="hidden md:block">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 font-medium">Người dùng</th>
-              <th className="px-4 py-3 font-medium">Vai trò</th>
-              <th className="px-4 py-3 font-medium">Trạng thái</th>
-              <th className="px-4 py-3 font-medium">Cập nhật</th>
-              <th className="px-4 py-3 text-right font-medium">Tác vụ</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {users.map((user) => (
-              <tr key={user.membershipId} className="hover:bg-muted/30">
-                <td className="px-4 py-3">
-                  <UserIdentity user={user} />
-                </td>
-                <td className="px-4 py-3">
-                  <RoleBadge role={user.role} />
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge isActive={user.isActive} />
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {formatUserUpdatedDate(user.updatedAt)}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEdit(user)}
-                  >
-                    <Edit3 className="size-3.5" />
-                    Sửa
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="divide-y md:hidden">
-        {users.map((user) => (
-          <div key={user.membershipId} className="space-y-3 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <UserIdentity user={user} />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                onClick={() => onEdit(user)}
-                aria-label={`Sửa ${user.displayName}`}
-              >
-                <Edit3 className="size-3.5" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <RoleBadge role={user.role} />
-              <StatusBadge isActive={user.isActive} />
-              <span className="text-xs text-muted-foreground">
-                {formatUserUpdatedDate(user.updatedAt)}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <DashboardDataTable
+      caption="Danh sách người dùng"
+      density="compact"
+      emptyTitle="Không có người dùng phù hợp"
+      emptyDescription="Thử đổi từ khóa hoặc xóa bộ lọc hiện tại."
+      rows={rows}
+      tone="workspace"
+    />
   );
 }
 
@@ -136,5 +102,29 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
     <Badge variant={isActive ? "outline" : "destructive"}>
       {isActive ? "Hoạt động" : "Tạm khóa"}
     </Badge>
+  );
+}
+
+function EditButton({
+  user,
+  onEdit,
+  mobileLabel = false,
+}: {
+  user: ManagedUser;
+  onEdit: (user: ManagedUser) => void;
+  mobileLabel?: boolean;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size={mobileLabel ? "default" : "sm"}
+      className={mobileLabel ? "w-full justify-center" : undefined}
+      onClick={() => onEdit(user)}
+      aria-label={`Sửa ${user.displayName}`}
+    >
+      <Edit3 data-icon="inline-start" />
+      {mobileLabel ? "Sửa người dùng" : "Sửa"}
+    </Button>
   );
 }

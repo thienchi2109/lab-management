@@ -71,4 +71,47 @@ for shadcn CLI reads/adds unless Bun behavior is fixed.
 
 ## Acceptance Evidence
 
-- Planned. Runtime proof pending implementation.
+- Branch: `feature/us-016e-users-polish`.
+- shadcn: `npm exec --yes --package shadcn@latest -- shadcn info --json`
+  xác nhận bộ hiện có gồm `badge`, `button`, `card`, `checkbox`, `input`,
+  `select`, `tooltip`. US-016E không thêm shadcn component mới; UI dùng lại
+  shared `DashboardDataTable`, `DialogFrame` và các component shadcn đã có.
+- Focused users tests:
+  `bun run test app/dashboard/users/_components/user-management-client.test.tsx app/dashboard/users/_components/user-table.test.tsx app/dashboard/users/_components/user-form-dialogs.test.tsx app/dashboard/users/_components/user-management-review-fixes.test.ts`
+  -> 4 files passed, 8 tests passed.
+- Guard suite:
+  `bun run test lib/user-management/users.test.ts lib/user-management/last-admin.test.ts app/dashboard/users`
+  -> 6 files passed, 15 tests passed.
+- Full suite: `bun run test` -> 93 files passed, 338 tests passed.
+- Docstring gate: `bun run docstring:check` -> passed, 0 changed source files.
+- React Doctor diff:
+  `bun run react-doctor:diff -- --verbose` -> scanned 6 changed files, no
+  issues found.
+- Quality gate: `bun run quality` -> typecheck, lint strict, format check,
+  React Doctor full scan and `next build` completed. React Doctor full scan
+  still reports one warning in the existing codebase and does not fail the gate;
+  diff scan for US-016E is clean.
+- Browser proof used `agent-browser` with the e2e admin fixture
+  `admin / 123456@`:
+  - desktop `1440x1000`, `/dashboard/users`: page identity, non-blank content,
+    no framework overlay, users list, search, role filter, empty state, clear
+    filter, create dialog and edit dialog verified;
+  - mobile `390x844`: card fallback, `Sửa người dùng` primary action,
+    search-first command area, create/edit dialogs, bottom navigation and
+    horizontal overflow checked;
+  - overflow checks returned `overflowX:false` for mobile list and dialog.
+- Browser screenshots:
+  - `/root/images/us016e-users-desktop.png`
+  - `/root/images/us016e-users-create-dialog.png`
+  - `/root/images/us016e-users-mobile.png`
+  - `/root/images/us016e-users-mobile-edit.png`
+  - `/root/images/us016e-users-mobile-create.png`
+- Browser console/page errors: `agent-browser errors` returned no page errors;
+  framework overlay check returned `OK`. Console only showed dev/HMR messages
+  and the existing login illustration LCP warning.
+- Harness: `scripts/bin/harness-cli story verify US-016E` currently fails before
+  running real checks because the configured verification command is prose:
+  `Running: Users tests, admin browser dialog smoke desktop/mobile, quality,
+  docstring, React Doctor.` Shell error: `sh: 1: Users: not found`. The failed
+  verify wrote runtime trace state into `harness.db`; that generated state was
+  reverted and is not part of this implementation commit.
