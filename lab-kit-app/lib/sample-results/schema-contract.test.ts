@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, test } from "vitest";
 
-const repoRoot = path.resolve(process.cwd(), "..");
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(testDir, "..", "..", "..");
 const migrationsDir = path.join(repoRoot, "supabase", "migrations");
 
 function readMigrations() {
