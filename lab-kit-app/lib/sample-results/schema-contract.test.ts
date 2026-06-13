@@ -56,6 +56,17 @@ describe("sample results schema contract", () => {
     expect(definition).toMatch(/distinct\s+on\s*\(\s*group_id\s*\)/i);
   });
 
+  test("locks selected sample and active template rows during the save transaction", () => {
+    const definition = readLatestSampleResultsRpcDefinition();
+
+    expect(definition).toMatch(
+      /from\s+public\.samples[\s\S]+?where[\s\S]+?id\s*=\s*p_sample_id[\s\S]+?organization_id\s*=\s*p_organization_id[\s\S]+?for\s+share/i
+    );
+    expect(definition).toMatch(
+      /from\s+public\.result_templates[\s\S]+?where[\s\S]+?organization_id\s*=\s*p_organization_id[\s\S]+?sample_type_id\s*=\s*sample_type[\s\S]+?is_active\s*=\s*true[\s\S]+?order\s+by\s+created_at\s+desc[\s\S]+?limit\s+1[\s\S]+?for\s+share/i
+    );
+  });
+
   test("keeps the audit RPC restricted to service role execution", () => {
     const migrations = readMigrations();
 

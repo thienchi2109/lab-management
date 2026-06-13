@@ -203,3 +203,47 @@ Follow-up review evidence captured on 2026-06-13:
   - transaction rolled back.
 - Fixture cleanup proof: `leftover_organizations=0` for slugs
   `issue-31-dedupe-%` and `issue-31-dup-%`.
+
+Additional review evidence captured on 2026-06-13:
+
+- Review comment about locking selected `samples` and `result_templates` rows
+  was verified as partially actionable for the narrow RPC transaction. It does
+  not solve phantom active-template creation or concurrent child assignment
+  replacement, which remain broader result-configuration concerns.
+- RED TDD:
+  `cd lab-kit-app && bun run test lib/sample-results/schema-contract.test.ts`
+  failed because the latest RPC definition did not contain `FOR SHARE` on the
+  selected sample row or active template row.
+- Added forward-only migration
+  `supabase/migrations/20260613025244_lock_sample_results_rpc_parent_rows.sql`.
+  The RPC now uses `FOR SHARE` for the selected `public.samples` row and the
+  selected active `public.result_templates` row while preserving set-based
+  dedupe/upsert behavior.
+- Supabase apply:
+  `mcp__supabase_lab_management.apply_migration` with name
+  `lock_sample_results_rpc_parent_rows` returned `success: true`.
+- Live migration history after apply includes
+  `20260613025244 lock_sample_results_rpc_parent_rows`.
+- Live function verification:
+  `locks_sample_row=true`, `locks_template_row=true`, `uses_ordinality=true`,
+  `dedupes_metrics=true`, `dedupes_groups=true`, `security_definer=true`,
+  `config=[search_path=public]`.
+- Live privileges after apply: `EXECUTE` for `postgres` owner and
+  `service_role`; `authenticated` and `anon` remain without `EXECUTE`.
+- Live cleanup verification passed:
+  - duplicate `metricId` entries still collapse to 2 `sample_results` rows;
+  - duplicate `groupId` entries still collapse to 2 group conclusion rows;
+  - latest duplicate metric value won with `metric_one_status=positive`;
+  - latest duplicate group conclusion won with `group_one_conclusion=Mới`;
+  - audit still records exactly 1 event;
+  - cleanup proof: `leftover_organizations=0` for slug
+    `issue-31-lock-%`.
+- GREEN/focused regression:
+  `cd lab-kit-app && bun run test lib/sample-results/schema-contract.test.ts lib/sample-results/operations.test.ts lib/sample-results/server.test.ts app/api/samples/[sampleId]/results/route.test.ts`
+  passed 4 files / 22 tests.
+- Root-cwd schema contract:
+  `./lab-kit-app/node_modules/.bin/vitest run lab-kit-app/lib/sample-results/schema-contract.test.ts --config lab-kit-app/vitest.config.ts`
+  passed 1 file / 4 tests.
+- Harness story verification:
+  `scripts/bin/harness-cli story verify ISSUE-31-set-based-sample-results-rpc`
+  passed 4 files / 22 tests plus `node scripts/validate-supabase-schema.mjs`.
