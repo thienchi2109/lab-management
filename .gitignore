@@ -15,3 +15,4 @@ scripts/bin/harness-cli.exe
 .codex/
 .claude/
 .gitnexus
+.vercel
