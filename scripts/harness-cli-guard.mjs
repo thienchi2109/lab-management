@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   buildVerifyEnvironment,
+  getHelpSupplement,
   getRecursiveVerifyMessage,
 } from "./harness-cli-guard-lib.mjs";
 
@@ -38,6 +39,13 @@ if (result.error) {
 
 if (result.signal) {
   process.kill(process.pid, result.signal);
+}
+
+if ((result.status ?? 1) === 0) {
+  const supplement = getHelpSupplement(args);
+  if (supplement) {
+    console.log(`\n${supplement}`);
+  }
 }
 
 process.exit(result.status ?? 1);
