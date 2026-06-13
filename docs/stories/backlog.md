@@ -81,7 +81,8 @@ Stories derived from SPEC-001 MVP roadmap.
 
 ## Phase 12 — Release
 
-- US-013 — MVP Release Checklist (planned)
+- [US-013](US-013-mvp-release-checklist/overview.md) — MVP Release Checklist
+  (planned)
 
 ## Maintenance
 
