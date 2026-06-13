@@ -312,7 +312,7 @@ function loadConclusions(
       .select("sample_id, kq_chung")
       .eq("organization_id", organizationId)
       .in("sample_id", sampleIds),
-    "Không thể tải KQ_CHUNG cho dashboard."
+    "Không thể tải Kết Quả Chung cho dashboard."
   );
 }
 

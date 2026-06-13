@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import { ResultGroupAccordion } from "./result-group-accordion";
 
 describe("ResultGroupAccordion", () => {
-  test("renders progress, KQ_CHUNG, abnormal count, metrics and manual conclusion", () => {
+  test("renders progress, group conclusion label, abnormal count, metrics and manual conclusion", () => {
     const html = renderToStaticMarkup(
       <ResultGroupAccordion
         group={{
@@ -37,7 +37,8 @@ describe("ResultGroupAccordion", () => {
 
     expect(html).toContain("Chất lượng nước");
     expect(html).toContain("1/2 chỉ tiêu");
-    expect(html).toContain("KQ_CHUNG");
+    expect(html).toContain("Kết Quả Chung");
+    expect(html).not.toContain("KQ_CHUNG");
     expect(html).toContain("Đạt yêu cầu");
     expect(html).toContain("1 bất thường");
     expect(html).toContain("[&amp;::-webkit-details-marker]:hidden");

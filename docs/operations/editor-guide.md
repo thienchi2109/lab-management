@@ -19,7 +19,7 @@ template hiện hành.
 1. Từ bảng mẫu, chọn `Kết quả & ảnh` hoặc `Chỉnh sửa kết quả`.
 2. Nhập từng chỉ tiêu theo kiểu dữ liệu hiển thị.
 3. Với PCR realtime, CT có thể để trống khi trạng thái là âm tính.
-4. Kiểm tra KQ_CHUNG của PCR:
+4. Kiểm tra Kết Quả Chung của PCR:
    - Tất cả âm tính hoặc không phát hiện: `SẠCH`.
    - Có ít nhất một chỉ tiêu dương tính: `NHIỄM`.
 5. Lưu kết quả và quay lại bảng mẫu để kiểm tra trạng thái nhóm kết quả.

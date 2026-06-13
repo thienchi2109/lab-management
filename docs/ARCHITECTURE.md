@@ -57,7 +57,7 @@ lib/                 application + infrastructure
   auth/              session, role helpers
   permissions/       RBAC helpers
   audit/             audit log writer
-  result-engine/     KQ_CHUNG computation
+  result-engine/     Kết Quả Chung computation
   media/             Cloudinary signature, asset metadata, and deletion helpers
 app/api/             interface: route handlers
 app/(dashboard)/     surface: browser UI

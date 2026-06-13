@@ -203,6 +203,8 @@ describe("SampleGridPageContent", () => {
 
     expect(html).toContain("Nhóm kết quả");
     expect(html).toContain("PCR: 1/1 chỉ tiêu");
+    expect(html).toContain("Kết Quả Chung: NHIỄM");
+    expect(html).not.toContain("KQ_CHUNG");
     expect(html).toContain('data-sample-column-key="metric:metric-1"');
     expect(html).toContain('data-sample-column-key="group:group-1"');
     expect(html).toContain("Dương tính");

@@ -142,7 +142,7 @@ describe("POST /api/export/results-normalized", () => {
       );
       expect(await response.text()).toBe(
         [
-          "Mã mẫu,Nhóm kết quả,Chỉ tiêu,Giá trị,KQ_CHUNG",
+          "Mã mẫu,Nhóm kết quả,Chỉ tiêu,Giá trị,Kết Quả Chung",
           "T6_00012,Hóa lý,pH,7.8,Đạt",
         ].join("\r\n")
       );

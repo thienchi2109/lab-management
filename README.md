@@ -31,7 +31,7 @@ Tài liệu chính:
 * [docs/product/roles-permissions.md](http://docs.google.com/docs/product/roles-permissions.md) \-  
   Admin, Editor, Viewer và RLS expectation.  
 * [docs/product/result-engine.md](http://docs.google.com/docs/product/result-engine.md) \- result  
-  groups, metrics, input types và KQ\_CHUNG.  
+  groups, metrics, input types và Kết Quả Chung.
 * [docs/product/ui-contract.md](http://docs.google.com/docs/product/ui-contract.md) \- mobile-first UI,  
   form zones, grid modes và dashboard.  
 * [docs/product/api-contract.md](http://docs.google.com/docs/product/api-contract.md) \- API surface,  
@@ -44,7 +44,7 @@ MVP gồm:
 * Quản lý danh mục khách hàng, công ty, loại mẫu, loại KIT và lô KIT.  
 * Tạo và cập nhật mẫu xét nghiệm với mã mẫu sinh server-side.  
 * Nhập kết quả theo 8 nhóm chỉ tiêu động.  
-* Tính KQ\_CHUNG theo rule của từng nhóm kết quả.  
+* Tính Kết Quả Chung theo rule của từng nhóm kết quả.
 * Upload ảnh minh chứng qua Cloudinary signed upload.  
 * Dashboard/pivot cho theo dõi mẫu, KIT và kết quả.  
 * Xuất Excel/CSV cho mẫu và kết quả normalized.  

@@ -28,7 +28,7 @@ Tiếng Việt.
 - Upload tối đa 10 ảnh/mẫu (≤5 MB/ảnh)
 - Bảng dữ liệu filter/sort/search, ẩn/hiện cột
 - Form nhập liệu responsive/mobile-first
-- KQ_CHUNG theo từng nhóm kết quả
+- Kết Quả Chung theo từng nhóm kết quả
 - Dashboard/pivot cơ bản
 - Export Excel/CSV
 - RBAC 3 mức: Admin, Editor, Viewer

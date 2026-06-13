@@ -110,7 +110,7 @@ describe("normalized results export file builder", () => {
     expect(file.filename).toBe("ket-qua-chuan-hoa-2026-06-08.csv");
     expect(file.body.toString("utf8")).toBe(
       [
-        "Mã mẫu,Khách hàng,Loại mẫu,Ngày nhận,Trạng thái mẫu,Mã nhóm,Nhóm kết quả,Mã chỉ tiêu,Chỉ tiêu,Đơn vị,Giá trị,KQ_CHUNG",
+        "Mã mẫu,Khách hàng,Loại mẫu,Ngày nhận,Trạng thái mẫu,Mã nhóm,Nhóm kết quả,Mã chỉ tiêu,Chỉ tiêu,Đơn vị,Giá trị,Kết Quả Chung",
         "T6_00012,Công ty A,Mẫu PCR,2026-06-08T08:00:00.000Z,Đã nhận,PCR,PCR,CT,Chu kỳ ngưỡng,Ct,Dương tính; Ct 31.2,Dương tính",
         'T6_00012,Công ty A,Mẫu PCR,2026-06-08T08:00:00.000Z,Đã nhận,PCR,PCR,NOTE,Ghi chú,,"Có dấu phẩy, và ""nháy""",Dương tính',
       ].join("\r\n")

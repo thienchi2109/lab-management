@@ -1,4 +1,5 @@
 import type { SampleResultEntry } from "@/lib/sample-results/operations";
+import { GROUP_CONCLUSION_DISPLAY_LABEL } from "@/lib/result-labels";
 
 import { MetricInputRenderer } from "./metric-input-renderer";
 import { groupConclusionFieldName } from "./result-field-names";
@@ -11,7 +12,7 @@ type ResultGroupAccordionProps = {
   readOnly: boolean;
 };
 
-/** Render một nhóm nhập kết quả với tiến độ và KQ_CHUNG. */
+/** Render một nhóm nhập kết quả với tiến độ và Kết Quả Chung. */
 export function ResultGroupAccordion({
   group,
   results,
@@ -33,7 +34,7 @@ export function ResultGroupAccordion({
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-medium">
             <span className="rounded-md border px-2 py-1">
-              KQ_CHUNG: {group.kqChung ?? "Chưa có"}
+              {GROUP_CONCLUSION_DISPLAY_LABEL}: {group.kqChung ?? "Chưa có"}
             </span>
             <span className="rounded-md border px-2 py-1">
               {group.abnormalMetrics} bất thường

@@ -12,6 +12,7 @@ import type {
 } from "@/lib/sample-grid/operations";
 import { sampleStatusLabels } from "@/lib/sample-metadata/labels";
 import { isSampleStatus } from "@/lib/sample-metadata/schemas";
+import { GROUP_CONCLUSION_DISPLAY_LABEL } from "@/lib/result-labels";
 
 /** Actor đã được kiểm tra quyền export kết quả chuẩn hóa và scope tenant. */
 export type NormalizedResultsExportActor = ExportActor;
@@ -51,7 +52,10 @@ const RESULTS_NORMALIZED_EXPORT_COLUMNS: Record<
   customerName: { header: "Khách hàng", value: (row) => row.customerName },
   groupCode: { header: "Mã nhóm", value: (row) => row.groupCode },
   groupName: { header: "Nhóm kết quả", value: (row) => row.groupName },
-  kqChung: { header: "KQ_CHUNG", value: (row) => row.kqChung },
+  kqChung: {
+    header: GROUP_CONCLUSION_DISPLAY_LABEL,
+    value: (row) => row.kqChung,
+  },
   metricCode: { header: "Mã chỉ tiêu", value: (row) => row.metricCode },
   metricName: { header: "Chỉ tiêu", value: (row) => row.metricName },
   metricUnit: { header: "Đơn vị", value: (row) => row.metricUnit },

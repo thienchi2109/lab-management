@@ -37,7 +37,7 @@ result_groups → result_metrics → result_templates → result_template_metric
 | pcr_qualitative | Positive/Negative | value_text |
 | pcr_realtime | Positive/Negative + CT nullable | value_json |
 
-## KQ_CHUNG Rules
+## Kết Quả Chung Rules
 
 Each sample can have multiple `sample_group_conclusions`, one per result group.
 
@@ -49,7 +49,7 @@ Each sample can have multiple `sample_group_conclusions`, one per result group.
 
 ### Other Groups
 
-- KQ_CHUNG is a text conclusion entered by the user or reviewer
+- Kết Quả Chung is a text conclusion entered by the user or reviewer
 - Suggestion rules may be added later via `metric_settings`
 
 ## Metric Settings

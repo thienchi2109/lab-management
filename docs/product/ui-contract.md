@@ -39,7 +39,7 @@ Each card shows:
 
 - Group name
 - Filled / total metrics count
-- KQ_CHUNG status
+- Kết Quả Chung status
 - Count of positive/abnormal metrics (if any)
 
 Fields rendered by `input_type`. Validation from `validation_json` +
@@ -49,7 +49,7 @@ Fields rendered by `input_type`. Validation from `validation_json` +
 
 | Mode | Description |
 | --- | --- |
-| Compact | Metadata + status + KQ_CHUNG per group |
+| Compact | Metadata + status + Kết Quả Chung per group |
 | Group detail | Expand one sample to see metrics by group |
 | Column | Desktop: choose groups/metrics to expand as columns |
 

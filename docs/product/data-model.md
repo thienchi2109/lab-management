@@ -32,7 +32,7 @@
 - `result_template_metrics` — template ↔ metric mapping
 - `metric_settings` — units, thresholds, rules per metric (time-effective)
 - `sample_results` — actual test values per sample per metric
-- `sample_group_conclusions` — KQ_CHUNG per sample per group
+- `sample_group_conclusions` — Kết Quả Chung per sample per group
 
 ### System
 

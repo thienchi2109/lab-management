@@ -8,6 +8,7 @@ import {
 } from "@/components/dashboard/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GROUP_CONCLUSION_DISPLAY_LABEL } from "@/lib/result-labels";
 import type {
   SampleGridPage,
   SampleGridResultGroupSummary,
@@ -205,7 +206,9 @@ function ResultGroupDetail({
             {group.name}: {group.enteredMetrics}/{group.totalMetrics} chỉ tiêu
           </summary>
           <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-            <p>KQ_CHUNG: {group.kqChung ?? "Chưa có"}</p>
+            <p>
+              {GROUP_CONCLUSION_DISPLAY_LABEL}: {group.kqChung ?? "Chưa có"}
+            </p>
             {group.metrics.map((metric) => (
               <p key={metric.id}>
                 {metric.name}: {formatResultValue(metric.value)}

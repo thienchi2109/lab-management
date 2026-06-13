@@ -236,7 +236,7 @@ function loadConclusions(
       .select("sample_id, result_group_id, kq_chung")
       .eq("organization_id", organizationId)
       .in("sample_id", sampleIds),
-    "Không thể tải KQ_CHUNG summary kết quả."
+    "Không thể tải Kết Quả Chung summary kết quả."
   );
 }
 

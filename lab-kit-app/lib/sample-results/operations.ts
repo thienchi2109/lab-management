@@ -152,7 +152,7 @@ export async function getSampleResultEntry(
   };
 }
 
-/** Validate payload lưu kết quả, tính KQ_CHUNG, rồi gọi transaction port. */
+/** Validate payload lưu kết quả, tính Kết Quả Chung, rồi gọi transaction port. */
 export async function saveSampleResults(
   sampleId: string,
   input: SaveSampleResultsInput,

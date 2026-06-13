@@ -13,7 +13,7 @@ export type RelationName = {
   name?: string | null;
 };
 
-/** Dòng KQ_CHUNG tối thiểu cho dashboard overview. */
+/** Dòng Kết Quả Chung tối thiểu cho dashboard overview. */
 export type DashboardConclusionRow = {
   kq_chung: string;
   sample_id: string;
