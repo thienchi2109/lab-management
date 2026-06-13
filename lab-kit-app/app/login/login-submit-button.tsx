@@ -5,9 +5,16 @@ import { LogIn } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+type LoginSubmitButtonProps = {
+  pending?: boolean;
+};
+
 /** Submit button that reflects the pending state of the login form. */
-export function LoginSubmitButton() {
-  const { pending } = useFormStatus();
+export function LoginSubmitButton({
+  pending: pendingProp,
+}: LoginSubmitButtonProps) {
+  const formStatus = useFormStatus();
+  const pending = pendingProp ?? formStatus.pending;
 
   return (
     <Button

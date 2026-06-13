@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { FlaskConical } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
-import { LoginSubmitButton } from "./login-submit-button";
+import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
   title: "Đăng nhập | Lab Management",
@@ -49,7 +48,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
 
             <div className="mb-12">
-              <h2 className="mb-3 text-[28px] font-bold leading-tight tracking-[-0.01em] text-[#091426] dark:text-foreground">
+              <h2
+                id="login-heading"
+                className="mb-3 text-[28px] font-bold leading-tight tracking-[-0.01em] text-[#091426] dark:text-foreground"
+              >
                 Đăng nhập hệ thống
               </h2>
               <p className="text-sm leading-6 text-[#334155] dark:text-muted-foreground">
@@ -57,78 +59,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </p>
             </div>
 
-            <form action="/auth/login" method="post" className="space-y-6">
-              <div className="space-y-3">
-                <label
-                  className="text-xs font-bold tracking-[0.02em] text-[#091426] dark:text-foreground"
-                  htmlFor="username"
-                >
-                  Tên đăng nhập
-                </label>
-                <Input
-                  id="username"
-                  name="username"
-                  autoComplete="username"
-                  placeholder="Nhập tên đăng nhập"
-                  aria-invalid={hasInvalidCredentials}
-                  aria-describedby={errorMessageId}
-                  className="h-[50px] rounded-lg border-[#b7bfcc] bg-white px-4 text-base text-[#091426] shadow-none placeholder:text-[#8b95a5] focus-visible:border-[#0060ac] focus-visible:ring-[#0060ac]/15 dark:bg-background dark:text-foreground"
-                  required
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label
-                  className="text-xs font-bold tracking-[0.02em] text-[#091426] dark:text-foreground"
-                  htmlFor="password"
-                >
-                  Mật khẩu
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Nhập mật khẩu"
-                  aria-invalid={hasInvalidCredentials}
-                  aria-describedby={errorMessageId}
-                  className="h-[50px] rounded-lg border-[#b7bfcc] bg-white px-4 text-base text-[#091426] shadow-none placeholder:text-[#8b95a5] focus-visible:border-[#0060ac] focus-visible:ring-[#0060ac]/15 dark:bg-background dark:text-foreground"
-                  required
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <label
-                  className="flex min-w-0 items-center gap-2 text-sm text-[#334155] dark:text-muted-foreground"
-                  htmlFor="remember-session"
-                >
-                  <input
-                    id="remember-session"
-                    type="checkbox"
-                    className="size-4 rounded border-[#b7bfcc] bg-white text-[#091426] focus:ring-2 focus:ring-[#0060ac]/20"
-                  />
-                  <span>Ghi nhớ đăng nhập</span>
-                </label>
-                <a
-                  className="shrink-0 text-sm font-bold text-[#0060ac] underline-offset-4 hover:underline"
-                  href="mailto:admin@lab-management.local"
-                >
-                  Quên mật khẩu?
-                </a>
-              </div>
-
-              {hasInvalidCredentials ? (
-                <p
-                  id="login-error"
-                  role="alert"
-                  className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm font-medium text-destructive"
-                >
-                  Tên đăng nhập hoặc mật khẩu không đúng.
-                </p>
-              ) : null}
-
-              <LoginSubmitButton />
-            </form>
+            <LoginForm
+              hasInvalidCredentials={hasInvalidCredentials}
+              errorMessageId={errorMessageId}
+            />
 
             <div className="mt-12 border-t border-[#d9dee7] pt-6 text-center dark:border-border">
               <p className="text-xs font-semibold tracking-[0.04em] text-[#334155] dark:text-muted-foreground">

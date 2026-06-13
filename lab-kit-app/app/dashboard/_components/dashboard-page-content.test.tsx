@@ -64,6 +64,16 @@ const overview: DashboardOverviewData = {
 };
 
 describe("DashboardPageContent", () => {
+  test("constrains the overview to the shared dashboard page width", () => {
+    const html = renderToStaticMarkup(
+      <DashboardPageContent overview={overview} />
+    );
+
+    expect(html).toContain("mx-auto");
+    expect(html).toContain("w-full");
+    expect(html).toContain("max-w-7xl");
+  });
+
   test("renders dashboard overview cards, trend, metrics, and recent samples from data props", () => {
     const html = renderToStaticMarkup(
       <DashboardPageContent overview={overview} />

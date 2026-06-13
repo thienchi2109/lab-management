@@ -90,8 +90,37 @@ describe("KitInventoryClient", () => {
       />
     );
 
-    expect(html).toContain('<label for="kit-inventory-search"');
+    expect(html).toContain('for="kit-inventory-search"');
     expect(html).toContain('id="kit-inventory-search"');
+  });
+
+  test("keeps kit search and dropdown filters aligned on desktop", () => {
+    const html = renderToStaticMarkup(
+      <KitInventoryClient
+        inventory={{
+          summary: {
+            totalKits: 0,
+            inStockKits: 0,
+            nearExpiryKits: 0,
+            lowStockTypes: 0,
+          },
+          kitTypes: [],
+          batches: [],
+          kits: [],
+        }}
+        actions={{
+          createKitType: action,
+          createKitBatch: action,
+          createKitUnits: action,
+          updateKitStatus: action,
+        }}
+      />
+    );
+
+    expect(html).toContain("items-end");
+    expect(html).toContain(
+      "lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)]"
+    );
   });
 
   test("uses the client-provided received date when rendering the batch dialog", () => {

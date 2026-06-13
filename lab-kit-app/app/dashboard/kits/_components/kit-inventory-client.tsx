@@ -5,6 +5,7 @@ import { PackagePlus, Search, SlidersHorizontal } from "lucide-react";
 
 import { DashboardDataTable } from "@/components/dashboard/data-table";
 import { FilterSelect } from "@/components/dashboard/filter-select";
+import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +87,7 @@ export function KitInventoryClient({
   }, []);
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+    <PageContainer className="gap-5">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
@@ -126,19 +127,24 @@ export function KitInventoryClient({
 
       <SummaryStrip inventory={inventory} />
 
-      <section className="rounded-lg border bg-background p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
-          <div className="space-y-1.5 text-sm font-medium">
-            <label htmlFor="kit-inventory-search">Tìm kiếm</label>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+      <section className="rounded-lg border bg-background p-3 md:p-4">
+        <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_180px] lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)] lg:items-end">
+          <div className="flex h-9 min-w-0 items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-1 text-sm font-medium">
+            <label
+              className="shrink-0 text-xs text-muted-foreground"
+              htmlFor="kit-inventory-search"
+            >
+              Tìm kiếm
+            </label>
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-0 top-1.5 size-4 text-muted-foreground" />
               <Input
                 id="kit-inventory-search"
                 value={state.search}
                 onChange={(event) =>
                   dispatch({ type: "setSearch", value: event.target.value })
                 }
-                className="pl-8"
+                className="h-7 border-0 bg-transparent px-0 pl-6 shadow-none focus-visible:ring-0"
                 placeholder="Mã KIT, lô hoặc loại KIT"
               />
             </div>
@@ -222,7 +228,7 @@ export function KitInventoryClient({
         formAction={actions.updateKitStatus}
         onClose={() => dispatch({ type: "closeDialog" })}
       />
-    </div>
+    </PageContainer>
   );
 }
 
