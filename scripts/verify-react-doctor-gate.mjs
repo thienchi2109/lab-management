@@ -26,7 +26,7 @@ const expectations = [
   [
     "package script react-doctor:diff",
     scripts["react-doctor:diff"] ===
-      "npm exec --yes --package react-doctor@latest -- react-doctor . --diff --no-telemetry --fail-on error",
+      "npm exec --yes --package react-doctor@latest -- react-doctor . --scope changed --base origin/main --no-telemetry --blocking error",
   ],
   ["quality script includes React Doctor", /\bbun run react-doctor\b/.test(scripts.quality ?? "")],
   ["setup script exists", isExecutable(setupPath)],

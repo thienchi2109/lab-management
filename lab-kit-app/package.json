@@ -14,7 +14,7 @@
     "react-doctor": "npm exec --yes --package react-doctor@latest -- react-doctor . --no-telemetry --fail-on error",
     "react-doctor:verbose": "npm exec --yes --package react-doctor@latest -- react-doctor . --verbose --no-telemetry --fail-on error",
     "react-doctor:staged": "npm exec --yes --package react-doctor@latest -- react-doctor . --staged --no-telemetry --fail-on error",
-    "react-doctor:diff": "npm exec --yes --package react-doctor@latest -- react-doctor . --diff --no-telemetry --fail-on error",
+    "react-doctor:diff": "npm exec --yes --package react-doctor@latest -- react-doctor . --scope changed --base origin/main --no-telemetry --blocking error",
     "docstring:check": "node scripts/verify-docstrings.mjs",
     "test": "vitest run",
     "test:docstring-gate": "node --test scripts/docstring-gate-lib.node-test.mjs",
