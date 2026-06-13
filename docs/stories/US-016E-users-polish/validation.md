@@ -109,9 +109,13 @@ for shadcn CLI reads/adds unless Bun behavior is fixed.
 - Browser console/page errors: `agent-browser errors` returned no page errors;
   framework overlay check returned `OK`. Console only showed dev/HMR messages
   and the existing login illustration LCP warning.
-- Harness: `scripts/bin/harness-cli story verify US-016E` currently fails before
-  running real checks because the configured verification command is prose:
-  `Running: Users tests, admin browser dialog smoke desktop/mobile, quality,
-  docstring, React Doctor.` Shell error: `sh: 1: Users: not found`. The failed
-  verify wrote runtime trace state into `harness.db`; that generated state was
-  reverted and is not part of this implementation commit.
+- Harness: `scripts/bin/harness-cli story verify US-016E` now runs the executable
+  `verify_command` from repo root:
+  `cd lab-kit-app && bun run test app/dashboard/users/_components/user-management-client.test.tsx app/dashboard/users/_components/user-table.test.tsx app/dashboard/users/_components/user-form-dialogs.test.tsx app/dashboard/users/_components/user-management-review-fixes.test.ts && bun run test lib/user-management/users.test.ts lib/user-management/last-admin.test.ts app/dashboard/users && bun run quality && bun run docstring:check && bun run react-doctor:diff -- --verbose`.
+  The previous prose command failed with `sh: 1: Users: not found`; the
+  Harness metadata has been corrected.
+- Harness story verify result after correction: pass. Focused component tests
+  passed 4 files / 8 tests; guard suite passed 6 files / 15 tests; `quality`
+  completed typecheck, lint strict, format check, React Doctor full scan and
+  Next build; `docstring:check` passed; React Doctor diff completed. React
+  Doctor still reports one existing non-blocking warning during full scans.
