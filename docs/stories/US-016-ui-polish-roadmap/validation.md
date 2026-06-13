@@ -2,8 +2,9 @@
 
 ## Proof Strategy
 
-US-016 is complete only when all child stories are implemented and verified.
-Parent proof should summarize child proof rather than rerun every route by hand.
+US-016 is complete only when all child stories in the active roadmap are
+implemented and verified. Parent proof should summarize child proof rather than
+rerun every route by hand.
 
 Each child story must prove:
 
@@ -39,5 +40,6 @@ For route-specific stories, focused tests should run before the full gate.
 
 ## Acceptance Evidence
 
-- Planned roadmap only. Runtime implementation and proof are pending child
-  stories.
+- Planned roadmap only. Runtime implementation and proof are tracked in child
+  stories. Original A-E route polish is implemented; extension slices F-H are
+  planned.

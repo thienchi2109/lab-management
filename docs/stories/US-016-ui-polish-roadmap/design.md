@@ -40,6 +40,9 @@ Nếu cần sửa shared component, story triển khai phải:
 | US-016C | `/dashboard/samples` | Sample grid, filters, row actions, mobile cards |
 | US-016D | `/dashboard/analytics` | Filters, pivot chart/table, summary states |
 | US-016E | `/dashboard/users` | Admin user table, filters, create/edit dialogs |
+| US-016F | `/dashboard/kits` | Inventory summary, filters, status actions, dialogs |
+| US-016G | `/dashboard/result-configuration` | Admin configuration lists, filters, create dialogs |
+| US-016H | `/dashboard/samples/[sampleId]/results` | Result entry, image evidence, save/read-only states |
 
 ## Taste Skill Use
 
@@ -83,3 +86,6 @@ Các story polish tiếp theo nên align với baseline đã khóa ở dashboard
 - Reference use: Stitch chỉ là nguồn visual direction. Không copy Material
   Symbols, Tailwind CDN, Google Fonts link, fake data hoặc workflow không tồn
   tại trong repo.
+- Extension slices US-016F-H vẫn dùng cùng baseline này. Nếu phát hiện cần đổi
+  behavior, authorization, server action, API, SQL hoặc audit contract thì dừng
+  và tách story riêng.
