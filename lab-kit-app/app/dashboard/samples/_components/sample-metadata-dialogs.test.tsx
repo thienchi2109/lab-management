@@ -82,7 +82,12 @@ describe("sample metadata dialogs", () => {
       "date"
     );
     expect(screen.queryByText(/snapshot/i)).toBeNull();
-    expect(document.body.innerHTML).toContain("bg-zinc-50");
+    expect(document.body.innerHTML).toContain("bg-card");
+    expect(document.body.innerHTML).toContain("text-card-foreground");
+    expect(document.body.innerHTML).not.toContain("bg-zinc-50");
+    expect(document.body.innerHTML).not.toContain("bg-white");
+    expect(document.body.innerHTML).not.toContain("border-zinc");
+    expect(document.body.innerHTML).not.toContain("text-zinc");
   });
 
   test("renders edit sample as a right side sheet", () => {

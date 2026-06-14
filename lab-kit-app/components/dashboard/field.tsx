@@ -22,7 +22,7 @@ export function Field({
     <label
       className={className ?? "block w-full space-y-1.5 text-sm font-medium"}
     >
-      <span className="text-xs font-semibold text-zinc-700">{label}</span>
+      <span className="text-xs font-semibold text-foreground">{label}</span>
       <Input
         name={name}
         type={type}

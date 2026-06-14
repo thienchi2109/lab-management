@@ -129,19 +129,21 @@ function SampleForm({
   const errors = actionState.fieldErrors ?? {};
   const fieldClass = "block w-full space-y-1.5 text-sm font-medium";
   const controlClass =
-    "h-10 rounded-md border-zinc-300 bg-white px-3 text-sm shadow-xs";
+    "h-10 rounded-md border-input bg-background px-3 text-sm text-foreground shadow-xs";
   const textAreaClass =
-    "min-h-28 w-full rounded-md border-zinc-300 bg-white px-3 py-2 text-sm shadow-xs";
+    "min-h-28 w-full rounded-md border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs";
 
   return (
     <form action={action} className="space-y-5 pb-1">
       {sample ? (
         <input type="hidden" name="sampleId" value={sample.id} />
       ) : null}
-      <div className="grid gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 shadow-xs sm:grid-cols-2">
+      <div className="grid gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs sm:grid-cols-2">
         <div className="space-y-1 sm:col-span-2">
-          <h3 className="text-sm font-semibold text-zinc-950">Thông tin mẫu</h3>
-          <p className="text-xs text-zinc-500">
+          <h3 className="text-sm font-semibold text-card-foreground">
+            Thông tin mẫu
+          </h3>
+          <p className="text-xs text-muted-foreground">
             Nhập định danh, khách hàng và trạng thái xử lý ban đầu.
           </p>
         </div>
@@ -246,10 +248,12 @@ function SampleForm({
           error={errors.billingStatus}
         />
       </div>
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 shadow-xs">
+      <div className="rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs">
         <div className="mb-3 space-y-1">
-          <h3 className="text-sm font-semibold text-zinc-950">Ghi chú xử lý</h3>
-          <p className="text-xs text-zinc-500">
+          <h3 className="text-sm font-semibold text-card-foreground">
+            Ghi chú xử lý
+          </h3>
+          <p className="text-xs text-muted-foreground">
             Ghi lại yêu cầu nội bộ hoặc điều kiện cần chú ý khi xét nghiệm.
           </p>
         </div>

@@ -21,7 +21,7 @@ export function TextAreaField({
     >
       <span
         className={
-          hideLabel ? "sr-only" : "text-xs font-semibold text-zinc-700"
+          hideLabel ? "sr-only" : "text-xs font-semibold text-foreground"
         }
       >
         {label}

@@ -18,7 +18,7 @@ export function SelectField({
       defaultValue={defaultValue !== undefined ? String(defaultValue) : ""}
       error={error}
       className={className}
-      labelClassName="text-xs font-semibold text-zinc-700"
+      labelClassName="text-xs font-semibold text-foreground"
       triggerClassName={triggerClassName}
       options={options.map(([value, optionLabel]) => ({
         value,
