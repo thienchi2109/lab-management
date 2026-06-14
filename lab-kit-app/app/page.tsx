@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/branding";
+
 export const metadata: Metadata = {
-  title: "Lab Kit Management",
-  description: "Laboratory kit, sample, and result management dashboard.",
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
 };
 
 export default function Home() {

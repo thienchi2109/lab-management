@@ -90,7 +90,7 @@ export function DialogFrame({
   const isSheet = mode === "sheet";
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-zinc-950/40 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-foreground/45 backdrop-blur-[2px]">
       <div
         ref={frameRef}
         role="dialog"

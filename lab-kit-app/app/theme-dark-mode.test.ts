@@ -20,6 +20,26 @@ describe("dark mode theme contract", () => {
     expect(loginPage).not.toContain("bg-zinc-50");
   });
 
+  test("dashboard shell keeps the clinical canvas semantic", () => {
+    const dashboardLayout = readFileSync(
+      join(appDir, "app/dashboard/layout.tsx"),
+      "utf8"
+    );
+
+    expect(dashboardLayout).toContain("bg-background");
+    expect(dashboardLayout).not.toContain("bg-zinc-50");
+    expect(dashboardLayout).not.toContain("bg-zinc-950");
+  });
+
+  test("uses the clinical green palette as the semantic app theme", () => {
+    const globalsCss = readFileSync(join(appDir, "app/globals.css"), "utf8");
+
+    expect(globalsCss).toContain("--background: oklch(0.982 0.012 142)");
+    expect(globalsCss).toContain("--primary: oklch(0.418 0.087 152)");
+    expect(globalsCss).toContain("--ring: oklch(0.418 0.087 152)");
+    expect(globalsCss).not.toContain("--primary: oklch(0.205 0 0)");
+  });
+
   test("root layout applies the class-based dark theme from system preference", () => {
     const rootLayout = readFileSync(join(appDir, "app/layout.tsx"), "utf8");
     const colorSchemeScriptPath = join(

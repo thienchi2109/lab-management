@@ -38,4 +38,15 @@ describe("AppSelect", () => {
     expect(source).toContain('align="start"');
     expect(source).toContain("max-h-72");
   });
+
+  test("uses semantic clinical theme classes instead of hard-coded zinc controls", async () => {
+    const source = await readFile("components/dashboard/app-select.tsx", {
+      encoding: "utf8",
+    });
+
+    expect(source).toContain("border-input bg-card");
+    expect(source).toContain("data-[state=checked]:bg-accent");
+    expect(source).not.toContain("border-zinc-300");
+    expect(source).not.toContain("data-[state=checked]:bg-zinc-100");
+  });
 });

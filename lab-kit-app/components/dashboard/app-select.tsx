@@ -81,7 +81,7 @@ export function AppSelect({
           aria-describedby={error ? errorId : undefined}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "h-10 w-full rounded-md border-zinc-300 bg-white px-3 text-sm shadow-xs hover:bg-zinc-50",
+            "h-10 w-full rounded-md border-input bg-card px-3 text-sm shadow-xs hover:bg-accent/40",
             triggerClassName
           )}
           size={size}
@@ -92,14 +92,14 @@ export function AppSelect({
           align="start"
           position="popper"
           sideOffset={6}
-          className="z-[70] max-h-72 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-[0_18px_50px_rgba(15,23,42,0.18)] ring-1 ring-zinc-950/5"
+          className="z-[70] max-h-72 rounded-xl border border-border bg-popover p-1.5 shadow-xl shadow-primary/10 ring-1 ring-primary/10"
         >
           <SelectGroup>
             {options.map((option, index) => (
               <SelectItem
                 key={`${index}:${option.value}`}
                 value={option.value === "" ? emptyOptionValue : option.value}
-                className="min-h-9 rounded-lg px-2.5 py-2 text-sm data-[state=checked]:bg-zinc-100 data-[state=checked]:font-medium"
+                className="min-h-9 rounded-lg px-2.5 py-2 text-sm data-[state=checked]:bg-accent data-[state=checked]:font-medium data-[state=checked]:text-accent-foreground"
               >
                 {option.label}
               </SelectItem>

@@ -57,6 +57,21 @@ describe("DialogFrame", () => {
     expect(html).toContain("overflow-y-auto");
   });
 
+  test("uses the clinical semantic overlay instead of a hard-coded zinc wash", () => {
+    const html = renderToStaticMarkup(
+      <DialogFrame
+        title="Thêm mẫu xét nghiệm"
+        closeLabel="Đóng"
+        onClose={vi.fn()}
+      >
+        <p>Nội dung dài</p>
+      </DialogFrame>
+    );
+
+    expect(html).toContain("bg-foreground/45");
+    expect(html).not.toContain("bg-zinc-950/40");
+  });
+
   test("renders side sheet frames from the right edge", () => {
     const html = renderToStaticMarkup(
       <DialogFrame
