@@ -28,6 +28,23 @@ describe("Overlay frame primitive", () => {
     expect(html).not.toContain("<dialog");
   });
 
+  test("renders sticky side sheet footer from the global UI primitive", () => {
+    const html = renderToStaticMarkup(
+      <SideSheetFrame
+        title="Mẫu T6_00012"
+        closeLabel="Đóng"
+        footer={<button type="button">Đóng</button>}
+        onClose={vi.fn()}
+      >
+        <p>Nội dung</p>
+      </SideSheetFrame>
+    );
+
+    expect(html).toContain("sticky");
+    expect(html).toContain("bottom-0");
+    expect(html).toContain("Đóng");
+  });
+
   test("keeps modal and action compatibility from the global primitive", () => {
     const html = renderToStaticMarkup(
       <form>

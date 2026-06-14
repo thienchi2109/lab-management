@@ -6,6 +6,10 @@ import {
   DashboardDataTable,
   type DashboardDataTableRow,
 } from "@/components/dashboard/data-table";
+import {
+  requestSampleMetadataEdit,
+  requestSampleMetadataView,
+} from "@/components/layout/sample-create-action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GROUP_CONCLUSION_DISPLAY_LABEL } from "@/lib/result-labels";
@@ -25,6 +29,7 @@ import {
   useSampleGridHiddenColumnKeys,
   type SampleGridColumnPreference,
 } from "./sample-grid-column-preferences";
+import { toMetadataRequestSample } from "./sample-grid-metadata-request";
 import { ResultColumnModeControls } from "./sample-grid-result-column-controls";
 
 type SampleGridTableSectionProps = {
@@ -173,14 +178,38 @@ function toTableRow(
       ),
     ],
     actions: (
-      <Button asChild size="sm" variant="outline">
-        <Link href={`/dashboard/samples/${sample.id}/results`}>
-          {page.capabilities.canEnterResults ||
-          page.capabilities.canManageImages
-            ? "Kết quả & ảnh"
-            : "Xem kết quả & ảnh"}
-        </Link>
-      </Button>
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            requestSampleMetadataView(toMetadataRequestSample(sample))
+          }
+        >
+          Xem chi tiết
+        </Button>
+        {page.capabilities.canUpdateMetadata ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              requestSampleMetadataEdit(toMetadataRequestSample(sample))
+            }
+          >
+            Cập nhật
+          </Button>
+        ) : null}
+        <Button asChild size="sm" variant="outline">
+          <Link href={`/dashboard/samples/${sample.id}/results`}>
+            {page.capabilities.canEnterResults ||
+            page.capabilities.canManageImages
+              ? "Kết quả & ảnh"
+              : "Xem kết quả & ảnh"}
+          </Link>
+        </Button>
+      </div>
     ),
   };
 }

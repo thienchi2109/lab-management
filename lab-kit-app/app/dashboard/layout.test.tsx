@@ -38,6 +38,7 @@ vi.mock("@/lib/sample-metadata/server", () => ({
 
 vi.mock("./samples/actions", () => ({
   createSampleMetadataAction: vi.fn(),
+  updateSampleMetadataAction: vi.fn(),
 }));
 
 vi.mock("./samples/_components/sample-create-overlay-bridge", () => ({

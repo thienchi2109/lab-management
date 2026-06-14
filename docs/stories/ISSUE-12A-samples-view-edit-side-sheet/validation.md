@@ -21,11 +21,16 @@
 ## Planned Commands
 
 ```bash
-cd lab-kit-app && bun run test -- \
-  app/dashboard/samples/actions.test.ts \
-  app/dashboard/samples/_components/sample-metadata-client.test.tsx
+cd lab-kit-app && bun run test components/ui/overlay-frame.test.tsx \
+  app/dashboard/layout.test.tsx \
+  app/dashboard/samples/_components/sample-create-overlay-bridge.test.tsx \
+  app/dashboard/samples/_components/sample-grid-page-content.test.tsx \
+  app/dashboard/samples/_components/sample-metadata-dialogs.test.tsx \
+  app/dashboard/samples/_components/sample-metadata-client.test.tsx \
+  app/dashboard/samples/page.test.tsx
 cd lab-kit-app && bun run react-doctor:diff
 cd lab-kit-app && bun run docstring:check
+cd lab-kit-app && bun run build
 ```
 
 ## Current Evidence
@@ -39,4 +44,34 @@ Created on 2026-06-14 after splitting the retired combined story.
 
 ## Acceptance Evidence
 
-Pending implementation.
+Implemented on 2026-06-14.
+
+- TDD RED evidence:
+  - Global primitive test failed before `SideSheetFrame` sticky footer support.
+  - Bridge tests failed before view/edit metadata request events were handled.
+  - Samples grid tests failed before read/update row actions were exposed.
+  - Build failed once after implementation because `SampleGridRow.status` was a
+    broad `string`; fixed at the Samples boundary with a typed mapper using
+    metadata schema guards.
+- Unit/integration proof:
+  - `cd lab-kit-app && bun run test components/ui/overlay-frame.test.tsx app/dashboard/layout.test.tsx app/dashboard/samples/_components/sample-create-overlay-bridge.test.tsx app/dashboard/samples/_components/sample-grid-page-content.test.tsx app/dashboard/samples/_components/sample-metadata-dialogs.test.tsx app/dashboard/samples/_components/sample-metadata-client.test.tsx app/dashboard/samples/page.test.tsx`
+    passed: 7 files / 29 tests.
+  - `cd lab-kit-app && bun run test` passed: 104 files / 378 tests.
+- Platform proof:
+  - `cd lab-kit-app && bun run react-doctor:diff` passed with no issues found.
+  - `cd lab-kit-app && bun run docstring:check` passed.
+  - `cd lab-kit-app && bun run build` passed.
+- Browser proof:
+  - Agent Browser verified `/dashboard/samples` as admin.
+  - Row `Xem chi tiết` opens the read-only right side sheet for `T6_33455`.
+  - Row `Cập nhật` opens the edit right side sheet for `T6_33455` with form
+    fields and footer actions.
+- Quality caveat:
+  - `cd lab-kit-app && bun run quality` reached typecheck, lint strict, and
+    format successfully, then failed at full React Doctor because local
+    `.env.local` and `.next/dev` artifacts contain secret-looking values. This
+    is a local environment artifact; `react-doctor:diff` passed for the story
+    diff.
+- Scope proof:
+  - No migration created or applied.
+  - No soft delete, bulk selection, or RLS change included.

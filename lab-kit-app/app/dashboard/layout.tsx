@@ -6,7 +6,10 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getSampleMetadata } from "@/lib/sample-metadata/server";
 
-import { createSampleMetadataAction } from "./samples/actions";
+import {
+  createSampleMetadataAction,
+  updateSampleMetadataAction,
+} from "./samples/actions";
 import { SampleCreateOverlayBridge } from "./samples/_components/sample-create-overlay-bridge";
 
 export default async function DashboardLayout({
@@ -37,6 +40,7 @@ export default async function DashboardLayout({
       <SampleCreateOverlayBridge
         metadata={sampleMetadata}
         formAction={createSampleMetadataAction}
+        updateAction={updateSampleMetadataAction}
       />
     </div>
   );

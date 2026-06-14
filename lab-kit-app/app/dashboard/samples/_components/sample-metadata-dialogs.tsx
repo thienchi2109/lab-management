@@ -97,6 +97,7 @@ export function EditSampleDialog({
         submitLabel="Cập nhật"
         savingLabel="Đang lưu..."
         onClose={props.onClose}
+        stickyActions
         {...formProps}
       />
     </SideSheetFrame>
@@ -115,6 +116,7 @@ function SampleForm({
   customers,
   companies,
   kitBatches,
+  stickyActions,
 }: Omit<DialogProps, "open" | "formAction"> & {
   action: (formData: FormData) => void;
   pending: boolean;
@@ -122,6 +124,7 @@ function SampleForm({
   sample?: SampleMetadataRow;
   submitLabel: string;
   savingLabel: string;
+  stickyActions?: boolean;
 }) {
   const errors = actionState.fieldErrors ?? {};
   const fieldClass = "block w-full space-y-1.5 text-sm font-medium";
@@ -267,6 +270,7 @@ function SampleForm({
         savingLabel={savingLabel}
         onClose={onClose}
         submitLabel={submitLabel}
+        sticky={stickyActions}
       />
     </form>
   );

@@ -11,6 +11,7 @@ type DialogFrameProps = {
   closeLabel: string;
   onClose: () => void;
   children: ReactNode;
+  footer?: ReactNode;
   mode?: "modal" | "sheet";
 };
 
@@ -22,6 +23,7 @@ type DialogActionsProps = {
   cancelLabel: string;
   savingLabel: string;
   submitLabel: string;
+  sticky?: boolean;
 };
 
 /** Render khung overlay global cho modal giữa màn hình và side sheet. */
@@ -30,6 +32,7 @@ export function DialogFrame({
   closeLabel,
   onClose,
   children,
+  footer,
   mode = "modal",
 }: DialogFrameProps) {
   const titleId = useId();
@@ -134,6 +137,11 @@ export function DialogFrame({
         >
           {children}
         </div>
+        {footer ? (
+          <div className="sticky bottom-0 shrink-0 border-t bg-background px-5 py-4">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -151,9 +159,15 @@ export function DialogActions({
   cancelLabel,
   savingLabel,
   submitLabel,
+  sticky = false,
 }: DialogActionsProps) {
   return (
-    <div className="mt-5 flex justify-end gap-2 border-t bg-background pt-4">
+    <div
+      className={cn(
+        "mt-5 flex justify-end gap-2 border-t bg-background pt-4",
+        sticky && "sticky bottom-0 -mx-5 -mb-5 px-5 py-4"
+      )}
+    >
       <Button type="button" variant="outline" onClick={onClose}>
         {cancelLabel}
       </Button>

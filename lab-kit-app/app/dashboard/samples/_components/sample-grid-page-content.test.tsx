@@ -1,8 +1,16 @@
+// @vitest-environment jsdom
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 
+import {
+  sampleMetadataEditRequestedEvent,
+  sampleMetadataViewRequestedEvent,
+} from "@/components/layout/sample-create-action";
 import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
 import { SampleGridPageContent } from "./sample-grid-page-content";
@@ -62,6 +70,10 @@ const basePage: SampleGridPage = {
     },
   ],
 };
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("SampleGridPageContent", () => {
   test("renders the sample grid MVP through the shared dashboard table", () => {
@@ -124,6 +136,77 @@ describe("SampleGridPageContent", () => {
 
     expect(html).toContain("Xem kết quả &amp; ảnh");
     expect(html).not.toContain(">Kết quả &amp; ảnh<");
+  });
+
+  test("renders read and update sample metadata actions for editors", () => {
+    const editorPage: SampleGridPage = {
+      ...basePage,
+      capabilities: {
+        ...basePage.capabilities,
+        canUpdateMetadata: true,
+      },
+    };
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent page={editorPage} />
+    );
+
+    expect(html).toContain("Xem chi tiết");
+    expect(html).toContain("Cập nhật");
+  });
+
+  test("dispatches sample metadata side sheet events from row actions", async () => {
+    const user = userEvent.setup();
+    const editorPage: SampleGridPage = {
+      ...basePage,
+      capabilities: {
+        ...basePage.capabilities,
+        canUpdateMetadata: true,
+      },
+    };
+    const viewEvents: CustomEvent[] = [];
+    const editEvents: CustomEvent[] = [];
+    window.addEventListener(sampleMetadataViewRequestedEvent, (event) => {
+      viewEvents.push(event as CustomEvent);
+    });
+    window.addEventListener(sampleMetadataEditRequestedEvent, (event) => {
+      editEvents.push(event as CustomEvent);
+    });
+
+    render(<SampleGridPageContent page={editorPage} />);
+
+    await user.click(screen.getByRole("button", { name: "Xem chi tiết" }));
+    await user.click(screen.getByRole("button", { name: "Cập nhật" }));
+
+    await waitFor(() => {
+      expect(viewEvents).toHaveLength(1);
+      expect(editEvents).toHaveLength(1);
+    });
+    expect(viewEvents[0]?.detail).toMatchObject({
+      sampleId: "sample-1",
+      sample: { id: "sample-1", sampleCode: "T6_00012" },
+    });
+    expect(editEvents[0]?.detail).toMatchObject({
+      sampleId: "sample-1",
+      sample: { id: "sample-1", sampleCode: "T6_00012" },
+    });
+  });
+
+  test("hides the sample metadata update action from viewers", () => {
+    const viewerPage: SampleGridPage = {
+      ...basePage,
+      capabilities: {
+        canExport: false,
+        canEnterResults: false,
+        canManageImages: false,
+        canUpdateMetadata: false,
+      },
+    };
+    const html = renderToStaticMarkup(
+      <SampleGridPageContent page={viewerPage} />
+    );
+
+    expect(html).toContain("Xem chi tiết");
+    expect(html).not.toContain("Cập nhật");
   });
 
   test("uses the polished workspace table variant for dense samples scanning", () => {
