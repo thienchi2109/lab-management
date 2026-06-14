@@ -15,8 +15,8 @@ describe("DialogFrame", () => {
       </DialogFrame>
     );
 
-    expect(html).not.toContain("<dialog");
-    expect(html).toContain('role="dialog"');
+    expect(html).toContain("<dialog");
+    expect(html).not.toContain('role="dialog"');
     expect(html).toContain('aria-modal="true"');
     expect(html).toContain("aria-labelledby=");
     expect(html).toContain('aria-label="Đóng biểu mẫu"');
@@ -99,14 +99,14 @@ describe("DialogFrame", () => {
     expect(source).not.toContain("onKeyDown={handleKeyDown}");
   });
 
-  test("avoids native dialog top-layer behavior so dropdown portals stay usable", async () => {
+  test("uses native dialog markup without top-layer portal behavior", async () => {
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(new URL("../ui/overlay-frame.tsx", import.meta.url), {
         encoding: "utf8",
       })
     );
 
-    expect(source).not.toContain("HTMLDialogElement");
+    expect(source).toContain("HTMLDialogElement");
     expect(source).not.toContain(".showModal()");
     expect(source).not.toContain(".close()");
   });

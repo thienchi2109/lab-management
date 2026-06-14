@@ -36,7 +36,7 @@ export function DialogFrame({
   mode = "modal",
 }: DialogFrameProps) {
   const titleId = useId();
-  const frameRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -102,13 +102,13 @@ export function DialogFrame({
         aria-label={closeLabel}
         onClick={onClose}
       />
-      <div
+      <dialog
         ref={frameRef}
-        role="dialog"
+        open
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "absolute flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden border border-border bg-background shadow-xl outline-none",
+          "absolute m-0 flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden border border-border bg-background p-0 text-left text-foreground shadow-xl outline-none",
           isSheet
             ? "right-0 top-0 h-dvh w-full max-w-xl border-y-0 border-r-0"
             : "left-1/2 top-1/2 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg"
@@ -142,7 +142,7 @@ export function DialogFrame({
             {footer}
           </div>
         ) : null}
-      </div>
+      </dialog>
     </div>
   );
 }

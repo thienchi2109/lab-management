@@ -18,6 +18,10 @@ function file(path) {
   return readFileSync(pathFor(path), "utf8");
 }
 
+function jsonFile(path) {
+  return JSON.parse(file(path));
+}
+
 function check(name, passed) {
   checks.push([name, Boolean(passed)]);
 }
@@ -139,6 +143,26 @@ check(
     exists(
       "app/dashboard/result-configuration/_components/create-template-dialog.tsx"
     )
+);
+
+const reactDoctorConfig = exists("doctor.config.json")
+  ? jsonFile("doctor.config.json")
+  : {};
+const ignoredFiles = reactDoctorConfig.ignore?.files ?? [];
+check(
+  "react doctor ignores local secret and build artifacts",
+  [".env*", ".vercel/**", ".next/**"].every((pattern) =>
+    ignoredFiles.includes(pattern)
+  )
+);
+
+const packageJson = jsonFile("package.json");
+const reactDoctorScripts = Object.entries(packageJson.scripts ?? {}).filter(
+  ([name]) => name.startsWith("react-doctor")
+);
+check(
+  "react doctor scripts use current blocking flag",
+  reactDoctorScripts.every(([, script]) => !script.includes("--fail-on"))
 );
 
 const failures = checks.filter(([, passed]) => !passed).map(([name]) => name);

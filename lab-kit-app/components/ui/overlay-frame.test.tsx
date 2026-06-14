@@ -21,11 +21,11 @@ describe("Overlay frame primitive", () => {
       </SideSheetFrame>
     );
 
-    expect(html).toContain('role="dialog"');
+    expect(html).toContain("<dialog");
+    expect(html).not.toContain('role="dialog"');
     expect(html).toContain("right-0");
     expect(html).toContain("h-dvh");
     expect(html).toContain("max-w-xl");
-    expect(html).not.toContain("<dialog");
   });
 
   test("renders sticky side sheet footer from the global UI primitive", () => {

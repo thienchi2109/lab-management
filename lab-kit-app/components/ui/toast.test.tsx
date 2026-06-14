@@ -56,6 +56,8 @@ describe("global toast primitive", () => {
     expect(source).toContain("text-card-foreground");
     expect(source).toContain("ToastPrimitive.Provider");
     expect(source).toContain("ToastPrimitive.Viewport");
+    expect(source).toContain("React.use(ToastContext)");
+    expect(source).not.toContain("React.useContext");
   });
 
   test("mounts the toast provider and viewport once from the root layout", () => {

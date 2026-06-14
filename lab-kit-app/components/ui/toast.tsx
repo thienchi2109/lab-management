@@ -112,7 +112,7 @@ function AppToastProvider({ children }: { children: React.ReactNode }) {
 
 /** Return the global toast dispatcher from `AppToastProvider`. */
 function useToast() {
-  const context = React.useContext(ToastContext);
+  const context = React.use(ToastContext);
 
   if (!context) {
     throw new Error("useToast must be used within AppToastProvider");
