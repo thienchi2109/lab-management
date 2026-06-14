@@ -53,6 +53,7 @@
 :root {
   --background: oklch(0.982 0.012 142);
   --foreground: oklch(0.18 0.018 145);
+  --app-background-mark-opacity: 0.28;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.018 145);
   --popover: oklch(1 0 0);
@@ -88,6 +89,7 @@
 .dark {
   --background: oklch(0.16 0.018 145);
   --foreground: oklch(0.972 0.01 142);
+  --app-background-mark-opacity: 0.2;
   --card: oklch(0.205 0.02 145);
   --card-foreground: oklch(0.972 0.01 142);
   --popover: oklch(0.205 0.02 145);
@@ -125,8 +127,26 @@
   }
   body {
     @apply bg-background text-foreground;
+    position: relative;
+  }
+  body::before {
+    background-image: url("/app-background.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: min(82vmin, 900px);
+    content: "";
+    inset: 0;
+    opacity: var(--app-background-mark-opacity);
+    pointer-events: none;
+    position: fixed;
+    z-index: 0;
+  }
+  body > * {
+    position: relative;
+    z-index: 1;
   }
   html {
     @apply font-sans;
+    background: var(--background);
   }
 }

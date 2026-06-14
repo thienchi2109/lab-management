@@ -33,7 +33,7 @@ export default async function DashboardLayout({
         displayName={session.profile.displayName}
         username={session.profile.username}
       />
-      <main className="flex-1 overflow-auto bg-background p-4 md:p-6">
+      <main className="flex-1 overflow-auto bg-background/70 p-4 md:p-6">
         {children}
       </main>
       <BottomNav />

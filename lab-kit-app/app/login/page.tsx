@@ -21,11 +21,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const errorMessageId = hasInvalidCredentials ? "login-error" : undefined;
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#f7f9fb] px-4 py-6 text-[#191c1e] sm:px-6 lg:px-8">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-background/70 px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <section className="grid w-full max-w-[1500px] overflow-hidden rounded-xl border border-[#c6c6cd]/40 bg-white shadow-[0_18px_45px_-24px_rgb(25_28_30/0.35)] lg:min-h-[720px] lg:grid-cols-2">
         <aside className="hidden bg-[#c3ecd7] px-12 py-12 lg:flex lg:flex-col lg:justify-between xl:px-16">
           <div className="space-y-16">
-            <AppBrandMark src="/logo-transparent.png" className="[&>span]:text-red-700" />
+            <AppBrandMark
+              src="/logo-transparent.png"
+              className="[&>span]:text-red-700"
+            />
 
             <div className="space-y-6">
               <h1 className="max-w-[620px] text-[36px] font-bold leading-[1.18] text-[#002115]">
