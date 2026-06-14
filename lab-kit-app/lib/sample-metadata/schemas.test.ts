@@ -145,8 +145,7 @@ describe("sample metadata schemas", () => {
         collectedAt:
           "Ngày lấy mẫu phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
         customerId: "Khách hàng không hợp lệ.",
-        customerName:
-          "Tên khách hàng snapshot là bắt buộc và tối đa 200 ký tự.",
+        customerName: "Tên khách hàng là bắt buộc và tối đa 200 ký tự.",
         note: "Ghi chú tối đa 500 ký tự.",
         receivedAt:
           "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",

@@ -50,7 +50,6 @@ describe("SampleGridPage", () => {
       selectedResultColumnKeys: [],
       rows: [],
     });
-
     render(
       await SampleGridPage({
         searchParams: Promise.resolve({ search: "T6_00012" }),

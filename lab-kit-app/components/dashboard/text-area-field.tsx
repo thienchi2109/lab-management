@@ -9,16 +9,30 @@ export function TextAreaField({
   name,
   defaultValue,
   error,
+  className,
+  inputClassName,
+  hideLabel,
 }: Omit<FieldProps, "type" | "required">) {
   const errorId = useId();
 
   return (
-    <label className="space-y-1.5 text-sm font-medium">
-      <span>{label}</span>
+    <label
+      className={className ?? "block w-full space-y-1.5 text-sm font-medium"}
+    >
+      <span
+        className={
+          hideLabel ? "sr-only" : "text-xs font-semibold text-zinc-700"
+        }
+      >
+        {label}
+      </span>
       <textarea
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="min-h-20 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className={
+          inputClassName ??
+          "min-h-20 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        }
         aria-describedby={error ? errorId : undefined}
         aria-invalid={error ? true : undefined}
       />

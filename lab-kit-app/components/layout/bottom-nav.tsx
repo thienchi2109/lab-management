@@ -3,16 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 
 import {
   isNavItemActive,
   mobileNavItems,
 } from "@/components/layout/navigation-items";
 import { cn } from "@/lib/utils";
+import { requestSampleCreate } from "./sample-create-action";
 
 const primaryMobileTitles = new Set(["Tổng quan", "Mẫu", "Báo cáo"]);
 
+/** Render bottom navigation mobile kèm primary action tạo mẫu ở giữa. */
 export function BottomNav() {
   const pathname = usePathname();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -52,8 +54,41 @@ export function BottomNav() {
           </div>
         </div>
       ) : null}
-      <nav className="grid h-16 grid-cols-4 items-center px-2">
-        {primaryItems.map((item) => {
+      <button
+        type="button"
+        aria-label="Thêm mẫu"
+        onClick={requestSampleCreate}
+        className="absolute left-1/2 top-0 flex size-14 -translate-x-1/2 -translate-y-5 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
+      >
+        <Plus className="size-6" />
+      </button>
+      <nav className="grid h-16 grid-cols-[1fr_1fr_4.5rem_1fr_1fr] items-center px-2">
+        {primaryItems.slice(0, 2).map((item) => {
+          const isActive = isNavItemActive(pathname, item.url);
+
+          return (
+            <Link
+              key={item.title}
+              href={item.url}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-foreground",
+                isActive && "text-primary"
+              )}
+            >
+              <div className="relative flex items-center justify-center py-1">
+                <item.icon className="size-5" />
+                {isActive && (
+                  <span className="absolute -bottom-0.5 size-1 rounded-full bg-primary" />
+                )}
+              </div>
+              <span className="text-[10px] font-medium leading-none tracking-tight">
+                {item.title}
+              </span>
+            </Link>
+          );
+        })}
+        <div aria-hidden="true" />
+        {primaryItems.slice(2).map((item) => {
           const isActive = isNavItemActive(pathname, item.url);
 
           return (

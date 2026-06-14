@@ -4,12 +4,14 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type DialogFrameProps = {
   title: string;
   closeLabel: string;
   onClose: () => void;
   children: ReactNode;
+  mode?: "modal" | "sheet";
 };
 
 type DialogActionsProps = {
@@ -20,25 +22,39 @@ type DialogActionsProps = {
   submitLabel: string;
 };
 
+/** Render khung overlay dùng chung cho modal giữa màn hình và side sheet. */
 export function DialogFrame({
   title,
   closeLabel,
   onClose,
   children,
+  mode = "modal",
 }: DialogFrameProps) {
   const titleId = useId();
-  const frameRef = useRef<HTMLDialogElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    const dialog = frame;
+    const dialogElement = frame;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousScrollbarGutter =
+      document.documentElement.style.scrollbarGutter;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.scrollbarGutter = "stable";
 
     function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
       if (event.key !== "Tab") return;
 
       const focusable = Array.from(
-        dialog.querySelectorAll<HTMLElement>(
+        dialogElement.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
         )
       );
@@ -57,38 +73,38 @@ export function DialogFrame({
       }
     }
 
-    if (!dialog.open) {
-      dialog.showModal();
-    }
-
-    const focusable = dialog.querySelector<HTMLElement>(
+    const focusable = dialogElement.querySelector<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     focusable?.focus();
 
-    dialog.addEventListener("keydown", handleKeyDown);
+    dialogElement.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      dialog.removeEventListener("keydown", handleKeyDown);
-      if (dialog.open) {
-        dialog.close();
-      }
+      dialogElement.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.scrollbarGutter = previousScrollbarGutter;
     };
   }, [onClose]);
 
+  const isSheet = mode === "sheet";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-3 sm:items-center">
-      <dialog
+    <div className="fixed inset-0 z-50 overflow-hidden bg-zinc-950/40 backdrop-blur-[2px]">
+      <div
         ref={frameRef}
+        role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="w-full max-w-2xl rounded-lg border bg-background shadow-xl"
-        onCancel={(event) => {
-          event.preventDefault();
-          onClose();
-        }}
+        tabIndex={-1}
+        className={cn(
+          "m-0 flex w-full flex-col overflow-hidden border bg-background shadow-xl backdrop:bg-transparent",
+          isSheet
+            ? "fixed inset-y-0 right-0 h-dvh max-h-dvh max-w-xl rounded-none sm:rounded-l-lg"
+            : "fixed left-1/2 top-1/2 h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg"
+        )}
       >
-        <div className="flex items-center justify-between border-b px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b px-5 py-4">
           <h2 id={titleId} className="text-base font-semibold">
             {title}
           </h2>
@@ -102,12 +118,20 @@ export function DialogFrame({
             <X className="size-4" />
           </Button>
         </div>
-        <div className="max-h-[78vh] overflow-y-auto p-5">{children}</div>
-      </dialog>
+        <div
+          className={cn(
+            "min-h-0 flex-1 overflow-y-auto overscroll-contain p-5",
+            isSheet ? "max-h-[calc(100dvh-4rem)]" : undefined
+          )}
+        >
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
 
+/** Render footer action chuẩn cho các form trong overlay. */
 export function DialogActions({
   pending,
   onClose,
@@ -116,7 +140,7 @@ export function DialogActions({
   submitLabel,
 }: DialogActionsProps) {
   return (
-    <div className="flex justify-end gap-2 pt-2">
+    <div className="mt-5 flex justify-end gap-2 border-t bg-background pt-4">
       <Button type="button" variant="outline" onClick={onClose}>
         {cancelLabel}
       </Button>

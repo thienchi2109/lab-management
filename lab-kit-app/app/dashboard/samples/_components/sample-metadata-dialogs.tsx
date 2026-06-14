@@ -84,6 +84,7 @@ export function EditSampleDialog({
 
   return (
     <DialogFrame
+      mode="sheet"
       title={`Cập nhật ${sample.sampleCode}`}
       closeLabel="Đóng"
       onClose={props.onClose}
@@ -123,14 +124,27 @@ function SampleForm({
   savingLabel: string;
 }) {
   const errors = actionState.fieldErrors ?? {};
+  const fieldClass = "block w-full space-y-1.5 text-sm font-medium";
+  const controlClass =
+    "h-10 rounded-md border-zinc-300 bg-white px-3 text-sm shadow-xs";
+  const textAreaClass =
+    "min-h-28 w-full rounded-md border-zinc-300 bg-white px-3 py-2 text-sm shadow-xs";
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-5 pb-1">
       {sample ? (
         <input type="hidden" name="sampleId" value={sample.id} />
       ) : null}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 shadow-xs sm:grid-cols-2">
+        <div className="space-y-1 sm:col-span-2">
+          <h3 className="text-sm font-semibold text-zinc-950">Thông tin mẫu</h3>
+          <p className="text-xs text-zinc-500">
+            Nhập định danh, khách hàng và trạng thái xử lý ban đầu.
+          </p>
+        </div>
         <Field
+          className={fieldClass}
+          inputClassName={controlClass}
           label="Mã mẫu"
           name="sampleCode"
           defaultValue={sample?.sampleCode}
@@ -138,6 +152,8 @@ function SampleForm({
           error={errors.sampleCode}
         />
         <SelectField
+          className={fieldClass}
+          triggerClassName={controlClass}
           label="Loại mẫu"
           name="sampleTypeId"
           defaultValue={sample?.sampleTypeId}
@@ -145,6 +161,8 @@ function SampleForm({
           error={errors.sampleTypeId}
         />
         <SelectField
+          className={fieldClass}
+          triggerClassName={controlClass}
           label="Khách hàng"
           name="customerId"
           defaultValue={sample?.customerId ?? ""}
@@ -152,6 +170,8 @@ function SampleForm({
           error={errors.customerId}
         />
         <SelectField
+          className={fieldClass}
+          triggerClassName={controlClass}
           label="Công ty"
           name="companyId"
           defaultValue={sample?.companyId ?? ""}
@@ -159,13 +179,17 @@ function SampleForm({
           error={errors.companyId}
         />
         <Field
-          label="Tên khách hàng snapshot"
+          className={fieldClass}
+          inputClassName={controlClass}
+          label="Tên khách hàng"
           name="customerName"
           defaultValue={sample?.customerName}
           required
           error={errors.customerName}
         />
         <SelectField
+          className={fieldClass}
+          triggerClassName={controlClass}
           label="Lô KIT"
           name="kitBatchId"
           defaultValue={sample?.kitBatchId ?? ""}
@@ -182,6 +206,8 @@ function SampleForm({
           error={errors.kitBatchId}
         />
         <Field
+          className={fieldClass}
+          inputClassName={controlClass}
           label="Ngày lấy mẫu"
           name="collectedAt"
           type="datetime-local"
@@ -189,6 +215,8 @@ function SampleForm({
           error={errors.collectedAt}
         />
         <Field
+          className={fieldClass}
+          inputClassName={controlClass}
           label="Ngày nhận"
           name="receivedAt"
           type="datetime-local"
@@ -197,6 +225,8 @@ function SampleForm({
           error={errors.receivedAt}
         />
         <SelectField
+          className={fieldClass}
+          triggerClassName={controlClass}
           label="Trạng thái"
           name="status"
           defaultValue={sample?.status ?? "received"}
@@ -204,6 +234,8 @@ function SampleForm({
           error={errors.status}
         />
         <SelectField
+          className={fieldClass}
+          triggerClassName={controlClass}
           label="Thanh toán"
           name="billingStatus"
           defaultValue={sample?.billingStatus ?? "unpaid"}
@@ -211,12 +243,23 @@ function SampleForm({
           error={errors.billingStatus}
         />
       </div>
-      <TextAreaField
-        label="Ghi chú"
-        name="note"
-        defaultValue={sample?.note}
-        error={errors.note}
-      />
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 shadow-xs">
+        <div className="mb-3 space-y-1">
+          <h3 className="text-sm font-semibold text-zinc-950">Ghi chú xử lý</h3>
+          <p className="text-xs text-zinc-500">
+            Ghi lại yêu cầu nội bộ hoặc điều kiện cần chú ý khi xét nghiệm.
+          </p>
+        </div>
+        <TextAreaField
+          className={fieldClass}
+          inputClassName={textAreaClass}
+          label="Ghi chú"
+          name="note"
+          defaultValue={sample?.note}
+          error={errors.note}
+          hideLabel
+        />
+      </div>
       <ActionMessage state={actionState} />
       <DialogActions
         pending={pending}

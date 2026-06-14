@@ -5,6 +5,9 @@ export type FieldProps = {
   defaultValue?: string | number | null;
   required?: boolean;
   error?: string;
+  className?: string;
+  inputClassName?: string;
+  hideLabel?: boolean;
 };
 
 export type SelectFieldProps = {
@@ -13,4 +16,6 @@ export type SelectFieldProps = {
   defaultValue?: string | boolean;
   options: Array<[string, string]>;
   error?: string;
+  className?: string;
+  triggerClassName?: string;
 };

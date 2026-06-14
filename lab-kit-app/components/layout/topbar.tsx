@@ -12,12 +12,14 @@ import { getPageTitle } from "@/components/layout/page-title";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { requestSampleCreate } from "./sample-create-action";
 
 type TopbarProps = {
   displayName: string;
   username: string | null;
 };
 
+/** Render thanh điều hướng desktop và hành động toàn cục của dashboard. */
 export function Topbar({ displayName, username }: TopbarProps) {
   const pathname = usePathname();
   const accountLabel = username ?? displayName;
@@ -82,7 +84,11 @@ export function Topbar({ displayName, username }: TopbarProps) {
           <span className="sr-only">Chế độ sáng/tối</span>
         </Button>
 
-        <Button size="sm" className="h-9 gap-1.5 px-3 font-medium text-xs">
+        <Button
+          size="sm"
+          className="h-9 gap-1.5 px-3 font-medium text-xs"
+          onClick={requestSampleCreate}
+        >
           <Plus className="size-4" />
           <span className="hidden sm:inline">Thêm mẫu</span>
         </Button>

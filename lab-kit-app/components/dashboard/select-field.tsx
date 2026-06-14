@@ -8,6 +8,8 @@ export function SelectField({
   defaultValue,
   options,
   error,
+  className,
+  triggerClassName,
 }: SelectFieldProps) {
   return (
     <AppSelect
@@ -15,6 +17,9 @@ export function SelectField({
       name={name}
       defaultValue={defaultValue !== undefined ? String(defaultValue) : ""}
       error={error}
+      className={className}
+      labelClassName="text-xs font-semibold text-zinc-700"
+      triggerClassName={triggerClassName}
       options={options.map(([value, optionLabel]) => ({
         value,
         label: optionLabel,

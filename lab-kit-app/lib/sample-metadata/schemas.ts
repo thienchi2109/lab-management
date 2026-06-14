@@ -172,7 +172,7 @@ const sampleMetadataFieldMessages: Partial<
   customerId: "Khách hàng không hợp lệ.",
   companyId: "Công ty không hợp lệ.",
   kitBatchId: "Lô KIT không hợp lệ.",
-  customerName: "Tên khách hàng snapshot là bắt buộc và tối đa 200 ký tự.",
+  customerName: "Tên khách hàng là bắt buộc và tối đa 200 ký tự.",
   collectedAt:
     "Ngày lấy mẫu phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
   receivedAt: "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
