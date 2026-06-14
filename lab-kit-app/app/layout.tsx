@@ -7,6 +7,14 @@ import { AppToastProvider } from "@/components/ui/toast";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/branding";
 import { COLOR_SCHEME_INIT_SCRIPT } from "@/lib/theme/color-scheme-init";
 
+const appUrl = new URL("https://aquatic-lab.vercel.app");
+const appShareImage = {
+  url: "/app-background.png",
+  width: 1254,
+  height: 1254,
+  alt: `Logo ${APP_NAME}`,
+};
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin", "latin-ext"],
@@ -20,6 +28,7 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: appUrl,
   title: {
     default: APP_NAME,
     template: `%s | ${APP_NAME}`,
@@ -33,6 +42,21 @@ export const metadata: Metadata = {
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: appUrl,
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    images: [appShareImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    images: [appShareImage],
   },
 };
 

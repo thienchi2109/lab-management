@@ -20,6 +20,7 @@ describe("app branding contract", () => {
       true
     );
     expect(existsSync(join(publicDir, "logo-transparent.png"))).toBe(true);
+    expect(existsSync(join(publicDir, "app-background.png"))).toBe(true);
     expect(existsSync(join(publicDir, "logo.png"))).toBe(false);
     expect(existsSync(join(publicDir, "logo-lab-kit-removebg.png"))).toBe(
       false
@@ -43,6 +44,10 @@ describe("app branding contract", () => {
     expect(layout).toContain("icons:");
     expect(layout).toContain("/favicon.ico");
     expect(layout).toContain("/apple-touch-icon.png");
+    expect(layout).toContain("metadataBase: appUrl");
+    expect(layout).toContain('url: "/app-background.png"');
+    expect(layout).toContain("openGraph:");
+    expect(layout).toContain("twitter:");
     expect(page).toContain("APP_NAME");
     expect(page).not.toContain("Lab Kit Management");
     expect(manifest.name).toBe("HOÀNG PHÚC LABORATORY");
