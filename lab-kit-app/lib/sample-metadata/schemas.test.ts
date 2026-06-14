@@ -18,7 +18,7 @@ describe("sample metadata schemas", () => {
       kitBatchId: "",
       customerName: "  Công ty Minh Phú  ",
       collectedAt: "",
-      receivedAt: "2026-06-06T08:30",
+      receivedAt: "2026-06-06",
       status: "received",
       billingStatus: "unpaid",
       note: "  Ưu tiên trả kết quả  ",
@@ -32,7 +32,7 @@ describe("sample metadata schemas", () => {
       kitBatchId: null,
       customerName: "Công ty Minh Phú",
       collectedAt: null,
-      receivedAt: "2026-06-06T08:30",
+      receivedAt: "2026-06-06",
       status: "received",
       billingStatus: "unpaid",
       note: "Ưu tiên trả kết quả",
@@ -66,21 +66,24 @@ describe("sample metadata schemas", () => {
     ).toThrow("Thông tin mẫu xét nghiệm không hợp lệ.");
   });
 
-  test("keeps the action input contract on datetime-local values only", () => {
+  test("keeps the action input contract on date-only values", () => {
     const validInput = {
       sampleCode: "T6_00012",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerName: "Công ty Minh Phú",
-      receivedAt: "2026-06-06T08:30",
+      collectedAt: "2026-06-05",
+      receivedAt: "2026-06-06",
       status: "received",
       billingStatus: "unpaid",
     };
 
-    expect(parseCreateSampleInput(validInput).receivedAt).toBe(
-      "2026-06-06T08:30"
-    );
+    expect(parseCreateSampleInput(validInput)).toMatchObject({
+      collectedAt: "2026-06-05",
+      receivedAt: "2026-06-06",
+    });
 
     for (const receivedAt of [
+      "2026-06-06T08:30",
       "2026-06-06T08:30:00",
       "2026-06-06T08:30:00.000Z",
       "2026-06-06T08:30+07:00",
@@ -96,7 +99,7 @@ describe("sample metadata schemas", () => {
       sampleCode: "T12_99999",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerName: "Công ty Minh Phú",
-      receivedAt: "2026-06-06T08:30",
+      receivedAt: "2026-06-06",
       status: "received",
       billingStatus: "unpaid",
     };
@@ -110,7 +113,7 @@ describe("sample metadata schemas", () => {
     }
   });
 
-  test("rejects blank receivedAt as the required datetime field", () => {
+  test("rejects blank receivedAt as the required date field", () => {
     expect(() =>
       parseCreateSampleInput({
         sampleCode: "T6_00012",
@@ -142,13 +145,11 @@ describe("sample metadata schemas", () => {
       expect(err).toBeInstanceOf(SampleMetadataValidationError);
       expect((err as SampleMetadataValidationError).fieldErrors).toEqual({
         billingStatus: "Trạng thái thanh toán không hợp lệ.",
-        collectedAt:
-          "Ngày lấy mẫu phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+        collectedAt: "Ngày lấy mẫu phải dùng định dạng YYYY-MM-DD.",
         customerId: "Khách hàng không hợp lệ.",
         customerName: "Tên khách hàng là bắt buộc và tối đa 200 ký tự.",
         note: "Ghi chú tối đa 500 ký tự.",
-        receivedAt:
-          "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+        receivedAt: "Ngày nhận phải dùng định dạng YYYY-MM-DD.",
         sampleCode: "Mã mẫu phải có dạng T6_00012.",
         sampleTypeId: "Loại mẫu không hợp lệ.",
         status: "Trạng thái mẫu không hợp lệ.",
@@ -169,7 +170,7 @@ describe("sample metadata schemas", () => {
       sampleCode: "T6_00013",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerName: "Khách lẻ Trần Văn B",
-      receivedAt: "2026-06-06T09:00",
+      receivedAt: "2026-06-06",
       status: "in_progress",
       billingStatus: "invoiced",
     });

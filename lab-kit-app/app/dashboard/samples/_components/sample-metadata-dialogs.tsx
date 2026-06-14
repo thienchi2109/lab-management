@@ -20,7 +20,7 @@ import type {
   SampleMetadataRow,
   SampleTypeOption,
 } from "@/lib/sample-metadata/metadata";
-import { getLocalDateTimeInputValue } from "@/lib/sample-metadata/datetime";
+import { getLocalDateInputValue } from "@/lib/sample-metadata/datetime";
 
 import {
   billingStatusLabels,
@@ -213,8 +213,8 @@ function SampleForm({
           inputClassName={controlClass}
           label="Ngày lấy mẫu"
           name="collectedAt"
-          type="datetime-local"
-          defaultValue={toDateTimeInput(sample?.collectedAt)}
+          type="date"
+          defaultValue={toDateInput(sample?.collectedAt)}
           error={errors.collectedAt}
         />
         <Field
@@ -222,8 +222,8 @@ function SampleForm({
           inputClassName={controlClass}
           label="Ngày nhận"
           name="receivedAt"
-          type="datetime-local"
-          defaultValue={toDateTimeInput(sample?.receivedAt) ?? defaultNow()}
+          type="date"
+          defaultValue={toDateInput(sample?.receivedAt) ?? defaultToday()}
           required
           error={errors.receivedAt}
         />
@@ -280,12 +280,12 @@ function optionLabel(item: { id: string; name: string }): [string, string] {
   return [item.id, item.name];
 }
 
-function toDateTimeInput(value: string | null | undefined) {
-  return value ? getLocalDateTimeInputValue(new Date(value)) : undefined;
+function toDateInput(value: string | null | undefined) {
+  return value ? getLocalDateInputValue(new Date(value)) : undefined;
 }
 
-function defaultNow() {
-  return getLocalDateTimeInputValue(new Date());
+function defaultToday() {
+  return getLocalDateInputValue(new Date());
 }
 
 function toSampleFormProps(props: DialogProps | Omit<DialogProps, "open">) {

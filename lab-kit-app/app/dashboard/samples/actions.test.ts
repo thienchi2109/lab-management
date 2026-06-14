@@ -63,7 +63,7 @@ function createSampleForm() {
   formData.set("kitBatchId", "");
   formData.set("customerName", "Công ty Minh Phú");
   formData.set("collectedAt", "");
-  formData.set("receivedAt", "2026-06-06T08:30");
+  formData.set("receivedAt", "2026-06-06");
   formData.set("status", "received");
   formData.set("billingStatus", "unpaid");
   formData.set("note", "");
@@ -136,8 +136,7 @@ describe("createSampleMetadataAction", () => {
       status: "error",
       message: "Thông tin mẫu xét nghiệm không hợp lệ.",
       fieldErrors: {
-        receivedAt:
-          "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+        receivedAt: "Ngày nhận phải dùng định dạng YYYY-MM-DD.",
         sampleCode: "Mã mẫu phải có dạng T6_00012.",
         sampleTypeId: "Loại mẫu không hợp lệ.",
         status: "Trạng thái mẫu không hợp lệ.",

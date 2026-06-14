@@ -37,7 +37,7 @@ export function isSampleBillingStatus(
 
 const INVALID_SAMPLE_MESSAGE = "Thông tin mẫu xét nghiệm không hợp lệ.";
 const SAMPLE_CODE_PATTERN = /^T(?:1[0-2]|[1-9])_[0-9]{5}$/;
-const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Lỗi validation metadata mẫu kèm thông báo an toàn theo từng field. */
 export class SampleMetadataValidationError extends Error {
@@ -63,16 +63,13 @@ const optionalTextSchema = z.preprocess((value) => {
 }, z.string().max(500).nullable());
 
 const requiredTextSchema = z.string().trim().min(1).max(200);
-const nullableDateTimeSchema = z.preprocess(
+const nullableDateSchema = z.preprocess(
   normalizeEmptyValue,
-  z
-    .string()
-    .refine((value) => DATE_TIME_PATTERN.test(value))
-    .nullable()
+  z.string().refine((value) => DATE_PATTERN.test(value)).nullable()
 );
-const requiredDateTimeSchema = z.preprocess(
+const requiredDateSchema = z.preprocess(
   normalizeEmptyValue,
-  z.string().refine((value) => DATE_TIME_PATTERN.test(value))
+  z.string().refine((value) => DATE_PATTERN.test(value))
 );
 
 const sampleInputSchema = z.object({
@@ -86,8 +83,8 @@ const sampleInputSchema = z.object({
   companyId: nullableUuidSchema,
   kitBatchId: nullableUuidSchema,
   customerName: requiredTextSchema,
-  collectedAt: nullableDateTimeSchema,
-  receivedAt: requiredDateTimeSchema,
+  collectedAt: nullableDateSchema,
+  receivedAt: requiredDateSchema,
   status: z.enum(SAMPLE_STATUSES),
   billingStatus: z.enum(SAMPLE_BILLING_STATUSES),
   note: optionalTextSchema,
@@ -173,9 +170,8 @@ const sampleMetadataFieldMessages: Partial<
   companyId: "Công ty không hợp lệ.",
   kitBatchId: "Lô KIT không hợp lệ.",
   customerName: "Tên khách hàng là bắt buộc và tối đa 200 ký tự.",
-  collectedAt:
-    "Ngày lấy mẫu phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
-  receivedAt: "Ngày nhận phải dùng định dạng datetime-local YYYY-MM-DDTHH:mm.",
+  collectedAt: "Ngày lấy mẫu phải dùng định dạng YYYY-MM-DD.",
+  receivedAt: "Ngày nhận phải dùng định dạng YYYY-MM-DD.",
   status: "Trạng thái mẫu không hợp lệ.",
   billingStatus: "Trạng thái thanh toán không hợp lệ.",
   note: "Ghi chú tối đa 500 ký tự.",

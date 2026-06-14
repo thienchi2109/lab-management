@@ -75,6 +75,12 @@ describe("sample metadata dialogs", () => {
     expect(screen.getByText("Ghi chú xử lý")).toBeTruthy();
     expect(screen.getByText("Tên khách hàng")).toBeTruthy();
     expect(screen.getByText("Ghi chú").className).toContain("sr-only");
+    expect(screen.getByLabelText("Ngày lấy mẫu").getAttribute("type")).toBe(
+      "date"
+    );
+    expect(screen.getByLabelText("Ngày nhận").getAttribute("type")).toBe(
+      "date"
+    );
     expect(screen.queryByText(/snapshot/i)).toBeNull();
     expect(document.body.innerHTML).toContain("bg-zinc-50");
   });
