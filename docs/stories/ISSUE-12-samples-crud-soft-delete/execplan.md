@@ -12,8 +12,11 @@ Trong scope:
 
 - Detail side sheet read-only cho mẫu.
 - Edit side sheet hiện có, có thêm guard cho mẫu đã xoá mềm.
-- Delete confirm dialog cho Admin.
-- Server action/domain operation xoá mềm mẫu.
+- Multiple selection trên Samples bằng shadcn `Checkbox`/table selection
+  pattern.
+- Bulk soft delete action cho Admin.
+- Global confirm dialog primitive dựa trên shadcn `AlertDialog`.
+- Server action/domain operation xoá mềm nhiều mẫu.
 - Giữ nguyên command xoá ảnh đã upload; xoá mềm mẫu không tự xoá ảnh.
 - Forward-only Supabase migration cho cột/index xoá mềm.
 - Grid/query mặc định ẩn mẫu đã xoá mềm.
@@ -57,14 +60,16 @@ Lý do:
      đến `samples`.
 
 3. RED tests.
-   - Test domain operation xoá mềm ghi audit, không gọi hard delete và từ chối
-     mẫu đã xoá.
-   - Test server action chỉ Admin được xoá, Editor/Viewer bị từ chối.
+   - Test domain operation bulk soft delete ghi audit, không gọi hard delete
+     và xử lý mẫu đã xoá.
+   - Test server action chỉ Admin được bulk soft delete, Editor/Viewer bị từ
+     chối.
    - Test grid/query thêm `deleted_at is null`.
    - Test hoặc kiểm tra contract rằng soft-delete mẫu không gọi port xoá ảnh và
      không gọi `delete_sample_image_with_audit`.
-   - Test UI hiển thị actions đúng role và confirm dialog giữ lỗi khi action
-     fail.
+   - Test UI multiple selection đúng role, bulk toolbar đúng count và confirm
+     dialog giữ lỗi khi action fail.
+   - Test global confirm primitive riêng, không chỉ test trang Samples.
 
 4. Migration.
    - Tạo migration forward-only.
@@ -78,8 +83,11 @@ Lý do:
    - Revalidate `/dashboard/samples`.
 
 6. UI integration.
-   - Dùng `SideSheetFrame` và `DialogFrame` từ shared UI primitive.
-   - Không tạo primitive mới nếu component hiện có đủ dùng.
+   - Dùng `SideSheetFrame` và `DialogFrame` từ shared UI primitive cho
+     view/edit.
+   - Dùng shadcn `Checkbox` cho row/header selection và trạng thái indeterminate.
+   - Nếu `AlertDialog` chưa có trong `components/ui`, thêm qua shadcn CLI theo
+     package runner của repo rồi bọc thành global `ConfirmDialog` primitive.
    - Giữ Vietnamese copy có đầy đủ dấu.
 
 7. Verification.

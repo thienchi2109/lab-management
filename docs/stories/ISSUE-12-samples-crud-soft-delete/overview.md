@@ -20,13 +20,18 @@ Hoàn thiện CRUD mẫu theo hướng bảo toàn dữ liệu:
 - Người dùng có quyền đọc xem chi tiết mẫu từ trang Samples bằng side sheet
   dùng shared overlay primitive.
 - Admin và Editor tiếp tục sửa metadata mẫu bằng side sheet hiện có.
-- Chỉ Admin được xoá mẫu theo mặc định, bám theo `docs/product/roles-permissions.md`.
+- Admin có thể chọn một hoặc nhiều mẫu bằng multiple selection trên bảng
+  Samples và xoá mềm hàng loạt sau confirm dialog.
+- Chỉ Admin được xoá mềm mẫu theo mặc định, bám theo
+  `docs/product/roles-permissions.md`.
 - Xoá mẫu là xoá mềm, không xoá cứng hàng `samples` và không cascade mất
   `sample_results`, `sample_group_conclusions` hoặc `sample_images`.
 - Chức năng xoá ảnh đã upload được giữ nguyên như command riêng của luồng ảnh
   mẫu; soft-delete mẫu không tự xoá ảnh Cloudinary hoặc metadata ảnh.
 - Danh sách Samples mặc định ẩn mẫu đã xoá mềm.
 - Thao tác xoá ghi audit event an toàn, không lưu tràn dữ liệu nhạy cảm.
+- Confirm dialog xoá mềm phải là global UI primitive, không cài riêng cục bộ
+  trong trang Samples.
 
 ## Affected Users
 

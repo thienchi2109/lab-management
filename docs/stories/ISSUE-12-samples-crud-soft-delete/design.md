@@ -35,13 +35,15 @@ Luồng sửa:
 
 Luồng xoá mềm:
 
-1. Admin chọn hành động xoá từ row hoặc detail side sheet.
-2. UI mở confirm dialog, hiển thị mã mẫu và cảnh báo rằng kết quả, kết luận và
-   ảnh sẽ được giữ lại.
+1. Admin chọn một hoặc nhiều mẫu bằng shadcn `Checkbox` trong
+   `DashboardDataTable`.
+2. Toolbar bulk action hiển thị số mẫu đã chọn và nút xoá mềm hàng loạt.
+3. UI mở global confirm dialog, hiển thị số lượng mẫu, một vài mã mẫu đại diện
+   và cảnh báo rằng kết quả, kết luận và ảnh sẽ được giữ lại.
 3. Server action xác thực session, role Admin, tenant và trạng thái chưa xoá.
-4. Domain operation gọi port xoá mềm hoặc RPC audit transaction.
+4. Domain operation gọi port xoá mềm hàng loạt hoặc RPC audit transaction.
 5. Server revalidate `/dashboard/samples`.
-6. Grid mặc định không còn hiển thị mẫu đã xoá mềm.
+6. Grid mặc định không còn hiển thị các mẫu đã xoá mềm.
 
 Luồng xoá ảnh đã upload:
 
@@ -59,12 +61,14 @@ không vượt giới hạn 350 dòng.
 
 Contract đề xuất:
 
-- Input form: `sampleId`, `reason` tùy chọn.
+- Input form: `sampleIds[]`, `reason` tùy chọn.
 - Role: Admin only.
-- Success: `Đã xoá mẫu xét nghiệm.`
+- Success: `Đã xoá mềm {count} mẫu xét nghiệm.`
 - Unauthorized: thông báo an toàn, không rò chi tiết tenant.
-- Already deleted: trả lỗi an toàn hoặc success idempotent. Khuyến nghị trả lỗi
-  rõ `Mẫu xét nghiệm đã được xoá.` để tránh thao tác nhầm.
+- Empty selection: trả lỗi an toàn `Chọn ít nhất một mẫu để xoá mềm.`
+- Already deleted: bỏ qua id đã xoá mềm và trả count thực tế, hoặc trả lỗi
+  an toàn nếu toàn bộ selection không còn hợp lệ. Khuyến nghị ghi rõ hành vi
+  trong tests trước khi implement.
 
 Các query đọc mặc định phải thêm điều kiện `deleted_at is null`. Nếu cần màn
 hình quản trị mẫu đã xoá, tạo story riêng.
@@ -100,14 +104,18 @@ Trang Samples tiếp tục dùng `DashboardDataTable`. Actions row nên có:
 - Xem: mở side sheet read-only.
 - Cập nhật: mở edit side sheet hiện có.
 - Nhập kết quả: link hiện có.
-- Xoá: chỉ render cho Admin, mở confirm dialog.
+- Chọn hàng: chỉ render cho Admin bằng shadcn `Checkbox`.
+- Xoá mềm hàng loạt: chỉ render khi Admin đã chọn ít nhất một mẫu.
 
 Evidence image panel hoặc luồng xoá ảnh đã upload không đổi trong story này,
 ngoài việc các màn hình liên quan phải xử lý mẫu đã xoá mềm theo guard chung.
 
-Không tạo primitive UI mới nếu `SideSheetFrame`, `DialogFrame`,
-`DialogActions`, shared button, shared field và action message đã đáp ứng đủ.
-Nếu cần helper dùng lại, phải chạy quy trình code-deduplication trước khi tạo.
+Confirm xoá mềm phải dùng global primitive UI mới, ví dụ
+`components/ui/confirm-dialog.tsx`, dựa trên shadcn `AlertDialog` thay vì
+confirm dialog local trong trang Samples. Primitive này phải có title,
+description, cancel action, destructive confirm action, pending/error state và
+accessible labels. Trước khi thêm primitive, chạy code-deduplication và kiểm
+tra không có contract global tương đương.
 
 ## Observability
 
@@ -118,6 +126,7 @@ entity id là sample id, payload tối thiểu:
 - `metadataPolicy: "field-names-only"`
 - `deleteMode: "soft"`
 - `reasonProvided: boolean`
+- `selectionCount`
 - danh sách bảng con được giữ lại theo contract, không đếm hoặc dump dữ liệu
   nhạy cảm nếu không cần.
 
