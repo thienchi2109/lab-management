@@ -91,7 +91,7 @@ describe("DialogFrame", () => {
 
   test("keeps keyboard handling out of dialog JSX attributes", async () => {
     const source = await import("node:fs/promises").then((fs) =>
-      fs.readFile(new URL("./dialog-frame.tsx", import.meta.url), {
+      fs.readFile(new URL("../ui/overlay-frame.tsx", import.meta.url), {
         encoding: "utf8",
       })
     );
@@ -101,7 +101,7 @@ describe("DialogFrame", () => {
 
   test("avoids native dialog top-layer behavior so dropdown portals stay usable", async () => {
     const source = await import("node:fs/promises").then((fs) =>
-      fs.readFile(new URL("./dialog-frame.tsx", import.meta.url), {
+      fs.readFile(new URL("../ui/overlay-frame.tsx", import.meta.url), {
         encoding: "utf8",
       })
     );
@@ -113,7 +113,7 @@ describe("DialogFrame", () => {
 
   test("locks background scroll while an overlay is mounted", async () => {
     const source = await import("node:fs/promises").then((fs) =>
-      fs.readFile(new URL("./dialog-frame.tsx", import.meta.url), {
+      fs.readFile(new URL("../ui/overlay-frame.tsx", import.meta.url), {
         encoding: "utf8",
       })
     );

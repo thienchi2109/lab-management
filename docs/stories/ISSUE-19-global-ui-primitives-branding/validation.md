@@ -9,9 +9,12 @@ implementation:
 - `components/ui/toast.tsx` chưa tồn tại.
 - Login page còn dùng `FlaskConical`, `LabFlow Precision` và footer
   `Lab Management`.
+- Follow-up side sheet RED: `bun run test components/ui/overlay-frame.test.tsx`
+  fail vì `@/components/ui/overlay-frame` chưa tồn tại.
 
 ## GREEN
 
+- `bun run test components/ui/overlay-frame.test.tsx components/dashboard/dialog-frame.test.tsx app/dashboard/samples/_components/sample-metadata-dialogs.test.tsx` pass 3 files / 14 tests.
 - `bun run test app/branding.test.ts components/ui/toast.test.tsx app/theme-dark-mode.test.ts components/dashboard/app-select.test.tsx components/dashboard/dialog-frame.test.tsx` pass 5 files / 23 tests.
 - `bun run test` pass 103 files / 366 tests.
 - `bun run typecheck` pass.

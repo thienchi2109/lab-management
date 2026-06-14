@@ -6,7 +6,8 @@ import { ActionMessage } from "@/components/dashboard/action-message";
 import {
   DialogActions,
   DialogFrame,
-} from "@/components/dashboard/dialog-frame";
+  SideSheetFrame,
+} from "@/components/ui/overlay-frame";
 import {
   Field,
   SelectField,
@@ -83,8 +84,7 @@ export function EditSampleDialog({
   const formProps = toSampleFormProps(props);
 
   return (
-    <DialogFrame
-      mode="sheet"
+    <SideSheetFrame
       title={`Cập nhật ${sample.sampleCode}`}
       closeLabel="Đóng"
       onClose={props.onClose}
@@ -99,7 +99,7 @@ export function EditSampleDialog({
         onClose={props.onClose}
         {...formProps}
       />
-    </DialogFrame>
+    </SideSheetFrame>
   );
 }
 

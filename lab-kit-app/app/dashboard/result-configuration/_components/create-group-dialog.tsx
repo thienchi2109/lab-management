@@ -3,10 +3,7 @@
 import { useActionState } from "react";
 
 import { ActionMessage } from "@/components/dashboard/action-message";
-import {
-  DialogActions,
-  DialogFrame,
-} from "@/components/dashboard/dialog-frame";
+import { DialogActions, DialogFrame } from "@/components/ui/overlay-frame";
 import { Field, SelectField } from "@/components/dashboard/form-fields";
 
 import {

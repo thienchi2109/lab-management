@@ -24,6 +24,8 @@ trang đăng nhập.
 
 - Theme toàn cục dùng semantic token xanh lâm sàng, không quay lại hard-coded
   trắng/đen/zinc cho shell, select và overlay.
+- Modal và side sheet dùng primitive global trong `components/ui/overlay-frame`
+  thay vì implementation nằm trong dashboard.
 - Root layout mount global toast primitive một lần để các flow sau dùng API
   chung, không tự dựng thông báo cục bộ.
 - Favicon, app icon, apple touch icon, manifest và logo được lấy từ
@@ -34,8 +36,8 @@ trang đăng nhập.
 
 ## Design Notes
 
-- UI surfaces: root layout, login page, global toast viewport, semantic theme
-  tokens, app metadata/icons.
+- UI surfaces: root layout, login page, global toast viewport, global overlay
+  frame/side sheet, semantic theme tokens, app metadata/icons.
 - Shared code: thêm brand constants/component và toast primitive dùng Radix
   đang có sẵn qua dependency `radix-ui`.
 - Không thay đổi auth, server actions, database, API, audit hoặc luồng nghiệp
@@ -43,19 +45,19 @@ trang đăng nhập.
 
 ## Frontend, Reuse, And Caching Constraints
 
-- Dùng shared component cho brand mark và toast primitive.
+- Dùng shared component cho brand mark, toast primitive và overlay frame.
 - Không thêm dependency toast mới khi `radix-ui` đã cung cấp Toast primitive.
 - Không thêm TanStack Query vì không có client-cache requirement.
 
 ## Validation
 
-| Layer | Expected proof |
-| --- | --- |
-| Unit | Focused Vitest cho theme, branding, toast, app select và dialog frame. |
-| Integration | TypeScript, ESLint strict, Prettier, docstring gate. |
-| E2E | Browser smoke login/dashboard nếu dev server chạy được. |
-| Platform | Next build và React Doctor diff. |
-| Release | Không áp dụng trong lượt này. |
+| Layer       | Expected proof                                                         |
+| ----------- | ---------------------------------------------------------------------- |
+| Unit        | Focused Vitest cho theme, branding, toast, app select và dialog frame. |
+| Integration | TypeScript, ESLint strict, Prettier, docstring gate.                   |
+| E2E         | Browser smoke login/dashboard nếu dev server chạy được.                |
+| Platform    | Next build và React Doctor diff.                                       |
+| Release     | Không áp dụng trong lượt này.                                          |
 
 ## Harness Delta
 
@@ -67,12 +69,18 @@ không đóng các backlog hiệu năng/workflow riêng.
 - RED: `bun run test app/branding.test.ts components/ui/toast.test.tsx` failed
   vì thiếu asset public, thiếu `components/ui/toast.tsx`, login còn brand tạm
   `LabFlow Precision`.
+- Follow-up RED: `bun run test components/ui/overlay-frame.test.tsx` fail vì
+  `@/components/ui/overlay-frame` chưa tồn tại.
+- GREEN focused: `bun run test components/ui/overlay-frame.test.tsx components/dashboard/dialog-frame.test.tsx app/dashboard/samples/_components/sample-metadata-dialogs.test.tsx` pass 3 files / 14 tests.
 - GREEN focused: `bun run test app/branding.test.ts components/ui/toast.test.tsx app/theme-dark-mode.test.ts components/dashboard/app-select.test.tsx components/dashboard/dialog-frame.test.tsx` pass 5 files / 23 tests.
 - Full unit: `bun run test` pass 103 files / 366 tests.
 - Gates: `bun run typecheck`, `bun run lint:strict`, `bun run format:check`,
   `bun run docstring:check`, `bun run build`, `bun run react-doctor:diff`, và
   `bun run quality` pass.
-- React Doctor diff còn 2 warning ở `components/dashboard/dialog-frame.tsx:96`
+- Side sheet: `components/ui/overlay-frame.tsx` now owns `DialogFrame`,
+  `DialogActions`, and `SideSheetFrame`; dashboard wrapper only re-exports for
+  backward compatibility, and app call sites import from `@/components/ui/overlay-frame`.
+- React Doctor diff còn 2 warning ở `components/ui/overlay-frame.tsx`
   về custom `role="dialog"` thay vì native `<dialog>`; đây là trade-off đã
   được test khóa để dropdown portal trong overlay vẫn hoạt động.
 - Browser smoke: `agent-browser` mở `http://localhost:3000/login`, không có
