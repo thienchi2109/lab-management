@@ -5,9 +5,10 @@ import { describe, expect, test } from "vitest";
 const appDir = process.cwd();
 
 describe("app branding contract", () => {
-  test("publishes the selected LabKit favicon and logo assets", () => {
+  test("publishes the selected Hoàng Phúc favicon and logo assets", () => {
     const publicDir = join(appDir, "public");
 
+    expect(existsSync(join(appDir, "app/favicon.ico"))).toBe(true);
     expect(existsSync(join(publicDir, "favicon.ico"))).toBe(true);
     expect(existsSync(join(publicDir, "favicon-16x16.png"))).toBe(true);
     expect(existsSync(join(publicDir, "favicon-32x32.png"))).toBe(true);
@@ -18,10 +19,14 @@ describe("app branding contract", () => {
     expect(existsSync(join(publicDir, "android-chrome-512x512.png"))).toBe(
       true
     );
-    expect(existsSync(join(publicDir, "logo-lab-kit-removebg.png"))).toBe(true);
+    expect(existsSync(join(publicDir, "logo-transparent.png"))).toBe(true);
+    expect(existsSync(join(publicDir, "logo.png"))).toBe(false);
+    expect(existsSync(join(publicDir, "logo-lab-kit-removebg.png"))).toBe(
+      false
+    );
   });
 
-  test("sets canonical LabKit app metadata and icon links", () => {
+  test("sets canonical Hoàng Phúc app metadata and icon links", () => {
     const layout = readFileSync(join(appDir, "app/layout.tsx"), "utf8");
     const page = readFileSync(join(appDir, "app/page.tsx"), "utf8");
     const manifest = JSON.parse(
@@ -40,10 +45,10 @@ describe("app branding contract", () => {
     expect(layout).toContain("/apple-touch-icon.png");
     expect(page).toContain("APP_NAME");
     expect(page).not.toContain("Lab Kit Management");
-    expect(manifest.name).toBe("LabKit Sample Management");
-    expect(manifest.short_name).toBe("LabKit");
-    expect(manifest.theme_color).toBe("#2f6b4f");
-    expect(manifest.background_color).toBe("#f4faf6");
+    expect(manifest.name).toBe("HOÀNG PHÚC LABORATORY");
+    expect(manifest.short_name).toBe("Hoàng Phúc");
+    expect(manifest.theme_color).toBe("#ffffff");
+    expect(manifest.background_color).toBe("#ffffff");
     expect(manifest.icons).toEqual([
       {
         src: "/android-chrome-192x192.png",
@@ -60,10 +65,16 @@ describe("app branding contract", () => {
 
   test("uses the canonical logo and app name on the login page", () => {
     const loginPage = readFileSync(join(appDir, "app/login/page.tsx"), "utf8");
+    const brandMark = readFileSync(
+      join(appDir, "components/brand/app-brand-mark.tsx"),
+      "utf8"
+    );
 
     expect(loginPage).toContain("AppBrandMark");
     expect(loginPage).toContain("APP_NAME");
-    expect(loginPage).toContain("/logo-lab-kit-removebg.png");
+    expect(loginPage).toContain("/logo-transparent.png");
+    expect(brandMark).toContain("{APP_NAME}");
+    expect(loginPage).not.toContain("/logo-lab-kit-removebg.png");
     expect(loginPage).not.toContain("LabFlow Precision");
     expect(loginPage).not.toContain("FlaskConical");
     expect(loginPage).not.toContain("© 2026 Lab Management");

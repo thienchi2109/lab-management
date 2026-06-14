@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { APP_NAME, APP_SHORT_NAME } from "@/lib/branding";
+import { APP_NAME } from "@/lib/branding";
 import { cn } from "@/lib/utils";
 
 type AppBrandMarkProps = {
@@ -16,19 +16,33 @@ export function AppBrandMark({
   className,
 }: AppBrandMarkProps) {
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div
+      className={cn(
+        "flex items-center text-left",
+        compact ? "justify-center gap-2" : "gap-3",
+        className
+      )}
+    >
       <Image
         src={src}
-        width={compact ? 128 : 180}
-        height={compact ? 42 : 60}
+        width={compact ? 64 : 84}
+        height={compact ? 64 : 84}
         priority
-        alt={`${APP_NAME} logo`}
+        alt=""
+        aria-hidden="true"
         className={cn(
-          "h-auto w-auto object-contain",
-          compact ? "max-h-10" : "max-h-14"
+          "aspect-square h-auto shrink-0 object-contain",
+          compact ? "max-h-14" : "max-h-[72px]"
         )}
       />
-      <span className="sr-only">{APP_SHORT_NAME}</span>
+      <span
+        className={cn(
+          "max-w-56 text-balance font-extrabold leading-tight text-red-700",
+          compact ? "text-sm" : "text-xl"
+        )}
+      >
+        {APP_NAME}
+      </span>
     </div>
   );
 }

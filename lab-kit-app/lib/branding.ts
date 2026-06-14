@@ -1,8 +1,8 @@
 /** Tên thương hiệu đầy đủ dùng trong metadata và giao diện. */
-export const APP_NAME = "LabKit Sample Management";
+export const APP_NAME = "HOÀNG PHÚC LABORATORY";
 
 /** Tên rút gọn dùng cho manifest và nhãn nhận diện nhỏ. */
-export const APP_SHORT_NAME = "LabKit";
+export const APP_SHORT_NAME = "Hoàng Phúc";
 
 /** Mô tả sản phẩm dùng cho metadata SEO và app shell. */
 export const APP_DESCRIPTION =

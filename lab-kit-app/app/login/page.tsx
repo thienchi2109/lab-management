@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <section className="grid w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-[0_22px_60px_rgb(15_23_42/0.16)] ring-1 ring-slate-200/70 lg:min-h-[698px] lg:grid-cols-2 dark:bg-card dark:ring-border">
         <aside className="hidden bg-accent px-16 py-12 lg:flex lg:flex-col lg:justify-between">
           <div className="space-y-12">
-            <AppBrandMark src="/logo-lab-kit-removebg.png" />
+            <AppBrandMark src="/logo-transparent.png" />
 
             <div className="space-y-5">
               <h1 className="max-w-[470px] text-[32px] font-bold leading-[1.28] text-foreground">
@@ -45,7 +45,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="flex min-h-[650px] flex-col justify-center bg-white px-6 py-8 sm:px-10 lg:px-16 dark:bg-card">
           <div className="mx-auto w-full max-w-sm">
             <div className="mb-10 flex justify-center lg:hidden">
-              <AppBrandMark src="/logo-lab-kit-removebg.png" compact />
+              <AppBrandMark src="/logo-transparent.png" compact />
             </div>
 
             <div className="mb-12">

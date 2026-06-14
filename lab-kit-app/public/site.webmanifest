@@ -1,6 +1,6 @@
 {
-  "name": "LabKit Sample Management",
-  "short_name": "LabKit",
+  "name": "HOÀNG PHÚC LABORATORY",
+  "short_name": "Hoàng Phúc",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -13,7 +13,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#2f6b4f",
-  "background_color": "#f4faf6",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
   "display": "standalone"
 }

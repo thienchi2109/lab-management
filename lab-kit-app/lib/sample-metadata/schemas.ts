@@ -65,7 +65,10 @@ const optionalTextSchema = z.preprocess((value) => {
 const requiredTextSchema = z.string().trim().min(1).max(200);
 const nullableDateSchema = z.preprocess(
   normalizeEmptyValue,
-  z.string().refine((value) => DATE_PATTERN.test(value)).nullable()
+  z
+    .string()
+    .refine((value) => DATE_PATTERN.test(value))
+    .nullable()
 );
 const requiredDateSchema = z.preprocess(
   normalizeEmptyValue,

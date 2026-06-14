@@ -10,6 +10,11 @@
 - Always prefer context-mode tools first for gathering, searching, reading, or
   summarizing context. Use `rtk` as the fallback or for short shell commands
   when context-mode is not appropriate.
+- Do not treat a failed first tool-discovery attempt as proof that context-mode
+  is unavailable. Continue tracing the available MCP/tool namespaces until
+  context-mode is found or every discovery path has failed. If context-mode
+  truly cannot be reached, report the complete failure to the user; otherwise,
+  avoid false negatives and use context-mode.
 - For Vercel CLI work in this repo, always use the repo-specific Vercel access
   token via a temporary environment variable such as `VERCEL_TOKEN=... vercel
   ...`. Do not use global Vercel auth, do not run `vercel login` or
