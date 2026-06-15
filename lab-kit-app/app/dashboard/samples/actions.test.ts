@@ -96,12 +96,13 @@ describe("createSampleMetadataAction", () => {
 
   test("does not read client-provided sampleCode when creating metadata", async () => {
     const formData = createSampleForm();
-    formData.set("sampleCode", "HP-260615-7K3QM2XH");
+    formData.set("sampleCode", "HP-CLIENT-SHOULD-BE-IGNORED");
 
     const result = await createSampleMetadataAction(previousState, formData);
 
     expect(result.status).toBe("success");
     expect(result.message).toContain("HP-260615-7K3QM2XH");
+    expect(result.message).not.toContain("HP-CLIENT-SHOULD-BE-IGNORED");
     expect(createSampleMetadata).toHaveBeenCalledWith(
       expect.not.objectContaining({ sampleCode: expect.any(String) }),
       { profileId: "user-admin", organizationId: "org-1" },

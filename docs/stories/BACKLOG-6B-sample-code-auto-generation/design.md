@@ -16,7 +16,7 @@ Business rules:
 - `sample_code` vẫn unique trong bảng `samples`.
 - Hệ thống không tin `sampleCode` từ client khi tạo mẫu mới.
 - Mã chỉ chứa lab prefix, ngày tạo và entropy; audit ngược dựa vào
-  `samples.id`, `sample_code`, `audit_logs`, `created_by`, `organization_id`.
+  `samples.id`, `sample_code`, `audit_events`, `created_by`, `organization_id`.
 
 ## Application Flow
 
@@ -80,7 +80,7 @@ Khuyến nghị:
 Unique index hiện tại trên `samples.sample_code` là lớp bảo vệ cuối cùng. Nếu
 live DB đang unique toàn bảng, implementation phải giữ nguyên hoặc chứng minh rõ
 vì sao cần đổi. Với prefix `HP` và ngày trong mã, không cần sequence tuần tự để
-audit; audit ngược đi qua `sample_code -> samples.id -> audit_logs`.
+audit; audit ngược đi qua `sample_code -> samples.id -> audit_events`.
 
 `GET /api/samples/next-code` phải bị xoá khỏi `docs/product/api-contract.md`
 khi implement story này. Discovery hiện tại không thấy route runtime hoặc caller
