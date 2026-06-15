@@ -6,12 +6,16 @@ import { LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type LoginSubmitButtonProps = {
+  label?: string;
   pending?: boolean;
+  pendingLabel?: string;
 };
 
 /** Submit button that reflects the pending state of the login form. */
 export function LoginSubmitButton({
+  label = "Đăng nhập",
   pending: pendingProp,
+  pendingLabel = "Đang đăng nhập",
 }: LoginSubmitButtonProps) {
   const formStatus = useFormStatus();
   const pending = pendingProp ?? formStatus.pending;
@@ -23,7 +27,7 @@ export function LoginSubmitButton({
       disabled={pending}
       aria-live="polite"
     >
-      {pending ? "Đang đăng nhập" : "Đăng nhập"}
+      {pending ? pendingLabel : label}
       <LogIn className="ml-2 size-4" aria-hidden="true" />
     </Button>
   );

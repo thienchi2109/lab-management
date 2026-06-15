@@ -10,6 +10,7 @@ describe("LoginPage", () => {
     );
 
     expect(html).toContain('action="/auth/login"');
+    expect(html).toContain('action="/auth/viewer-login"');
     expect(html).toContain('method="post"');
     expect(html).toContain("<label");
     expect(html).toContain('for="username"');
@@ -19,6 +20,7 @@ describe("LoginPage", () => {
     expect(html).not.toContain('placeholder="admin"');
     expect(html).toContain("login-lab-stitch.png");
     expect(html).toContain("Minh hoạ quy trình xét nghiệm");
+    expect(html).toContain("Đăng nhập với vai trò người xem");
   });
 
   test("marks invalid credential feedback as an accessible form error", async () => {

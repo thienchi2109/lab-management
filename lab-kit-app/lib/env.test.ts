@@ -1,8 +1,10 @@
 import { describe, expect, test } from "vitest";
 
 import {
+  getViewerLoginEnv,
   getSupabasePublicEnv,
   getSupabaseServerEnv,
+  parseViewerLoginEnv,
   parseSupabasePublicEnv,
   parseSupabaseServerEnv,
 } from "./env";
@@ -47,9 +49,31 @@ describe("parseSupabaseServerEnv", () => {
   });
 });
 
+describe("parseViewerLoginEnv", () => {
+  test("parses server-only viewer login credentials", () => {
+    const env = parseViewerLoginEnv({
+      VIEWER_LOGIN_USERNAME: " viewer ",
+      VIEWER_LOGIN_PASSWORD: "viewer-test-password",
+    });
+
+    expect(env).toEqual({
+      username: "viewer",
+      password: "viewer-test-password",
+    });
+    expect(Object.keys(env)).not.toContain("NEXT_PUBLIC_VIEWER_LOGIN_PASSWORD");
+  });
+
+  test("rejects missing viewer login credentials", () => {
+    expect(() => parseViewerLoginEnv({})).toThrow(
+      "Missing or invalid viewer login environment."
+    );
+  });
+});
+
 describe("runtime env getters", () => {
   test("read from process.env only when called", () => {
     expect(typeof getSupabasePublicEnv).toBe("function");
     expect(typeof getSupabaseServerEnv).toBe("function");
+    expect(typeof getViewerLoginEnv).toBe("function");
   });
 });
