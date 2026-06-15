@@ -1,4 +1,4 @@
-# Backlog #6B - Tự sinh mã mẫu theo ngày
+# Backlog #6B - Tự sinh mã mẫu HP theo ngày
 
 ## Current Behavior
 
@@ -18,13 +18,16 @@ Khi người vận hành tạo mẫu mới:
 - modal Thêm mẫu không hiển thị trường `Mã mẫu`;
 - form không gửi `sampleCode` từ client;
 - server/database tự sinh `sample_code` tại thời điểm submit;
-- mã có dạng `yyyymmdd-xxx`, ví dụ `20260615-000`;
-- `yyyymmdd` dùng ngày hiện tại theo múi giờ Việt Nam UTC+7;
-- `xxx` chạy từ `000` đến `999` trong từng ngày;
-- qua ngày mới, suffix chạy lại từ `000`;
-- nếu một ngày đã có đủ `000..999`, hệ thống trả lỗi an toàn, rõ nghĩa cho
-  người dùng;
-- sinh mã phải atomic để hai người tạo mẫu cùng lúc không nhận cùng một mã.
+- mã có dạng `HP-YYMMDD-RRRRRRRC`, ví dụ `HP-260615-7K3QM2XH`;
+- `HP` là prefix lab Hồng Phong, không lấy từ client;
+- `YYMMDD` dùng ngày hiện tại tại thời điểm submit theo múi giờ Việt Nam UTC+7;
+- `RRRRRRR` là entropy sinh bằng crypto RNG với alphabet Crockford Base32;
+- `C` là ký tự kiểm tra ngắn, tính deterministic bằng hash/mod32 trên
+  `HP-YYMMDD-RRRRRRR`, để phát hiện lỗi gõ tay/scan sai;
+- qua ngày mới, phần ngày đổi theo ngày submit mới;
+- nếu sinh trùng cực hiếm, database/RPC retry tối đa 5 lần rồi trả lỗi an toàn;
+- sinh mã không được scan max suffix, không dùng counter tuần tự, và không tạo
+  hotspot khi nhiều người tạo mẫu cùng lúc.
 
 ## Affected Users
 
@@ -41,9 +44,15 @@ Khi người vận hành tạo mẫu mới:
 ## Non-Goals
 
 - Không đổi mã của các mẫu đã tồn tại.
-- Không backfill dữ liệu lịch sử từ `T<month>_<#####>` sang `yyyymmdd-xxx`.
+- Không backfill dữ liệu lịch sử từ `T<month>_<#####>` sang format `HP-*`.
 - Không đổi luồng nhập kết quả, upload ảnh hoặc export ngoài việc chúng hiển
   thị mã mới cho mẫu được tạo sau thay đổi.
 - Không dùng client/browser để tự sinh mã.
+- Không nhúng thông tin nhạy cảm như người tạo, khách hàng, công ty, loại mẫu
+  hoặc số thứ tự vận hành vào `sample_code`; audit ngược phải đi qua database và
+  audit log.
+- Không thêm bảng counter nếu không có bằng chứng bắt buộc.
+- Xoá `GET /api/samples/next-code` khỏi product API contract; endpoint này chưa
+  có route runtime/caller nội bộ nên không cần deprecate.
 - Không dùng namespace Supabase generic; mọi DB write phải dùng
   `mcp__supabase_lab_management` với project-ref `tuuqgpzgollcerqqszjr`.

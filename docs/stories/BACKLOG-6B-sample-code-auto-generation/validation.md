@@ -12,12 +12,12 @@ Không được claim hoàn tất nếu chỉ kiểm thử UI. Phải chứng mi
 
 | Layer | Cases |
 | --- | --- |
-| Unit | `parseCreateSampleInput` không yêu cầu `sampleCode`; reject nếu client cố gửi mã không hợp lệ không ảnh hưởng create; helper format date prefix tạo `yyyymmdd` theo UTC+7. |
+| Unit | `parseCreateSampleInput` không yêu cầu `sampleCode`; reject/ignore an toàn nếu client cố gửi mã khi create; helper format date segment tạo `YYMMDD` theo UTC+7; helper format mã tạo `HP-YYMMDD-RRRRRRRC`; check character deterministic bằng hash/mod32 trên phần thân mã. |
 | Component | `CreateSampleDialog` không render field `Mã mẫu`; edit/view vẫn hiển thị mã mẫu như read-only metadata nếu cần. |
 | Application | `createSampleMetadataAction` không đọc `sampleCode` từ `FormData`; `createSampleMetadata` nhận mã từ port/RPC result; duplicate-code check cũ không còn là source sinh mã. |
-| SQL Contract | Migration forward-only định nghĩa generator/RPC dùng timezone Việt Nam, lock/counter atomic, giới hạn `000..999`, `SECURITY DEFINER`, `search_path=public`, revoke/grant đúng. |
-| Database Integration | Live rollback test tạo nhiều mẫu cùng ngày và nhận suffix tăng tuần tự; transaction rollback không để lại fixture; error khi hết 1000 suffix. |
-| E2E | agent-browser admin tạo mẫu từ `/dashboard/samples`; modal không có `Mã mẫu`; bảng hiển thị mã dạng `yyyymmdd-xxx`; không có error overlay/console app error. |
+| SQL Contract | Migration forward-only định nghĩa generator/RPC dùng timezone Việt Nam, crypto random/retry tối đa 5 lần, check character hash/mod32, không scan max suffix, không counter table, `SECURITY DEFINER`, `search_path=public`, revoke/grant đúng. |
+| Database Integration | Live rollback test tạo nhiều mẫu cùng ngày và nhận mã đúng format, không trùng; transaction rollback không để lại fixture; duplicate collision được mô phỏng hoặc chứng minh bằng retry path 5 lần rồi lỗi an toàn. |
+| E2E | agent-browser admin tạo mẫu từ `/dashboard/samples`; modal không có `Mã mẫu`; bảng hiển thị mã dạng `HP-YYMMDD-RRRRRRRC`; không có error overlay/console app error. |
 | Platform | Supabase apply chỉ qua `mcp__supabase_lab_management` project-ref `tuuqgpzgollcerqqszjr`; advisors không có regression nghiêm trọng mới. |
 | Logs/Audit | Tạo mẫu vẫn ghi audit `sample.created`; audit payload không lộ dữ liệu nhạy cảm ngoài mã mẫu và field names. |
 
@@ -31,6 +31,8 @@ Fixtures cần xác định trước implementation:
 - Optional: company/customer/kit batch nếu form cần chọn.
 - Transaction-only test organization/sample type nếu kiểm chứng live generator
   không thể dùng fixture hiện có an toàn.
+- Collision-path fixture hoặc helper test-only trong rollback transaction nếu cần
+  ép random trùng để kiểm chứng retry/error path.
 
 ## Commands
 
