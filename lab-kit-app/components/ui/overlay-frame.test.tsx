@@ -67,6 +67,21 @@ describe("Overlay frame primitive", () => {
     expect(html).toContain("Đang xử lý...");
   });
 
+  test("renders modal frames as fullscreen on mobile and centered from sm", () => {
+    const html = renderToStaticMarkup(
+      <DialogFrame title="Thêm mẫu" closeLabel="Đóng" onClose={vi.fn()}>
+        <p>Nội dung</p>
+      </DialogFrame>
+    );
+
+    expect(html).toContain("inset-0");
+    expect(html).toContain("h-dvh");
+    expect(html).toContain("w-full");
+    expect(html).toContain("sm:left-1/2");
+    expect(html).toContain("sm:-translate-x-1/2");
+    expect(html).toContain("sm:max-w-2xl");
+  });
+
   test("dashboard dialog frame only re-exports the global primitive", () => {
     const source = readFileSync(
       join(process.cwd(), "components/dashboard/dialog-frame.tsx"),
