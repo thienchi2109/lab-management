@@ -18,11 +18,6 @@ export type SampleMetadataAuditInput = {
 
 /** Cổng hạ tầng cần thiết để lưu metadata mẫu và audit theo tenant. */
 export type SampleMetadataPort = {
-  sampleCodeExists(input: {
-    organizationId: string;
-    sampleCode: string;
-    excludeSampleId?: string;
-  }): Promise<boolean>;
   referencesBelongToOrganization(input: {
     organizationId: string;
     sampleTypeId: string;
@@ -31,8 +26,12 @@ export type SampleMetadataPort = {
     kitBatchId: string | null;
   }): Promise<boolean>;
   createSample(
-    input: CreateSampleInput & { organizationId: string; createdBy: string }
-  ): Promise<{ sampleId: string }>;
+    input: CreateSampleInput & {
+      organizationId: string;
+      createdBy: string;
+      auditEventPayload: Record<string, unknown>;
+    }
+  ): Promise<{ sampleId: string; sampleCode: string }>;
   updateSample(
     input: UpdateSampleInput & { organizationId: string }
   ): Promise<void>;
@@ -40,7 +39,6 @@ export type SampleMetadataPort = {
 };
 
 const submittedFields = [
-  "sampleCode",
   "sampleTypeId",
   "customerId",
   "companyId",
@@ -54,25 +52,18 @@ const submittedFields = [
 ];
 const SAMPLE_METADATA_AUDIT_POLICY = "field-names-only";
 
-/** Create sample metadata after duplicate-code and reference ownership checks. */
+/** Create sample metadata after reference ownership checks. */
 export async function createSampleMetadata(
   input: CreateSampleInput,
   actor: SampleMetadataActor,
   port: SampleMetadataPort
 ) {
-  // react-doctor-disable-next-line react-doctor/async-parallel -- Phải xác thực trước khi ghi mẫu.
   await ensureSampleCanBeSaved(input, actor, port);
   const result = await port.createSample({
     ...input,
     organizationId: actor.organizationId,
     createdBy: actor.profileId,
-  });
-
-  await audit(port, actor, {
-    action: "sample.created",
-    entityTable: "samples",
-    entityId: result.sampleId,
-    eventPayload: createSampleAuditPayload(input, "submittedFields"),
+    auditEventPayload: createSampleAuditPayload("submittedFields"),
   });
 
   return result;
@@ -85,41 +76,29 @@ export async function updateSampleMetadata(
   port: SampleMetadataPort
 ) {
   // react-doctor-disable-next-line react-doctor/async-parallel -- Phải xác thực trước khi cập nhật mẫu.
-  await ensureSampleCanBeSaved(input, actor, port, input.sampleId);
+  await ensureSampleCanBeSaved(input, actor, port);
   await port.updateSample({ ...input, organizationId: actor.organizationId });
 
   await audit(port, actor, {
     action: "sample.updated",
     entityTable: "samples",
     entityId: input.sampleId,
-    eventPayload: createSampleAuditPayload(input, "updatedFields"),
+    eventPayload: createSampleAuditPayload("updatedFields"),
   });
 }
 
 async function ensureSampleCanBeSaved(
   input: CreateSampleInput,
   actor: SampleMetadataActor,
-  port: SampleMetadataPort,
-  excludeSampleId?: string
+  port: SampleMetadataPort
 ) {
-  const [duplicate, referencesOk] = await Promise.all([
-    port.sampleCodeExists({
-      organizationId: actor.organizationId,
-      sampleCode: input.sampleCode,
-      excludeSampleId,
-    }),
-    port.referencesBelongToOrganization({
-      organizationId: actor.organizationId,
-      sampleTypeId: input.sampleTypeId,
-      customerId: input.customerId,
-      companyId: input.companyId,
-      kitBatchId: input.kitBatchId,
-    }),
-  ]);
-
-  if (duplicate) {
-    throw new Error("Mã mẫu đã tồn tại.");
-  }
+  const referencesOk = await port.referencesBelongToOrganization({
+    organizationId: actor.organizationId,
+    sampleTypeId: input.sampleTypeId,
+    customerId: input.customerId,
+    companyId: input.companyId,
+    kitBatchId: input.kitBatchId,
+  });
 
   if (!referencesOk) {
     throw new Error("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.");
@@ -139,12 +118,10 @@ function audit(
 }
 
 function createSampleAuditPayload(
-  input: { sampleCode: string },
   fieldListName: "submittedFields" | "updatedFields"
 ) {
   return {
     metadataPolicy: SAMPLE_METADATA_AUDIT_POLICY,
-    sampleCode: input.sampleCode,
     [fieldListName]: submittedFields,
   };
 }

@@ -15,9 +15,11 @@ tắc vận hành.
 
 Khi người vận hành tạo mẫu mới:
 
-- modal Thêm mẫu không hiển thị trường `Mã mẫu`;
+- modal Thêm mẫu không cho nhập `Mã mẫu`, nhưng hiển thị placeholder read-only
+  `HP-YYMMDD-••••••••` để người vận hành biết mã sẽ được sinh khi lưu;
 - form không gửi `sampleCode` từ client;
 - server/database tự sinh `sample_code` tại thời điểm submit;
+- sau khi tạo thành công, UI hiển thị mã thật trong thông báo thành công/toast;
 - mã có dạng `HP-YYMMDD-RRRRRRRC`, ví dụ `HP-260615-7K3QM2XH`;
 - `HP` là prefix lab Hồng Phong, không lấy từ client;
 - `YYMMDD` dùng ngày hiện tại tại thời điểm submit theo múi giờ Việt Nam UTC+7;

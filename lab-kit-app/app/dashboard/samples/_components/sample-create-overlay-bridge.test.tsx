@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 
+import type React from "react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { sampleCreateRequestedEvent } from "@/components/layout/sample-create-action";
+import { AppToastProvider } from "@/components/ui/toast";
 import { mapSampleMetadataRows } from "@/lib/sample-metadata/metadata";
 
 import { SampleCreateOverlayBridge } from "./sample-create-overlay-bridge";
@@ -63,9 +65,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function renderWithToast(ui: React.ReactElement) {
+  return render(<AppToastProvider>{ui}</AppToastProvider>);
+}
+
 describe("SampleCreateOverlayBridge", () => {
   test("opens the create sample modal when the global request event fires", async () => {
-    render(
+    renderWithToast(
       <SampleCreateOverlayBridge
         metadata={metadata}
         formAction={dialogAction}
@@ -80,11 +86,11 @@ describe("SampleCreateOverlayBridge", () => {
     await waitFor(() => {
       expect(screen.getByText("Tạo mẫu xét nghiệm")).toBeTruthy();
     });
-    expect(screen.getByLabelText("Mã mẫu")).toBeTruthy();
+    expect(screen.queryByLabelText("Mã mẫu")).toBeNull();
   });
 
   test("opens a read-only sample side sheet from the global view event", async () => {
-    render(
+    renderWithToast(
       <SampleCreateOverlayBridge
         metadata={metadata}
         formAction={dialogAction}
@@ -107,7 +113,7 @@ describe("SampleCreateOverlayBridge", () => {
   });
 
   test("opens a side sheet from event sample data when layout metadata is stale", async () => {
-    render(
+    renderWithToast(
       <SampleCreateOverlayBridge
         metadata={{ ...metadata, samples: [] }}
         formAction={dialogAction}
@@ -145,7 +151,7 @@ describe("SampleCreateOverlayBridge", () => {
   });
 
   test("opens the edit sample side sheet from the global edit event", async () => {
-    render(
+    renderWithToast(
       <SampleCreateOverlayBridge
         metadata={metadata}
         formAction={dialogAction}
@@ -163,7 +169,7 @@ describe("SampleCreateOverlayBridge", () => {
       expect(screen.getByText("Cập nhật T6_00012")).toBeTruthy();
     });
     expect(screen.getByRole("dialog").className).toContain("right-0");
-    expect(screen.getByLabelText("Mã mẫu")).toBeTruthy();
+    expect(screen.queryByLabelText("Mã mẫu")).toBeNull();
   });
 
   test("wires the edit sample sheet to the update action", () => {

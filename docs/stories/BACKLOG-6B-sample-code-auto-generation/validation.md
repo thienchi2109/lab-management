@@ -13,11 +13,11 @@ Không được claim hoàn tất nếu chỉ kiểm thử UI. Phải chứng mi
 | Layer | Cases |
 | --- | --- |
 | Unit | `parseCreateSampleInput` không yêu cầu `sampleCode`; reject/ignore an toàn nếu client cố gửi mã khi create; helper format date segment tạo `YYMMDD` theo UTC+7; helper format mã tạo `HP-YYMMDD-RRRRRRRC`; check character deterministic bằng hash/mod32 trên phần thân mã. |
-| Component | `CreateSampleDialog` không render field `Mã mẫu`; edit/view vẫn hiển thị mã mẫu như read-only metadata nếu cần. |
+| Component | `CreateSampleDialog` không render input `Mã mẫu`; create modal hiển thị placeholder read-only `HP-YYMMDD-••••••••`; edit/view vẫn hiển thị mã mẫu như read-only metadata nếu cần. |
 | Application | `createSampleMetadataAction` không đọc `sampleCode` từ `FormData`; `createSampleMetadata` nhận mã từ port/RPC result; duplicate-code check cũ không còn là source sinh mã. |
 | SQL Contract | Migration forward-only định nghĩa generator/RPC dùng timezone Việt Nam, crypto random/retry tối đa 5 lần, check character hash/mod32, không scan max suffix, không counter table, `SECURITY DEFINER`, `search_path=public`, revoke/grant đúng. |
 | Database Integration | Live rollback test tạo nhiều mẫu cùng ngày và nhận mã đúng format, không trùng; transaction rollback không để lại fixture; duplicate collision được mô phỏng hoặc chứng minh bằng retry path 5 lần rồi lỗi an toàn. |
-| E2E | agent-browser admin tạo mẫu từ `/dashboard/samples`; modal không có `Mã mẫu`; bảng hiển thị mã dạng `HP-YYMMDD-RRRRRRRC`; không có error overlay/console app error. |
+| E2E | Không bắt buộc cho lượt này theo yêu cầu reviewer; dev server mở để reviewer tự kiểm tra modal placeholder và toast sau submit. |
 | Platform | Supabase apply chỉ qua `mcp__supabase_lab_management` project-ref `tuuqgpzgollcerqqszjr`; advisors không có regression nghiêm trọng mới. |
 | Logs/Audit | Tạo mẫu vẫn ghi audit `sample.created`; audit payload không lộ dữ liệu nhạy cảm ngoài mã mẫu và field names. |
 
@@ -59,7 +59,7 @@ cd lab-kit-app && bun run docstring:check
 Browser proof:
 
 ```text
-agent-browser open http://localhost:3000/dashboard/samples
+Không chạy E2E tự động cho lượt này; reviewer tự kiểm tra qua dev server.
 ```
 
 Harness:
@@ -70,13 +70,23 @@ scripts/bin/harness-cli story verify BACKLOG-6B
 
 ## Acceptance Evidence
 
-Pending implementation.
+Implemented on 2026-06-15.
 
-Planned durable evidence:
+Durable evidence:
 
-- RED failure output for schema/dialog/action/SQL contract.
-- GREEN focused test output.
-- Supabase project proof before apply.
-- Live rollback verification output.
-- agent-browser desktop/mobile proof.
-- React Doctor diff and docstring gate output.
+- RED/GREEN TDD covered schema/action/dialog/SQL contract.
+- Focused sample metadata suite passed: 13 files / 57 tests.
+- Additional dialog/action tests for placeholder and generated-code success
+  toast passed: dialog 3 tests, actions 6 tests.
+- Supabase live project proof used namespace `mcp__supabase_lab_management`,
+  project-ref `tuuqgpzgollcerqqszjr`, latest migration history before apply
+  `20260613032412 lock_sample_results_rpc_selected_template_id`.
+- Forward-only migrations applied live:
+  `20260615015633 sample_metadata_generated_code_rpc` and
+  `20260615020016 sample_metadata_generated_code_rpc_rng_schema`.
+- Live smoke generated `HP-260615-*`, verified format, uniqueness, audit
+  payload `sampleCode`, service-role-only execute, and cleanup returned
+  `remaining_smoke_samples=0`.
+- Quality gates passed: typecheck, React Doctor diff, docstring check.
+- E2E automation intentionally skipped for this final UI tweak per reviewer;
+  dev server was opened for manual reviewer validation.

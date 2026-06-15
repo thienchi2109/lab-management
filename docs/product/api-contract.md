@@ -10,7 +10,6 @@ POST   /api/samples
 GET    /api/samples/:id
 PATCH  /api/samples/:id
 DELETE /api/samples/:id
-GET    /api/samples/next-code
 ```
 
 ## Sample Results

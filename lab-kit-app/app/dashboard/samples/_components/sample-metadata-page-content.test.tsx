@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 
+import { AppToastProvider } from "@/components/ui/toast";
 import { mapSampleMetadataRows } from "@/lib/sample-metadata/metadata";
 
 import { SampleMetadataPageContent } from "./sample-metadata-page-content";
@@ -53,7 +54,9 @@ const metadata = mapSampleMetadataRows({
 describe("SampleMetadataPageContent", () => {
   test("renders sample CRUD controls through shared dashboard primitives", () => {
     const html = renderToStaticMarkup(
-      <SampleMetadataPageContent metadata={metadata} />
+      <AppToastProvider>
+        <SampleMetadataPageContent metadata={metadata} />
+      </AppToastProvider>
     );
 
     expect(html).toContain("Quản lý mẫu xét nghiệm");
@@ -85,6 +88,8 @@ describe("SampleMetadataPageContent", () => {
     );
 
     try {
+      const { AppToastProvider: FreshAppToastProvider } =
+        await import("@/components/ui/toast");
       const { SampleMetadataPageContent } =
         await import("./sample-metadata-page-content");
       const rowMetadata = {
@@ -96,7 +101,9 @@ describe("SampleMetadataPageContent", () => {
       };
 
       renderToStaticMarkup(
-        <SampleMetadataPageContent metadata={rowMetadata} />
+        <FreshAppToastProvider>
+          <SampleMetadataPageContent metadata={rowMetadata} />
+        </FreshAppToastProvider>
       );
 
       expect(formatterConstructs).toBe(1);

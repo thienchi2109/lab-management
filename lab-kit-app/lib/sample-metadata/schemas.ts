@@ -36,7 +36,6 @@ export function isSampleBillingStatus(
 }
 
 const INVALID_SAMPLE_MESSAGE = "Thông tin mẫu xét nghiệm không hợp lệ.";
-const SAMPLE_CODE_PATTERN = /^T(?:1[0-2]|[1-9])_[0-9]{5}$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Lỗi validation metadata mẫu kèm thông báo an toàn theo từng field. */
@@ -76,11 +75,6 @@ const requiredDateSchema = z.preprocess(
 );
 
 const sampleInputSchema = z.object({
-  sampleCode: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .refine((value) => SAMPLE_CODE_PATTERN.test(value)),
   sampleTypeId: z.uuid(),
   customerId: nullableUuidSchema,
   companyId: nullableUuidSchema,
@@ -167,7 +161,6 @@ const sampleMetadataFieldMessages: Partial<
   Record<keyof UpdateSampleInput, string>
 > = {
   sampleId: "Mẫu cần cập nhật không hợp lệ.",
-  sampleCode: "Mã mẫu phải có dạng T6_00012.",
   sampleTypeId: "Loại mẫu không hợp lệ.",
   customerId: "Khách hàng không hợp lệ.",
   companyId: "Công ty không hợp lệ.",
