@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, test } from "vitest";
 
 import LoginPage from "./page";
 
 describe("LoginPage pending state", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   test("shows pending state without dropping submitted credentials", async () => {
     render(await LoginPage({ searchParams: Promise.resolve({}) }));
 
@@ -37,5 +41,22 @@ describe("LoginPage pending state", () => {
     );
     expect(submittedData.get("username")).toBe("admin");
     expect(submittedData.get("password")).toBe("secret");
+  });
+
+  test("shows pending state for quick viewer login", async () => {
+    render(await LoginPage({ searchParams: Promise.resolve({}) }));
+
+    const form = screen
+      .getByRole("button", { name: "Đăng nhập với vai trò người xem" })
+      .closest("form");
+    if (!form) throw new Error("Viewer login form is missing.");
+
+    fireEvent.submit(form);
+
+    expect(
+      screen
+        .getByRole("button", { name: "Đang đăng nhập người xem" })
+        .hasAttribute("disabled")
+    ).toBe(true);
   });
 });

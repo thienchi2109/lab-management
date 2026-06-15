@@ -17,6 +17,7 @@ export function LoginForm({
   errorMessageId,
 }: LoginFormProps) {
   const [pending, setPending] = useState(false);
+  const [viewerPending, setViewerPending] = useState(false);
 
   return (
     <>
@@ -103,9 +104,16 @@ export function LoginForm({
           <LoginSubmitButton pending={pending} />
         </div>
       </form>
-      <form action="/auth/viewer-login" method="post" className="mt-4">
+      <form
+        action="/auth/viewer-login"
+        method="post"
+        className="mt-4"
+        aria-busy={viewerPending}
+        onSubmit={() => setViewerPending(true)}
+      >
         <LoginSubmitButton
           label="Đăng nhập với vai trò người xem"
+          pending={viewerPending}
           pendingLabel="Đang đăng nhập người xem"
         />
       </form>
