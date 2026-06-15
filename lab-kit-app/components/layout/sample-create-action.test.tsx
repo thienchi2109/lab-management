@@ -27,20 +27,14 @@ describe("sample create global action", () => {
     window.removeEventListener("lab:samples:create-requested", listener);
   });
 
-  test("mobile bottom nav exposes a centered sample create action", async () => {
-    const user = userEvent.setup();
+  test("mobile bottom nav no longer exposes a centered sample create action", () => {
     const listener = vi.fn();
     window.addEventListener("lab:samples:create-requested", listener);
 
     render(<BottomNav />);
 
-    const action = screen.getByRole("button", { name: "Thêm mẫu" });
-    expect(action.className).toContain("absolute");
-    expect(action.className).toContain("left-1/2");
-
-    await user.click(action);
-
-    expect(listener).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Thêm mẫu" })).toBeNull();
+    expect(listener).not.toHaveBeenCalled();
     window.removeEventListener("lab:samples:create-requested", listener);
   });
 });

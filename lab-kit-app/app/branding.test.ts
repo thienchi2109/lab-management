@@ -49,6 +49,8 @@ describe("app branding contract", () => {
     expect(layout).toContain("openGraph:");
     expect(layout).toContain("twitter:");
     expect(page).toContain("APP_NAME");
+    expect(page).toContain('redirect("/dashboard/analytics")');
+    expect(page).not.toContain('redirect("/dashboard")');
     expect(page).not.toContain("Lab Kit Management");
     expect(manifest.name).toBe("HOÀNG PHÚC LABORATORY");
     expect(manifest.short_name).toBe("Hoàng Phúc");
@@ -66,6 +68,10 @@ describe("app branding contract", () => {
         type: "image/png",
       },
     ]);
+  });
+
+  test("does not keep a standalone dashboard index route", () => {
+    expect(existsSync(join(appDir, "app/dashboard/page.tsx"))).toBe(false);
   });
 
   test("uses the canonical logo and app name on the login page", () => {

@@ -13,7 +13,7 @@ function redirectToLoginError(request: NextRequest): NextResponse {
   });
 }
 
-/** Sign in with the server-configured viewer account and redirect to dashboard. */
+/** Đăng nhập bằng tài khoản viewer cấu hình sẵn và chuyển đến Báo cáo. */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const viewerLogin = getViewerLoginEnv();
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const dashboardResponse = NextResponse.redirect(
-      createRedirectUrl("/dashboard", request),
+      createRedirectUrl("/dashboard/analytics", request),
       {
         status: 303,
       }

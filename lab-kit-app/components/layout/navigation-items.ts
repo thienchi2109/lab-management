@@ -1,7 +1,6 @@
 import {
   BarChart3,
   FlaskConical,
-  LayoutDashboard,
   Package,
   Settings,
   ShieldCheck,
@@ -9,11 +8,6 @@ import {
 } from "lucide-react";
 
 const mobileNavItems = [
-  {
-    title: "Tổng quan",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-  },
   {
     title: "Mẫu",
     url: "/dashboard/samples",
@@ -48,9 +42,9 @@ const mobileNavItems = [
 
 const desktopNavItems = [
   {
-    title: "Tổng quan",
-    url: "/dashboard",
-    icon: LayoutDashboard,
+    title: "Báo cáo",
+    url: "/dashboard/analytics",
+    icon: BarChart3,
   },
   {
     title: "Mẫu xét nghiệm",
@@ -61,11 +55,6 @@ const desktopNavItems = [
     title: "Kho KIT",
     url: "/dashboard/kits",
     icon: Package,
-  },
-  {
-    title: "Báo cáo",
-    url: "/dashboard/analytics",
-    icon: BarChart3,
   },
   {
     title: "Chỉ tiêu",

@@ -28,7 +28,7 @@ export default async function DashboardLayout({
   const sampleMetadata = await getSampleMetadata();
 
   return (
-    <div className="flex min-h-svh flex-col pb-16 md:pb-0">
+    <div className="flex min-h-svh flex-col pb-[4.5rem] md:pb-0">
       <Topbar
         displayName={session.profile.displayName}
         username={session.profile.username}

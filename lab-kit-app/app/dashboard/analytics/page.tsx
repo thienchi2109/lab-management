@@ -5,12 +5,14 @@ import {
   getAnalyticsActor,
   listAnalyticsDataset,
 } from "@/lib/analytics/operations";
+import { getDashboardOverviewData } from "@/lib/analytics/overview";
 import { createSupabaseDashboardOverviewPort } from "@/lib/analytics/server";
 import { getCurrentSession } from "@/lib/auth/session";
 
+import { DashboardPageContent } from "../_components/dashboard-page-content";
 import { AnalyticsPageClient } from "./_components/analytics-page-client";
 
-/** Render analytics pivot page with a bounded default query. */
+/** Render Báo cáo với dashboard overview và pivot analytics bounded. */
 export default async function AnalyticsPage() {
   await connection();
 
@@ -36,21 +38,28 @@ export default async function AnalyticsPage() {
   }
 
   const initialFilters = getDefaultAnalyticsFilters(new Date());
-  const initialDataset = await listAnalyticsDataset(
-    {
-      dimensions: ["receivedDate"],
-      filters: initialFilters,
-      measures: ["sampleCount", "positiveCount"],
-    },
-    actor,
-    createSupabaseDashboardOverviewPort()
-  );
+  const overviewPort = createSupabaseDashboardOverviewPort();
+  const [overview, initialDataset] = await Promise.all([
+    getDashboardOverviewData(actor, overviewPort),
+    listAnalyticsDataset(
+      {
+        dimensions: ["receivedDate"],
+        filters: initialFilters,
+        measures: ["sampleCount", "positiveCount"],
+      },
+      actor,
+      overviewPort
+    ),
+  ]);
 
   return (
-    <AnalyticsPageClient
-      initialDataset={initialDataset}
-      initialFilters={initialFilters}
-    />
+    <div className="flex flex-col gap-6 md:gap-8">
+      <DashboardPageContent overview={overview} />
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={initialFilters}
+      />
+    </div>
   );
 }
 

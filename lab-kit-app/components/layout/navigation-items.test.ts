@@ -12,3 +12,11 @@ describe("result-configuration navigation", () => {
     );
   });
 });
+
+describe("dashboard route retirement", () => {
+  test("does not expose /dashboard as an internal navigation entry", () => {
+    expect(
+      [...desktopNavItems, ...mobileNavItems].map((item) => item.url)
+    ).not.toContain("/dashboard");
+  });
+});

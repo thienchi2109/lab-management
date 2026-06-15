@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { render, screen } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import DashboardLayout from "./layout";
 
@@ -72,6 +72,22 @@ const metadata = {
 };
 
 describe("DashboardLayout", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  test("reserves enough mobile bottom padding for the taller bottom nav", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(session as never);
+    vi.mocked(getSampleMetadata).mockResolvedValue(metadata);
+
+    const { container } = render(
+      await DashboardLayout({ children: <div>Trang con</div> })
+    );
+
+    expect(container.firstElementChild?.className).toContain("pb-[4.5rem]");
+  });
+
   test("mounts the sample-create bridge globally for every dashboard route", async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(session as never);
     vi.mocked(getSampleMetadata).mockResolvedValue(metadata);
