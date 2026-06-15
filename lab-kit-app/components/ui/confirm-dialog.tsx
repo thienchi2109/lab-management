@@ -52,15 +52,22 @@ export function ConfirmDialog({
       title={title}
       closeLabel={cancelLabel}
       onClose={handleCancel}
+      mobileLayout="compact"
       footer={
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={handleCancel}>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={handleCancel}
+          >
             {cancelLabel}
           </Button>
           <Button
             type={confirmFormId ? "submit" : "button"}
             form={confirmFormId}
             variant={confirmVariant}
+            className="w-full sm:w-auto"
             onClick={handleConfirm}
           >
             {confirmLabel}

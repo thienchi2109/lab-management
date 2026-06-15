@@ -13,6 +13,7 @@ type DialogFrameProps = {
   children: ReactNode;
   footer?: ReactNode;
   mode?: "modal" | "sheet";
+  mobileLayout?: "fullscreen" | "compact";
 };
 
 type SideSheetFrameProps = Omit<DialogFrameProps, "mode">;
@@ -34,6 +35,7 @@ export function DialogFrame({
   children,
   footer,
   mode = "modal",
+  mobileLayout = "fullscreen",
 }: DialogFrameProps) {
   const titleId = useId();
   const frameRef = useRef<HTMLDialogElement>(null);
@@ -93,6 +95,7 @@ export function DialogFrame({
   }, [onClose]);
 
   const isSheet = mode === "sheet";
+  const isCompactMobileModal = !isSheet && mobileLayout === "compact";
 
   return (
     <div className="fixed inset-0 z-50">
@@ -111,7 +114,9 @@ export function DialogFrame({
           "absolute m-0 flex flex-col overflow-hidden bg-background p-0 text-left text-foreground shadow-xl outline-none",
           isSheet
             ? "right-0 top-0 h-dvh w-full max-w-xl border border-y-0 border-r-0 border-border"
-            : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
+            : isCompactMobileModal
+              ? "inset-x-4 top-1/2 max-h-[calc(100dvh-2rem)] w-auto max-w-none -translate-y-1/2 rounded-lg border border-border sm:inset-auto sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
+              : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b px-5 py-4">

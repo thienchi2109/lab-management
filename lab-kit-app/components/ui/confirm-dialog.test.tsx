@@ -3,11 +3,31 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { type FormEvent } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 
 import { ConfirmDialog } from "./confirm-dialog";
 
 describe("ConfirmDialog", () => {
+  test("uses a compact mobile modal instead of inheriting fullscreen form layout", () => {
+    const html = renderToStaticMarkup(
+      <ConfirmDialog
+        open
+        title="Xác nhận đăng xuất"
+        description="Bạn có chắc muốn đăng xuất khỏi hệ thống?"
+        confirmLabel="Đăng xuất"
+        cancelLabel="Hủy"
+        onOpenChange={vi.fn()}
+      />
+    );
+
+    expect(html).toContain("inset-x-4");
+    expect(html).toContain("top-1/2");
+    expect(html).toContain("max-h-[calc(100dvh-2rem)]");
+    expect(html).toContain("rounded-lg");
+    expect(html).not.toContain("h-dvh w-full max-w-none");
+  });
+
   test("renders the shared confirm copy and closes through cancel", async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
