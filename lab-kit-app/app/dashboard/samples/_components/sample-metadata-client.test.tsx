@@ -3,6 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import { AppToastProvider } from "@/components/ui/toast";
 import { mapSampleMetadataRows } from "@/lib/sample-metadata/metadata";
 
 import { SampleMetadataClient } from "./sample-metadata-client";
@@ -27,10 +28,12 @@ const dialogAction = vi.fn(async () => ({
 describe("SampleMetadataClient", () => {
   test("associates the search label with the search input control", () => {
     render(
-      <SampleMetadataClient
-        metadata={metadata}
-        actions={{ createSample: dialogAction, updateSample: dialogAction }}
-      />
+      <AppToastProvider>
+        <SampleMetadataClient
+          metadata={metadata}
+          actions={{ createSample: dialogAction, updateSample: dialogAction }}
+        />
+      </AppToastProvider>
     );
 
     const searchInput = screen.getByLabelText("Tìm kiếm");

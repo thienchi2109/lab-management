@@ -56,7 +56,6 @@ const previousState: SampleMetadataActionState = {
 
 function createSampleForm() {
   const formData = new FormData();
-  formData.set("sampleCode", "T6_00012");
   formData.set("sampleTypeId", "3e122f53-4b7f-409e-a7c2-52394e16d10b");
   formData.set("customerId", "");
   formData.set("companyId", "");
@@ -88,11 +87,46 @@ describe("createSampleMetadataAction", () => {
     vi.mocked(createSupabaseSampleMetadataPort).mockReturnValue(
       {} as ReturnType<typeof createSupabaseSampleMetadataPort>
     );
-    vi.mocked(createSampleMetadata).mockResolvedValue({ sampleId: "sample-1" });
+    vi.mocked(createSampleMetadata).mockResolvedValue({
+      sampleId: "sample-1",
+      sampleCode: "HP-260615-7K3QM2XH",
+    });
     vi.mocked(updateSampleMetadata).mockResolvedValue(undefined);
   });
 
+  test("does not read client-provided sampleCode when creating metadata", async () => {
+    const formData = createSampleForm();
+    formData.set("sampleCode", "HP-CLIENT-SHOULD-BE-IGNORED");
+
+    const result = await createSampleMetadataAction(previousState, formData);
+
+    expect(result.status).toBe("success");
+    expect(result.message).toContain("HP-260615-7K3QM2XH");
+    expect(result.message).not.toContain("HP-CLIENT-SHOULD-BE-IGNORED");
+    expect(createSampleMetadata).toHaveBeenCalledWith(
+      expect.not.objectContaining({ sampleCode: expect.any(String) }),
+      { profileId: "user-admin", organizationId: "org-1" },
+      expect.anything()
+    );
+  });
+
   test("returns known sample metadata errors to the user", async () => {
+    vi.mocked(createSampleMetadata).mockRejectedValue(
+      new Error("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.")
+    );
+
+    const result = await createSampleMetadataAction(
+      previousState,
+      createSampleForm()
+    );
+
+    expect(result).toEqual({
+      status: "error",
+      message: "Dữ liệu tham chiếu không thuộc tổ chức hiện tại.",
+    });
+  });
+
+  test("does not expose stale manual sample code duplicate errors", async () => {
     vi.mocked(createSampleMetadata).mockRejectedValue(
       new Error("Mã mẫu đã tồn tại.")
     );
@@ -104,7 +138,7 @@ describe("createSampleMetadataAction", () => {
 
     expect(result).toEqual({
       status: "error",
-      message: "Mã mẫu đã tồn tại.",
+      message: "Không thể tạo mẫu. Kiểm tra thông tin và thử lại.",
     });
   });
 
@@ -125,7 +159,6 @@ describe("createSampleMetadataAction", () => {
 
   test("returns field-level validation errors for invalid create input", async () => {
     const formData = createSampleForm();
-    formData.set("sampleCode", "bad");
     formData.set("sampleTypeId", "not-a-uuid");
     formData.set("receivedAt", "2026-06-06T08:30:00.000Z");
     formData.set("status", "done");
@@ -137,7 +170,6 @@ describe("createSampleMetadataAction", () => {
       message: "Thông tin mẫu xét nghiệm không hợp lệ.",
       fieldErrors: {
         receivedAt: "Ngày nhận phải dùng định dạng YYYY-MM-DD.",
-        sampleCode: "Mã mẫu phải có dạng T6_00012.",
         sampleTypeId: "Loại mẫu không hợp lệ.",
         status: "Trạng thái mẫu không hợp lệ.",
       },

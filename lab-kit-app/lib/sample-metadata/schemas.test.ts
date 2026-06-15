@@ -11,7 +11,6 @@ import {
 describe("sample metadata schemas", () => {
   test("normalizes create input and keeps optional references nullable", () => {
     const input = parseCreateSampleInput({
-      sampleCode: " t6_00012 ",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerId: "",
       companyId: null,
@@ -25,7 +24,6 @@ describe("sample metadata schemas", () => {
     });
 
     expect(input).toEqual({
-      sampleCode: "T6_00012",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerId: null,
       companyId: null,
@@ -39,10 +37,22 @@ describe("sample metadata schemas", () => {
     });
   });
 
+  test("ignores client-supplied sampleCode when creating metadata", () => {
+    const input = parseCreateSampleInput({
+      sampleCode: "HP-260615-7K3QM2XH",
+      sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+      customerName: "Công ty Minh Phú",
+      receivedAt: "2026-06-06",
+      status: "received",
+      billingStatus: "unpaid",
+    });
+
+    expect("sampleCode" in input).toBe(false);
+  });
+
   test("rejects invalid statuses, invalid references, and missing metadata", () => {
     expect(() =>
       parseCreateSampleInput({
-        sampleCode: "T6_00012",
         sampleTypeId: "not-a-uuid",
         customerName: "",
         receivedAt: "06/06/2026",
@@ -55,7 +65,6 @@ describe("sample metadata schemas", () => {
   test("rejects datetime strings with trailing garbage", () => {
     expect(() =>
       parseCreateSampleInput({
-        sampleCode: "T6_00012",
         sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
         customerName: "Công ty Minh Phú",
         collectedAt: "2026-06-06T08:30Z-extra",
@@ -68,7 +77,6 @@ describe("sample metadata schemas", () => {
 
   test("keeps the action input contract on date-only values", () => {
     const validInput = {
-      sampleCode: "T6_00012",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerName: "Công ty Minh Phú",
       collectedAt: "2026-06-05",
@@ -94,29 +102,9 @@ describe("sample metadata schemas", () => {
     }
   });
 
-  test("rejects sample codes outside calendar months", () => {
-    const validInput = {
-      sampleCode: "T12_99999",
-      sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
-      customerName: "Công ty Minh Phú",
-      receivedAt: "2026-06-06",
-      status: "received",
-      billingStatus: "unpaid",
-    };
-
-    expect(parseCreateSampleInput(validInput).sampleCode).toBe("T12_99999");
-
-    for (const sampleCode of ["T0_00001", "T13_00001", "T99_00001"]) {
-      expect(() =>
-        parseCreateSampleInput({ ...validInput, sampleCode })
-      ).toThrow(SampleMetadataValidationError);
-    }
-  });
-
   test("rejects blank receivedAt as the required date field", () => {
     expect(() =>
       parseCreateSampleInput({
-        sampleCode: "T6_00012",
         sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
         customerName: "Công ty Minh Phú",
         collectedAt: "",
@@ -130,7 +118,6 @@ describe("sample metadata schemas", () => {
   test("exposes user-safe field errors for invalid form values", () => {
     try {
       parseCreateSampleInput({
-        sampleCode: "bad",
         sampleTypeId: "not-a-uuid",
         customerId: "not-a-uuid",
         customerName: "",
@@ -150,7 +137,6 @@ describe("sample metadata schemas", () => {
         customerName: "Tên khách hàng là bắt buộc và tối đa 200 ký tự.",
         note: "Ghi chú tối đa 500 ký tự.",
         receivedAt: "Ngày nhận phải dùng định dạng YYYY-MM-DD.",
-        sampleCode: "Mã mẫu phải có dạng T6_00012.",
         sampleTypeId: "Loại mẫu không hợp lệ.",
         status: "Trạng thái mẫu không hợp lệ.",
       });
@@ -167,7 +153,6 @@ describe("sample metadata schemas", () => {
   test("requires update id while preserving editable metadata contract", () => {
     const input = parseUpdateSampleInput({
       sampleId: "25d0f9ea-441b-4cc3-bf05-c0984fbbe99f",
-      sampleCode: "T6_00013",
       sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
       customerName: "Khách lẻ Trần Văn B",
       receivedAt: "2026-06-06",
@@ -178,5 +163,19 @@ describe("sample metadata schemas", () => {
     expect(input.sampleId).toBe("25d0f9ea-441b-4cc3-bf05-c0984fbbe99f");
     expect(input.status).toBe("in_progress");
     expect(input.billingStatus).toBe("invoiced");
+  });
+
+  test("ignores client-supplied sampleCode when updating metadata", () => {
+    const input = parseUpdateSampleInput({
+      sampleId: "25d0f9ea-441b-4cc3-bf05-c0984fbbe99f",
+      sampleCode: "HP-260615-7K3QM2XH",
+      sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+      customerName: "Khách lẻ Trần Văn B",
+      receivedAt: "2026-06-06",
+      status: "in_progress",
+      billingStatus: "invoiced",
+    });
+
+    expect("sampleCode" in input).toBe(false);
   });
 });

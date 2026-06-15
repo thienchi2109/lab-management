@@ -21,15 +21,12 @@ function createPort(
   return {
     audits,
     writes,
-    async sampleCodeExists() {
-      return false;
-    },
     async referencesBelongToOrganization() {
       return true;
     },
     async createSample(input) {
       writes.push(input);
-      return { sampleId: "sample-1" };
+      return { sampleId: "sample-1", sampleCode: "HP-260615-7K3QM2XH" };
     },
     async updateSample(input) {
       writes.push(input);
@@ -42,7 +39,6 @@ function createPort(
 }
 
 const createInput = {
-  sampleCode: "T6_00012",
   sampleTypeId: "type-1",
   customerId: "customer-1",
   companyId: "company-1",
@@ -56,31 +52,22 @@ const createInput = {
 };
 
 describe("sample metadata operations", () => {
-  test("creates a tenant-scoped sample and writes safe audit evidence", async () => {
+  test("creates a tenant-scoped sample with generated code and writes safe audit evidence", async () => {
     const port = createPort();
 
     const result = await createSampleMetadata(createInput, actor, port);
 
-    expect(result).toEqual({ sampleId: "sample-1" });
+    expect(result).toEqual({
+      sampleId: "sample-1",
+      sampleCode: "HP-260615-7K3QM2XH",
+    });
     expect(port.writes).toContainEqual(
       expect.objectContaining({
         organizationId: "org-1",
         createdBy: "profile-1",
-        sampleCode: "T6_00012",
-      })
-    );
-    expect(port.audits).toContainEqual(
-      expect.objectContaining({
-        organizationId: "org-1",
-        actorId: "profile-1",
-        action: "sample.created",
-        entityTable: "samples",
-        entityId: "sample-1",
-        eventPayload: {
+        auditEventPayload: {
           metadataPolicy: "field-names-only",
-          sampleCode: "T6_00012",
           submittedFields: [
-            "sampleCode",
             "sampleTypeId",
             "customerId",
             "companyId",
@@ -95,24 +82,40 @@ describe("sample metadata operations", () => {
         },
       })
     );
-    expect(JSON.stringify(port.audits)).not.toContain("Nguyễn Văn A");
-    expect(JSON.stringify(port.audits)).not.toContain("Ưu tiên");
-    expect(JSON.stringify(port.audits)).not.toContain("2026-06-06T08:30");
-    expect(JSON.stringify(port.audits)).not.toContain("customer-1");
+    expect(port.writes).not.toContainEqual(
+      expect.objectContaining({ sampleCode: expect.any(String) })
+    );
+    expect(port.audits).toEqual([]);
+    expect(JSON.stringify(port.writes[0])).toContain("auditEventPayload");
+    expect(JSON.stringify(port.writes[0])).not.toContain(
+      '"auditEventPayload":{"metadataPolicy":"field-names-only","sampleCode"'
+    );
+    expect(
+      JSON.stringify(
+        (port.writes[0] as { auditEventPayload: unknown }).auditEventPayload
+      )
+    ).not.toContain("Nguyễn Văn A");
+    expect(
+      JSON.stringify(
+        (port.writes[0] as { auditEventPayload: unknown }).auditEventPayload
+      )
+    ).not.toContain("Ưu tiên");
+    expect(
+      JSON.stringify(
+        (port.writes[0] as { auditEventPayload: unknown }).auditEventPayload
+      )
+    ).not.toContain("customer-1");
   });
 
-  test("rejects duplicate sample codes before writing", async () => {
-    const port = createPort({
-      async sampleCodeExists() {
-        return true;
-      },
-    });
+  test("does not preflight duplicate sample codes before database generation", async () => {
+    const port = createPort();
 
     await expect(
       createSampleMetadata(createInput, actor, port)
-    ).rejects.toThrow("Mã mẫu đã tồn tại.");
-    expect(port.writes).toEqual([]);
-    expect(port.audits).toEqual([]);
+    ).resolves.toEqual({
+      sampleId: "sample-1",
+      sampleCode: "HP-260615-7K3QM2XH",
+    });
   });
 
   test("rejects references outside the actor organization", async () => {
@@ -129,21 +132,13 @@ describe("sample metadata operations", () => {
     expect(port.audits).toEqual([]);
   });
 
-  test("starts independent save guards before waiting for either result", async () => {
-    let resolveDuplicate!: (value: boolean) => void;
+  test("validates references before creating the database-generated sample", async () => {
     let resolveReferences!: (value: boolean) => void;
     const calls: string[] = [];
-    const duplicateDone = new Promise<boolean>((resolve) => {
-      resolveDuplicate = resolve;
-    });
     const referencesDone = new Promise<boolean>((resolve) => {
       resolveReferences = resolve;
     });
     const port = createPort({
-      async sampleCodeExists() {
-        calls.push("duplicate");
-        return duplicateDone;
-      },
       async referencesBelongToOrganization() {
         calls.push("references");
         return referencesDone;
@@ -153,12 +148,14 @@ describe("sample metadata operations", () => {
     const result = createSampleMetadata(createInput, actor, port);
     await Promise.resolve();
 
-    expect(calls).toEqual(["duplicate", "references"]);
+    expect(calls).toEqual(["references"]);
 
-    resolveDuplicate(false);
     resolveReferences(true);
 
-    await expect(result).resolves.toEqual({ sampleId: "sample-1" });
+    await expect(result).resolves.toEqual({
+      sampleId: "sample-1",
+      sampleCode: "HP-260615-7K3QM2XH",
+    });
   });
 
   test("updates only sample metadata and audits updated field names", async () => {
@@ -184,9 +181,7 @@ describe("sample metadata operations", () => {
         entityId: "sample-1",
         eventPayload: {
           metadataPolicy: "field-names-only",
-          sampleCode: "T6_00012",
           updatedFields: [
-            "sampleCode",
             "sampleTypeId",
             "customerId",
             "companyId",

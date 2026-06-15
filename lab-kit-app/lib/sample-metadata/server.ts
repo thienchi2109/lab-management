@@ -145,22 +145,6 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
   const supabase = getSupabaseAdminClient();
 
   return {
-    async sampleCodeExists(input) {
-      let query = supabase
-        .from("samples")
-        .select("id")
-        .eq("organization_id", input.organizationId)
-        .eq("sample_code", input.sampleCode)
-        .limit(1);
-
-      if (input.excludeSampleId) {
-        query = query.neq("id", input.excludeSampleId);
-      }
-
-      const { data, error } = await query.maybeSingle<{ id: string }>();
-      if (error) throw new Error("Không thể kiểm tra mã mẫu.");
-      return Boolean(data);
-    },
     async referencesBelongToOrganization(input) {
       const checks = await Promise.all([
         existsInOrg("sample_types", input.sampleTypeId, input.organizationId),
@@ -181,13 +165,25 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
     },
     async createSample(input) {
       const { data, error } = await supabase
-        .from("samples")
-        .insert(toSampleInsert(input))
-        .select("id")
-        .single<{ id: string }>();
+        .rpc("create_sample_metadata_with_code", {
+          p_actor_id: input.createdBy,
+          p_audit_event_payload: input.auditEventPayload,
+          p_billing_status: input.billingStatus,
+          p_collected_at: input.collectedAt,
+          p_company_id: input.companyId,
+          p_customer_id: input.customerId,
+          p_customer_name: input.customerName,
+          p_kit_batch_id: input.kitBatchId,
+          p_note: input.note,
+          p_organization_id: input.organizationId,
+          p_received_at: input.receivedAt,
+          p_sample_type_id: input.sampleTypeId,
+          p_status: input.status,
+        })
+        .single<{ sample_id: string; sample_code: string }>();
 
       if (error || !data) throw new Error("Không thể tạo mẫu xét nghiệm.");
-      return { sampleId: data.id };
+      return { sampleId: data.sample_id, sampleCode: data.sample_code };
     },
     async updateSample(input) {
       const { error } = await supabase
@@ -250,16 +246,6 @@ function existsNullableInOrg(
   return id ? existsInOrg(table, id, organizationId) : Promise.resolve(true);
 }
 
-function toSampleInsert(
-  input: CreateSampleInput & { organizationId: string; createdBy: string }
-) {
-  return {
-    ...toSampleUpdateFields(input),
-    organization_id: input.organizationId,
-    created_by: input.createdBy,
-  };
-}
-
 function toSampleUpdate(input: UpdateSampleInput & { organizationId: string }) {
   return toSampleUpdateFields(input);
 }
@@ -270,7 +256,6 @@ function toSampleUpdateFields(input: CreateSampleInput) {
     customer_id: input.customerId,
     company_id: input.companyId,
     kit_batch_id: input.kitBatchId,
-    sample_code: input.sampleCode,
     customer_name: input.customerName,
     collected_at: input.collectedAt,
     received_at: input.receivedAt,

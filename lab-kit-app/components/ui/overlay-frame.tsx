@@ -108,10 +108,10 @@ export function DialogFrame({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "absolute m-0 flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden border border-border bg-background p-0 text-left text-foreground shadow-xl outline-none",
+          "absolute m-0 flex flex-col overflow-hidden bg-background p-0 text-left text-foreground shadow-xl outline-none",
           isSheet
-            ? "right-0 top-0 h-dvh w-full max-w-xl border-y-0 border-r-0"
-            : "left-1/2 top-1/2 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg"
+            ? "right-0 top-0 h-dvh w-full max-w-xl border border-y-0 border-r-0 border-border"
+            : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b px-5 py-4">

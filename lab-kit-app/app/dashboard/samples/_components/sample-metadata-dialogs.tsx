@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useCallback } from "react";
 
 import { ActionMessage } from "@/components/dashboard/action-message";
 import {
@@ -8,6 +8,7 @@ import {
   DialogFrame,
   SideSheetFrame,
 } from "@/components/ui/overlay-frame";
+import { useToast } from "@/components/ui/toast";
 import {
   Field,
   SelectField,
@@ -43,8 +44,9 @@ type DialogProps = {
 
 /** Render the create-sample metadata dialog. */
 export function CreateSampleDialog(props: DialogProps) {
+  const actionWithToast = useSampleMetadataActionWithToast(props.formAction);
   const [state, action, pending] = useActionState(
-    props.formAction,
+    actionWithToast,
     initialDialogState
   );
 
@@ -75,8 +77,9 @@ export function EditSampleDialog({
   sample,
   ...props
 }: Omit<DialogProps, "open"> & { sample: SampleMetadataRow | null }) {
+  const actionWithToast = useSampleMetadataActionWithToast(props.formAction);
   const [state, action, pending] = useActionState(
-    props.formAction,
+    actionWithToast,
     initialDialogState
   );
 
@@ -101,6 +104,26 @@ export function EditSampleDialog({
         {...formProps}
       />
     </SideSheetFrame>
+  );
+}
+
+function useSampleMetadataActionWithToast(action: SampleMetadataDialogAction) {
+  const { toast } = useToast();
+
+  return useCallback(
+    async (previousState: typeof initialDialogState, formData: FormData) => {
+      const nextState = await action(previousState, formData);
+
+      if (nextState.status === "success" && nextState.message) {
+        toast({
+          title: "Thao tác mẫu xét nghiệm",
+          description: nextState.message,
+        });
+      }
+
+      return nextState;
+    },
+    [action, toast]
   );
 }
 
@@ -144,18 +167,17 @@ function SampleForm({
             Thông tin mẫu
           </h3>
           <p className="text-xs text-muted-foreground">
-            Nhập định danh, khách hàng và trạng thái xử lý ban đầu.
+            Nhập khách hàng và trạng thái xử lý ban đầu.
           </p>
         </div>
-        <Field
-          className={fieldClass}
-          inputClassName={controlClass}
-          label="Mã mẫu"
-          name="sampleCode"
-          defaultValue={sample?.sampleCode}
-          required
-          error={errors.sampleCode}
-        />
+        {!sample ? (
+          <div className="space-y-1 rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 sm:col-span-2">
+            <p className="text-xs font-medium text-muted-foreground">Mã mẫu</p>
+            <p className="font-mono text-sm text-foreground">
+              HP-YYMMDD-••••••••
+            </p>
+          </div>
+        ) : null}
         <SelectField
           className={fieldClass}
           triggerClassName={controlClass}

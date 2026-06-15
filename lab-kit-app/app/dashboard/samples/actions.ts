@@ -44,13 +44,13 @@ export async function createSampleMetadataAction(
       throw new Error("Sample metadata write access required.");
     }
 
-    await createSampleMetadata(
+    const result = await createSampleMetadata(
       parseCreateSampleInput(formDataToSampleInput(formData)),
       actor,
       createSupabaseSampleMetadataPort()
     );
     revalidatePath("/dashboard/samples");
-    return success("Đã tạo mẫu xét nghiệm.");
+    return success(`Đã tạo mẫu xét nghiệm. Mã mẫu: ${result.sampleCode}.`);
   } catch (err) {
     return errorFromUnknown(
       err,
@@ -97,7 +97,6 @@ export async function updateSampleMetadataAction(
 
 function formDataToSampleInput(formData: FormData) {
   return {
-    sampleCode: formData.get("sampleCode"),
     sampleTypeId: formData.get("sampleTypeId"),
     customerId: formData.get("customerId"),
     companyId: formData.get("companyId"),
@@ -141,7 +140,6 @@ function safeSampleMetadataErrorMessage(err: unknown, fallback: string) {
 
   switch (err.message) {
     case "Thông tin mẫu xét nghiệm không hợp lệ.":
-    case "Mã mẫu đã tồn tại.":
     case "Dữ liệu tham chiếu không thuộc tổ chức hiện tại.":
       return err.message;
     default:

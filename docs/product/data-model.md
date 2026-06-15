@@ -59,7 +59,8 @@ metric_settings                                     │
 
 ## Key Constraints
 
-- `sample_code` unique, generated server-side: `T<month>_<#####>`
+- `sample_code` unique per organization, generated server-side:
+  `HP-YYMMDD-RRRRRRRC`
 - `kit_code` unique per kit
 - Kit assignment must be atomic (prevent duplicate assign)
 - Sample status workflow: draft → done → approved

@@ -1,8 +1,16 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import type React from "react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import { AppToastProvider } from "@/components/ui/toast";
 import { mapSampleMetadataRows } from "@/lib/sample-metadata/metadata";
 
 import {
@@ -60,9 +68,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function renderWithToast(ui: React.ReactElement) {
+  return render(<AppToastProvider>{ui}</AppToastProvider>);
+}
+
 describe("sample metadata dialogs", () => {
   test("renders create sample with structured form sections", () => {
-    render(
+    renderWithToast(
       <CreateSampleDialog
         open
         formAction={dialogAction}
@@ -73,7 +85,10 @@ describe("sample metadata dialogs", () => {
 
     expect(screen.getByText("Thông tin mẫu")).toBeTruthy();
     expect(screen.getByText("Ghi chú xử lý")).toBeTruthy();
+    expect(screen.getByText("Mã mẫu")).toBeTruthy();
+    expect(screen.getByText("HP-YYMMDD-••••••••")).toBeTruthy();
     expect(screen.getByText("Tên khách hàng")).toBeTruthy();
+    expect(screen.queryByLabelText("Mã mẫu")).toBeNull();
     expect(screen.getByText("Ghi chú").className).toContain("sr-only");
     expect(screen.getByLabelText("Ngày lấy mẫu").getAttribute("type")).toBe(
       "date"
@@ -91,7 +106,7 @@ describe("sample metadata dialogs", () => {
   });
 
   test("renders edit sample as a right side sheet", () => {
-    render(
+    renderWithToast(
       <EditSampleDialog
         sample={metadata.samples[0]}
         formAction={dialogAction}
@@ -101,6 +116,31 @@ describe("sample metadata dialogs", () => {
     );
 
     expect(screen.getByText("Cập nhật T6_00012")).toBeTruthy();
+    expect(screen.queryByLabelText("Mã mẫu")).toBeNull();
     expect(screen.getByRole("dialog").className).toContain("right-0");
+  });
+
+  test("shows the generated sample code in a success toast after submit", async () => {
+    const formAction = vi.fn(async () => ({
+      status: "success" as const,
+      message: "Đã tạo mẫu xét nghiệm. Mã mẫu: HP-260615-7K3QM2XH.",
+    }));
+
+    renderWithToast(
+      <CreateSampleDialog
+        open
+        formAction={formAction}
+        onClose={vi.fn()}
+        {...metadata}
+      />
+    );
+
+    fireEvent.submit(screen.getByText("Tạo mẫu").closest("form")!);
+
+    await waitFor(() => {
+      expect(
+        document.querySelector("[data-slot='toast-description']")?.textContent
+      ).toBe("Đã tạo mẫu xét nghiệm. Mã mẫu: HP-260615-7K3QM2XH.");
+    });
   });
 });
