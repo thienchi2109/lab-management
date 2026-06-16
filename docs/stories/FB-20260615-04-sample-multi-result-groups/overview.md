@@ -88,7 +88,7 @@ Phản hồi mới xác nhận một mẫu có thể kiểm nhiều nhóm chỉ 
 
 ## Slice Plan
 
-Story cha được chia thành 4 slice nhỏ để giảm blast radius và đi qua TDD theo
+Story cha được chia thành 5 slice nhỏ để giảm blast radius và đi qua TDD theo
 từng tầng. Mỗi slice có story packet riêng và verify-command riêng:
 
 - `FB-20260615-04A` - Mẫu nhiều nhóm chỉ tiêu, model slice. Schema Zod và
@@ -100,7 +100,10 @@ từng tầng. Mỗi slice có story packet riêng và verify-command riêng:
 - `FB-20260615-04D` - Migration và RPC. Forward-only migration cho bảng nối
   `sample_result_groups`, RLS, RPC `create_sample_metadata_with_code` và
   `save_sample_results_with_audit` đọc nhóm từ bảng nối, backfill cho mẫu cũ.
+- `FB-20260615-04E` - Form UI và server adapter chọn nhóm chỉ tiêu. Modal
+  tạo/sửa mẫu gửi `resultGroupIds`, server action validate qua contract 04A và
+  adapter ghi/đồng bộ `sample_result_groups` dựa trên contract 04D.
 
 Story cha vẫn là nguồn product contract. Story con cập nhật proof và status
-của riêng mình. Khi cả 4 slice đạt verify-command, story cha được chuyển sang
+của riêng mình. Khi cả 5 slice đạt verify-command, story cha được chuyển sang
 `implemented` kèm evidence tổng hợp.
