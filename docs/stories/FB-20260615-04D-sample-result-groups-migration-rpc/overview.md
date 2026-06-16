@@ -12,6 +12,14 @@ high-risk
 
 FB-20260615-04 - Mẫu hỗ trợ nhiều nhóm chỉ tiêu.
 
+## Product Contract
+
+- `docs/product/data-model.md` - result engine và sample management entities.
+- `docs/product/result-engine.md` - nhóm chỉ tiêu, metric và Kết Quả Chung.
+- `docs/product/api-contract.md` - sample metadata RPC và sample results RPC.
+- `docs/stories/FB-20260615-04-sample-multi-result-groups/overview.md` - story
+  cha định nghĩa quan hệ mẫu nhiều nhóm chỉ tiêu.
+
 ## Scope
 
 - Forward-only migration tạo bảng `public.sample_result_groups` (sample_id,
@@ -38,6 +46,7 @@ FB-20260615-04 - Mẫu hỗ trợ nhiều nhóm chỉ tiêu.
 
 - `cd lab-kit-app && bun run test --run lib/sample-metadata lib/sample-results`
 - `node scripts/validate-supabase-schema.mjs`
+- `cd lab-kit-app && bun run typecheck`
 - Live read-only proof trước migration; live read-only proof sau migration để
   xác nhận bảng mới và RPC mới.
 
@@ -47,5 +56,6 @@ FB-20260615-04 - Mẫu hỗ trợ nhiều nhóm chỉ tiêu.
 
 ## Out of Scope
 
-- Sample grid filter UI, result entry loader, form chọn nhóm. Sẽ được làm trong
-  04B, 04C.
+- Sample grid filter UI thuộc 04B.
+- Result entry loader UI/server adapter ngoài RPC whitelist thuộc 04C.
+- Form tạo/sửa mẫu chọn nhóm thuộc 04E.
