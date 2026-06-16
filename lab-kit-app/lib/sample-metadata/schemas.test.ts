@@ -21,6 +21,10 @@ describe("sample metadata schemas", () => {
       status: "received",
       billingStatus: "unpaid",
       note: "  Ưu tiên trả kết quả  ",
+      resultGroupIds: [
+        "9a3b29ad-180d-48d7-9134-fc8931799b19",
+        "2d657871-48fa-4913-85c4-8d0fb73bd3f6",
+      ],
     });
 
     expect(input).toEqual({
@@ -34,7 +38,41 @@ describe("sample metadata schemas", () => {
       status: "received",
       billingStatus: "unpaid",
       note: "Ưu tiên trả kết quả",
+      resultGroupIds: [
+        "9a3b29ad-180d-48d7-9134-fc8931799b19",
+        "2d657871-48fa-4913-85c4-8d0fb73bd3f6",
+      ],
     });
+  });
+
+  test("requires at least one result group and de-duplicates selections", () => {
+    const input = parseCreateSampleInput({
+      sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+      customerName: "Công ty Minh Phú",
+      receivedAt: "2026-06-06",
+      status: "received",
+      billingStatus: "unpaid",
+      resultGroupIds: [
+        "9a3b29ad-180d-48d7-9134-fc8931799b19",
+        "9a3b29ad-180d-48d7-9134-fc8931799b19",
+        "2d657871-48fa-4913-85c4-8d0fb73bd3f6",
+      ],
+    });
+
+    expect(input.resultGroupIds).toEqual([
+      "9a3b29ad-180d-48d7-9134-fc8931799b19",
+      "2d657871-48fa-4913-85c4-8d0fb73bd3f6",
+    ]);
+    expect(() =>
+      parseCreateSampleInput({
+        sampleTypeId: "3e122f53-4b7f-409e-a7c2-52394e16d10b",
+        customerName: "Công ty Minh Phú",
+        receivedAt: "2026-06-06",
+        status: "received",
+        billingStatus: "unpaid",
+        resultGroupIds: [],
+      })
+    ).toThrow(SampleMetadataValidationError);
   });
 
   test("ignores client-supplied sampleCode when creating metadata", () => {
@@ -45,6 +83,7 @@ describe("sample metadata schemas", () => {
       receivedAt: "2026-06-06",
       status: "received",
       billingStatus: "unpaid",
+      resultGroupIds: ["9a3b29ad-180d-48d7-9134-fc8931799b19"],
     });
 
     expect("sampleCode" in input).toBe(false);
@@ -83,6 +122,7 @@ describe("sample metadata schemas", () => {
       receivedAt: "2026-06-06",
       status: "received",
       billingStatus: "unpaid",
+      resultGroupIds: ["9a3b29ad-180d-48d7-9134-fc8931799b19"],
     };
 
     expect(parseCreateSampleInput(validInput)).toMatchObject({
@@ -123,6 +163,7 @@ describe("sample metadata schemas", () => {
         customerName: "",
         collectedAt: "2026-06-06T08:30:00.000Z",
         receivedAt: "2026-06-06T08:30:00",
+        resultGroupIds: ["not-a-uuid"],
         status: "done",
         billingStatus: "late",
         note: "x".repeat(501),
@@ -137,6 +178,7 @@ describe("sample metadata schemas", () => {
         customerName: "Tên khách hàng là bắt buộc và tối đa 200 ký tự.",
         note: "Ghi chú tối đa 500 ký tự.",
         receivedAt: "Ngày nhận phải dùng định dạng YYYY-MM-DD.",
+        resultGroupIds: "Chọn ít nhất một nhóm chỉ tiêu hợp lệ.",
         sampleTypeId: "Loại mẫu không hợp lệ.",
         status: "Trạng thái mẫu không hợp lệ.",
       });
@@ -158,6 +200,7 @@ describe("sample metadata schemas", () => {
       receivedAt: "2026-06-06",
       status: "in_progress",
       billingStatus: "invoiced",
+      resultGroupIds: ["9a3b29ad-180d-48d7-9134-fc8931799b19"],
     });
 
     expect(input.sampleId).toBe("25d0f9ea-441b-4cc3-bf05-c0984fbbe99f");
@@ -174,6 +217,7 @@ describe("sample metadata schemas", () => {
       receivedAt: "2026-06-06",
       status: "in_progress",
       billingStatus: "invoiced",
+      resultGroupIds: ["9a3b29ad-180d-48d7-9134-fc8931799b19"],
     });
 
     expect("sampleCode" in input).toBe(false);

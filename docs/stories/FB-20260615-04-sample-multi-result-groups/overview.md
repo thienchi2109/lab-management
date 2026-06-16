@@ -34,11 +34,41 @@ Phản hồi mới xác nhận một mẫu có thể kiểm nhiều nhóm chỉ 
 ## Target Behavior
 
 - Form `Thêm mẫu` có trường `Nhóm chỉ tiêu`.
-- Một mẫu chọn được nhiều nhóm chỉ tiêu.
+- Một mẫu chọn trực tiếp được nhiều `result_groups`.
 - Một nhóm có nhiều chỉ tiêu.
 - Một chỉ tiêu có thể thuộc nhiều nhóm chỉ tiêu khác nhau.
 - Khi nhập/xem kết quả, kết quả vẫn tách theo từng nhóm đã chọn.
 - Mỗi nhóm có `Kết Quả Chung` riêng.
+- Existing samples được backfill nhóm chỉ tiêu từ template/kết quả hiện có khi
+  suy ra được. Nếu không suy ra được, hệ thống fallback sang toàn bộ nhóm
+  active để không mất khả năng xem hoặc nhập kết quả.
+
+## Proposed Data Contract
+
+- Thêm bảng nối `sample_result_groups` để lưu `sample_id` ↔ `result_group_id`
+  theo từng organization.
+- `samples.sample_type_id` vẫn giữ vai trò loại mẫu, không còn là nguồn duy
+  nhất quyết định nhóm chỉ tiêu khi nhập kết quả.
+- Form tạo/sửa mẫu gửi danh sách `resultGroupIds` đã chọn. Server validate các
+  nhóm thuộc cùng organization, đang active và không rỗng.
+- Result entry chỉ lấy metric thuộc các nhóm đã gắn với mẫu. Nếu mẫu cũ chưa có
+  mapping, server dùng fallback toàn bộ nhóm active cho đến khi migration hoặc
+  backfill hoàn tất.
+- Filter danh sách mẫu nhận một hoặc nhiều `resultGroupIds` và chỉ trả mẫu có
+  ít nhất một nhóm khớp.
+
+## Design Decisions
+
+- Form tạo/sửa mẫu chọn trực tiếp nhiều `result_groups`; không chọn thông qua
+  `result_templates`.
+- Mẫu lưu quan hệ nhiều-nhiều với nhóm chỉ tiêu bằng bảng nối riêng để không
+  thay đổi ý nghĩa của `sample_type_id`.
+- Mẫu cũ được backfill từ template hoặc kết quả hiện có nếu có thể suy ra nhóm.
+  Nếu không suy ra được, hệ thống fallback sang toàn bộ nhóm active của tổ chức
+  để không mất khả năng xem hoặc nhập kết quả.
+- Result entry chỉ tải và hiển thị các chỉ tiêu thuộc nhóm đã chọn của mẫu.
+- Filter danh sách mẫu lọc được theo một hoặc nhiều nhóm chỉ tiêu đã gắn với
+  mẫu.
 
 ## Acceptance Criteria
 
@@ -56,3 +86,24 @@ Phản hồi mới xác nhận một mẫu có thể kiểm nhiều nhóm chỉ 
 - Không làm quản trị toàn bộ catalog chỉ tiêu nếu story này chỉ cần chọn nhóm
   đã có.
 
+## Slice Plan
+
+Story cha được chia thành 5 slice nhỏ để giảm blast radius và đi qua TDD theo
+từng tầng. Mỗi slice có story packet riêng và verify-command riêng:
+
+- `FB-20260615-04A` - Mẫu nhiều nhóm chỉ tiêu, model slice. Schema Zod và
+  operations metadata yêu cầu `resultGroupIds`, audit field-name list mở rộng.
+- `FB-20260615-04B` - Sample grid lọc theo nhiều nhóm chỉ tiêu. Query parser,
+  port `listSamples` và bảng nối `sample_result_groups` cho filter.
+- `FB-20260615-04C` - Result entry tải theo `sample_result_groups`. Bỏ lệ
+  thuộc duy nhất vào template theo `sample_type_id`, có fallback cho mẫu cũ.
+- `FB-20260615-04D` - Migration và RPC. Forward-only migration cho bảng nối
+  `sample_result_groups`, RLS, RPC `create_sample_metadata_with_code` và
+  `save_sample_results_with_audit` đọc nhóm từ bảng nối, backfill cho mẫu cũ.
+- `FB-20260615-04E` - Form UI và server adapter chọn nhóm chỉ tiêu. Modal
+  tạo/sửa mẫu gửi `resultGroupIds`, server action validate qua contract 04A và
+  adapter ghi/đồng bộ `sample_result_groups` dựa trên contract 04D.
+
+Story cha vẫn là nguồn product contract. Story con cập nhật proof và status
+của riêng mình. Khi cả 5 slice đạt verify-command, story cha được chuyển sang
+`implemented` kèm evidence tổng hợp.

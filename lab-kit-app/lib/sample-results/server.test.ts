@@ -129,6 +129,74 @@ describe("createSupabaseSampleResultsPort", () => {
       },
     });
   });
+
+  test("loads result entry from groups selected on the sample", async () => {
+    const { from, queries } = createSupabaseQueryMock({
+      samples: [
+        {
+          id: "sample-1",
+          organization_id: "org-1",
+          sample_type_id: "type-1",
+          sample_code: "T6_00001",
+        },
+      ],
+      sample_result_groups: [{ result_group_id: "group-2" }],
+      result_templates: [{ id: "template-1", name: "PCR cơ bản" }],
+      result_template_metrics: [
+        { result_metric_id: "metric-1", sort_order: 10 },
+        { result_metric_id: "metric-2", sort_order: 20 },
+      ],
+      result_metrics: [
+        {
+          id: "metric-1",
+          result_group_id: "group-1",
+          code: "WSSV",
+          name: "WSSV",
+          input_type: "text",
+          unit: null,
+          options: [],
+          metric_settings: {},
+          sort_order: 10,
+          is_required: false,
+        },
+        {
+          id: "metric-2",
+          result_group_id: "group-2",
+          code: "EHP",
+          name: "EHP",
+          input_type: "text",
+          unit: null,
+          options: [],
+          metric_settings: {},
+          sort_order: 20,
+          is_required: false,
+        },
+      ],
+      result_groups: [
+        { id: "group-1", code: "PCR", name: "PCR", sort_order: 10 },
+        { id: "group-2", code: "VI", name: "Vi sinh", sort_order: 20 },
+      ],
+      sample_results: [],
+      sample_group_conclusions: [],
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from,
+      rpc: vi.fn(),
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseSampleResultsPort();
+    const template = await port.getTemplateForSample({
+      sampleId: "sample-1",
+      organizationId: "org-1",
+    });
+
+    expect(queries.sample_result_groups.eq).toHaveBeenCalledWith(
+      "sample_id",
+      "sample-1"
+    );
+    expect(queries.result_metrics.in).toHaveBeenCalledWith("id", ["metric-2"]);
+    expect(template?.groups.map((group) => group.id)).toEqual(["group-2"]);
+  });
 });
 
 type SupabaseRows = Record<string, unknown[]>;
