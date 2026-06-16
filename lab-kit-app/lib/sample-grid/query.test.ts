@@ -51,7 +51,6 @@ describe("sample grid query parser", () => {
       kitBatchId: "batch-1",
       receivedFrom: "2026-06-01",
       receivedTo: "2026-06-08",
-      resultGroupIds: ["group-1", "group-2", "bad/value"],
       sampleTypeId: "type-1",
       sort: "customerName",
       status: "in_progress",
@@ -64,7 +63,6 @@ describe("sample grid query parser", () => {
       kitBatchId: "batch-1",
       receivedFrom: "2026-06-01",
       receivedTo: "2026-06-08",
-      resultGroupIds: ["group-1", "group-2"],
       sampleTypeId: "type-1",
       status: "in_progress",
     });
