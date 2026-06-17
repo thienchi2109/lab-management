@@ -115,4 +115,14 @@ describe("sample metadata schema contract", () => {
       /grant\s+execute\s+on\s+function\s+public\.update_sample_metadata_with_result_groups[\s\S]+uuid\[\][\s\S]+jsonb[\s\S]+to\s+service_role/iu
     );
   });
+
+  test("preserves existing metadata keys when updating a sample note", () => {
+    const rpcSql = readLatestFunctionContract(
+      "update_sample_metadata_with_result_groups"
+    );
+
+    expect(rpcSql).toMatch(
+      /metadata\s*=\s*coalesce\s*\(\s*metadata\s*,\s*'\{\}'::jsonb\s*\)\s*\|\|\s*jsonb_build_object\s*\(\s*'note'\s*,\s*p_note\s*\)/iu
+    );
+  });
 });
