@@ -48,6 +48,12 @@ const basePage: SampleGridPage = {
     search: "T6",
     sort: { direction: "desc", key: "receivedAt" },
   },
+  filterOptions: {
+    companies: [],
+    customers: [],
+    resultGroups: [],
+    sampleTypes: [],
+  },
   resultColumnOptions: [],
   resultGroupOptions: [],
   selectedResultColumnKeys: [],

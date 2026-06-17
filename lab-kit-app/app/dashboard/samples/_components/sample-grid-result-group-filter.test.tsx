@@ -71,6 +71,15 @@ function createPage(): SampleGridPage {
       search: null,
       sort: { direction: "desc", key: "receivedAt" },
     },
+    filterOptions: {
+      companies: [],
+      customers: [],
+      resultGroups: [
+        { id: firstGroupId, label: "PCR" },
+        { id: secondGroupId, label: "Sinh hóa" },
+      ],
+      sampleTypes: [],
+    },
     resultColumnOptions: [{ key: "metric:metric-1", label: "PCR / WSSV" }],
     resultGroupOptions: [
       { id: firstGroupId, label: "PCR" },

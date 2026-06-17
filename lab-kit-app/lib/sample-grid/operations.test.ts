@@ -50,6 +50,12 @@ describe("sample grid operations", () => {
         limit: 10,
         offset: 10,
       }),
+      filterOptions: {
+        companies: [],
+        customers: [],
+        resultGroups: [],
+        sampleTypes: [],
+      },
       resultColumnOptions: [],
       resultGroupOptions: [],
       selectedResultColumnKeys: [],
@@ -59,12 +65,46 @@ describe("sample grid operations", () => {
       {
         organizationId: "org-1",
         query: expect.objectContaining({
-          filters: { status: "received" },
+          filters: expect.objectContaining({ status: "received" }),
           limit: 10,
           offset: 10,
         }),
       },
     ]);
+  });
+
+  test("loads sample filter options without status or billing filters", async () => {
+    const optionCalls: unknown[] = [];
+    const port: SampleGridPort = {
+      async listSamples() {
+        return {
+          rows: [],
+          totalCount: 0,
+        };
+      },
+      async listFilterOptions(input) {
+        optionCalls.push(input);
+        return {
+          companies: [{ id: "company-1", label: "Công ty A" }],
+          customers: [{ id: "customer-1", label: "Khách hàng A" }],
+          resultGroups: [{ id: "group-1", label: "PCR" }],
+          sampleTypes: [{ id: "type-1", label: "Mẫu PCR" }],
+        };
+      },
+    };
+
+    const page = await listSampleGridPage({}, actor, port);
+
+    expect(optionCalls).toEqual([{ organizationId: "org-1" }]);
+    expect(page.filterOptions).toEqual({
+      companies: [{ id: "company-1", label: "Công ty A" }],
+      customers: [{ id: "customer-1", label: "Khách hàng A" }],
+      resultGroups: [{ id: "group-1", label: "PCR" }],
+      sampleTypes: [{ id: "type-1", label: "Mẫu PCR" }],
+    });
+    expect(page.filterOptions).not.toHaveProperty("status");
+    expect(page.filterOptions).not.toHaveProperty("billingStatus");
+    expect(page.resultGroupOptions).toEqual([{ id: "group-1", label: "PCR" }]);
   });
 
   test("marks viewer grid capabilities as read-only", async () => {
