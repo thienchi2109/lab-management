@@ -47,6 +47,8 @@ describe("export query contract", () => {
   });
 
   test("normalizes a bounded sample export query", () => {
+    const resultGroupId = "11111111-1111-4111-8111-111111111111";
+
     expect(
       parseExportQuery({
         dataset: "samples",
@@ -54,6 +56,7 @@ describe("export query contract", () => {
         filters: {
           companyId: "company-1",
           receivedFrom: "2026-06-01",
+          resultGroupIds: [resultGroupId],
           status: "in_progress",
         },
         format: "csv",
@@ -66,6 +69,7 @@ describe("export query contract", () => {
       filters: {
         companyId: "company-1",
         receivedFrom: "2026-06-01",
+        resultGroupIds: [resultGroupId],
         status: "in_progress",
       },
       format: "csv",

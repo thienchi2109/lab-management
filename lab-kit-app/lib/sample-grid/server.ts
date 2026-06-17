@@ -21,6 +21,7 @@ import {
   type SupabaseResultSummarySource,
 } from "./result-summary-server";
 import { listSampleGridResultColumnOptions } from "./result-column-options-server";
+import { listSampleGridResultGroupOptions } from "./result-group-options-server";
 
 type SampleGridDbRow = {
   billing_status: string;
@@ -51,6 +52,7 @@ type KitBatchRelation = {
 type SampleGridQueryBuilder = {
   eq(column: string, value: string): SampleGridQueryBuilder;
   gte(column: string, value: string): SampleGridQueryBuilder;
+  in(column: string, values: string[]): SampleGridQueryBuilder;
   lte(column: string, value: string): SampleGridQueryBuilder;
   or(filter: string): SampleGridQueryBuilder;
   order(
@@ -77,8 +79,9 @@ type ResultSummarySourceCandidate = {
   from(table: string): unknown;
 };
 
-const SAMPLE_GRID_SELECT =
+const SAMPLE_GRID_BASE_SELECT =
   "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, received_at, status, billing_status, updated_at, sample_types(name), companies(name), kit_batches(lot_number, kit_types(name))";
+const SAMPLE_GRID_RESULT_GROUP_SELECT = `${SAMPLE_GRID_BASE_SELECT}, sample_result_groups!inner(result_group_id)`;
 const SAMPLE_GRID_READ_ROLES = ["admin", "editor", "viewer"] as const;
 const MISSING_KIT_LABEL = "Chưa gán KIT";
 const UNKNOWN_SAMPLE_TYPE_LABEL = "Không rõ loại mẫu";
@@ -126,10 +129,10 @@ export function createSupabaseSampleGridPort(): SampleGridPort {
         ): SampleGridQueryBuilder;
       };
       let query = samples
-        .select(SAMPLE_GRID_SELECT, { count: "exact" })
+        .select(getSampleGridSelect(input.query), { count: "exact" })
         .eq("organization_id", input.organizationId);
 
-      query = applyFilters(query, input.query);
+      query = applyFilters(query, input.query, input.organizationId);
       query = applySearch(query, input.query);
       query = query.order(sortColumnByKey[input.query.sort.key], {
         ascending: input.query.sort.direction === "asc",
@@ -155,7 +158,16 @@ export function createSupabaseSampleGridPort(): SampleGridPort {
     async listResultColumnOptions(input) {
       return listSampleGridResultColumnOptions(resultSummaryClient, input);
     },
+    async listResultGroupOptions(input) {
+      return listSampleGridResultGroupOptions(resultSummaryClient, input);
+    },
   };
+}
+
+function getSampleGridSelect(query: SampleGridQuery) {
+  return query.filters.resultGroupIds?.length
+    ? SAMPLE_GRID_RESULT_GROUP_SELECT
+    : SAMPLE_GRID_BASE_SELECT;
 }
 
 function toSupabaseResultSummarySource(
@@ -239,7 +251,8 @@ async function requireSampleGridActor(): Promise<SampleGridActor> {
 
 function applyFilters(
   query: SampleGridQueryBuilder,
-  gridQuery: SampleGridQuery
+  gridQuery: SampleGridQuery,
+  organizationId: string
 ) {
   const { filters } = gridQuery;
 
@@ -251,6 +264,11 @@ function applyFilters(
   if (filters.kitBatchId) query = query.eq("kit_batch_id", filters.kitBatchId);
   if (filters.sampleTypeId) {
     query = query.eq("sample_type_id", filters.sampleTypeId);
+  }
+  if (filters.resultGroupIds?.length) {
+    query = query
+      .eq("sample_result_groups.organization_id", organizationId)
+      .in("sample_result_groups.result_group_id", filters.resultGroupIds);
   }
   if (filters.receivedFrom)
     query = query.gte("received_at", filters.receivedFrom);

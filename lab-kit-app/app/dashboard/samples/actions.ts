@@ -104,6 +104,7 @@ function formDataToSampleInput(formData: FormData) {
     customerName: formData.get("customerName"),
     collectedAt: formData.get("collectedAt"),
     receivedAt: formData.get("receivedAt"),
+    resultGroupIds: formData.getAll("resultGroupIds"),
     status: formData.get("status"),
     billingStatus: formData.get("billingStatus"),
     note: formData.get("note"),

@@ -44,6 +44,7 @@ const requiredTables = [
   "result_metrics",
   "result_templates",
   "result_template_metrics",
+  "sample_result_groups",
   "sample_results",
   "sample_group_conclusions",
   "audit_events",
@@ -63,6 +64,7 @@ const tenantScopedTables = [
   "result_metrics",
   "result_templates",
   "result_template_metrics",
+  "sample_result_groups",
   "sample_results",
   "sample_group_conclusions",
   "audit_events",
@@ -92,7 +94,7 @@ function assertContains(content, pattern, message) {
 }
 
 function tableContractSource(table, migration, allMigrations) {
-  return ["companies", "customers", "kits"].includes(table)
+  return ["companies", "customers", "kits", "sample_result_groups"].includes(table)
     ? allMigrations
     : migration;
 }

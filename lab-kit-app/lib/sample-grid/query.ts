@@ -5,6 +5,8 @@ import {
   type SampleStatus,
 } from "@/lib/sample-metadata/schemas";
 
+import { normalizeResultGroupIds } from "./result-group-filter-contract";
+
 /** Page size mặc định cho data grid mẫu. */
 export const DEFAULT_SAMPLE_GRID_PAGE_SIZE = 25;
 
@@ -30,6 +32,7 @@ export type SampleGridFilters = {
   kitBatchId?: string;
   receivedFrom?: string;
   receivedTo?: string;
+  resultGroupIds?: string[];
   sampleTypeId?: string;
   status?: SampleStatus;
 };
@@ -111,6 +114,10 @@ function parseFilters(params: SampleGridSearchParams): SampleGridFilters {
   setSafeIdFilter(filters, "companyId", firstParam(params, "companyId"));
   setSafeIdFilter(filters, "kitBatchId", firstParam(params, "kitBatchId"));
   setSafeIdFilter(filters, "sampleTypeId", firstParam(params, "sampleTypeId"));
+  const resultGroupIds = parseResultGroupIds(params);
+  if (resultGroupIds.length > 0) {
+    filters.resultGroupIds = resultGroupIds;
+  }
 
   const receivedFrom = firstParam(params, "receivedFrom");
   const receivedTo = firstParam(params, "receivedTo");
@@ -134,6 +141,10 @@ function setSafeIdFilter<K extends keyof SampleGridFilters>(
   if (value && SAFE_ID_PATTERN.test(value)) {
     filters[key] = value as SampleGridFilters[K];
   }
+}
+
+function parseResultGroupIds(params: SampleGridSearchParams) {
+  return normalizeResultGroupIds(allParams(params, "resultGroupIds"));
 }
 
 function parseSort(params: SampleGridSearchParams): SampleGridQuery["sort"] {

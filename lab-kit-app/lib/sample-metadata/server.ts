@@ -159,6 +159,11 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
           input.kitBatchId,
           input.organizationId
         ),
+        allActiveInOrg(
+          "result_groups",
+          input.resultGroupIds,
+          input.organizationId
+        ),
       ]);
 
       return checks.every(Boolean);
@@ -177,6 +182,7 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
           p_note: input.note,
           p_organization_id: input.organizationId,
           p_received_at: input.receivedAt,
+          p_result_group_ids: input.resultGroupIds,
           p_sample_type_id: input.sampleTypeId,
           p_status: input.status,
         })
@@ -244,6 +250,27 @@ function existsNullableInOrg(
   organizationId: string
 ) {
   return id ? existsInOrg(table, id, organizationId) : Promise.resolve(true);
+}
+
+async function allActiveInOrg(
+  table: string,
+  ids: string[],
+  organizationId: string
+) {
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length === 0) return false;
+
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(table)
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("is_active", true)
+    .in("id", uniqueIds)
+    .returns<Array<{ id: string }>>();
+
+  if (error) throw new Error("Không thể kiểm tra dữ liệu tham chiếu.");
+  return (data ?? []).length === uniqueIds.length;
 }
 
 function toSampleUpdate(input: UpdateSampleInput & { organizationId: string }) {

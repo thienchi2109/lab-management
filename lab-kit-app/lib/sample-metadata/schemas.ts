@@ -62,6 +62,10 @@ const optionalTextSchema = z.preprocess((value) => {
 }, z.string().max(500).nullable());
 
 const requiredTextSchema = z.string().trim().min(1).max(200);
+const resultGroupIdsSchema = z
+  .array(z.uuid())
+  .min(1)
+  .transform((ids) => [...new Set(ids)]);
 const nullableDateSchema = z.preprocess(
   normalizeEmptyValue,
   z
@@ -85,6 +89,7 @@ const sampleInputSchema = z.object({
   status: z.enum(SAMPLE_STATUSES),
   billingStatus: z.enum(SAMPLE_BILLING_STATUSES),
   note: optionalTextSchema,
+  resultGroupIds: resultGroupIdsSchema,
 });
 
 const updateSampleInputSchema = sampleInputSchema.extend({
@@ -171,4 +176,5 @@ const sampleMetadataFieldMessages: Partial<
   status: "Trạng thái mẫu không hợp lệ.",
   billingStatus: "Trạng thái thanh toán không hợp lệ.",
   note: "Ghi chú tối đa 500 ký tự.",
+  resultGroupIds: "Chọn ít nhất một nhóm chỉ tiêu hợp lệ.",
 };

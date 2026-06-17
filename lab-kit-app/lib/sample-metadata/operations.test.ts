@@ -49,6 +49,7 @@ const createInput = {
   status: "received" as const,
   billingStatus: "unpaid" as const,
   note: "Ưu tiên",
+  resultGroupIds: ["group-1", "group-2"],
 };
 
 describe("sample metadata operations", () => {
@@ -78,6 +79,7 @@ describe("sample metadata operations", () => {
             "status",
             "billingStatus",
             "note",
+            "resultGroupIds",
           ],
         },
       })
@@ -130,6 +132,24 @@ describe("sample metadata operations", () => {
     ).rejects.toThrow("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.");
     expect(port.writes).toEqual([]);
     expect(port.audits).toEqual([]);
+  });
+
+  test("validates result groups before creating the sample", async () => {
+    const port = createPort({
+      async referencesBelongToOrganization(input) {
+        expect(input).toMatchObject({
+          organizationId: "org-1",
+          resultGroupIds: ["group-1", "group-2"],
+        });
+        return true;
+      },
+    });
+
+    await createSampleMetadata(createInput, actor, port);
+
+    expect(port.writes).toContainEqual(
+      expect.objectContaining({ resultGroupIds: ["group-1", "group-2"] })
+    );
   });
 
   test("validates references before creating the database-generated sample", async () => {
@@ -192,6 +212,7 @@ describe("sample metadata operations", () => {
             "status",
             "billingStatus",
             "note",
+            "resultGroupIds",
           ],
         },
       })

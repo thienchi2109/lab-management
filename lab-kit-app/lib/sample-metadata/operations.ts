@@ -24,6 +24,7 @@ export type SampleMetadataPort = {
     customerId: string | null;
     companyId: string | null;
     kitBatchId: string | null;
+    resultGroupIds: string[];
   }): Promise<boolean>;
   createSample(
     input: CreateSampleInput & {
@@ -49,6 +50,7 @@ const submittedFields = [
   "status",
   "billingStatus",
   "note",
+  "resultGroupIds",
 ];
 const SAMPLE_METADATA_AUDIT_POLICY = "field-names-only";
 
@@ -98,6 +100,7 @@ async function ensureSampleCanBeSaved(
     customerId: input.customerId,
     companyId: input.companyId,
     kitBatchId: input.kitBatchId,
+    resultGroupIds: input.resultGroupIds,
   });
 
   if (!referencesOk) {

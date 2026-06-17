@@ -51,6 +51,7 @@ describe("sample grid operations", () => {
         offset: 10,
       }),
       resultColumnOptions: [],
+      resultGroupOptions: [],
       selectedResultColumnKeys: [],
       rows: [],
     });

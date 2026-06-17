@@ -44,4 +44,33 @@ describe("sample metadata schema contract", () => {
     expect(migrations).not.toMatch(/sample_code_counters/iu);
     expect(migrations).not.toMatch(/max\s*\([^)]*sample_code/iu);
   });
+
+  test("persists selected result groups in the sample creation RPC", () => {
+    const migrations = readMigrations();
+
+    expect(migrations).toMatch(
+      /create\s+table\s+public\.sample_result_groups\b/iu
+    );
+    expect(migrations).toMatch(
+      /primary\s+key\s*\(\s*sample_id\s*,\s*result_group_id\s*\)/iu
+    );
+    expect(migrations).toMatch(
+      /alter\s+table\s+public\.sample_result_groups\s+enable\s+row\s+level\s+security/iu
+    );
+    expect(migrations).toMatch(
+      /create\s+policy\s+[\s\S]+?\s+on\s+public\.sample_result_groups\b/iu
+    );
+    expect(migrations).toMatch(/sample_result_groups_org_sample_idx/iu);
+    expect(migrations).toMatch(/sample_result_groups_org_group_idx/iu);
+    expect(migrations).toMatch(/p_result_group_ids\s+uuid\[\]/iu);
+    expect(migrations).toMatch(
+      /cardinality\s*\(\s*p_result_group_ids\s*\)\s*>\s*0/iu
+    );
+    expect(migrations).toMatch(
+      /insert\s+into\s+public\.sample_result_groups/iu
+    );
+    expect(migrations).toMatch(
+      /grant\s+execute\s+on\s+function\s+public\.create_sample_metadata_with_code[\s\S]+uuid\[\][\s\S]+to\s+service_role/iu
+    );
+  });
 });
