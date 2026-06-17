@@ -1,9 +1,5 @@
 import "server-only";
 
-import {
-  isResultInputType,
-  type ResultInputType,
-} from "@/lib/result-configuration/configuration";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import type {
@@ -12,6 +8,11 @@ import type {
   SampleResultsPort,
   SampleResultTemplate,
 } from "./operations";
+import {
+  normalizeInputType,
+  normalizeMetricSettings,
+  normalizeOptions,
+} from "./metric-row-normalizers";
 
 type SampleRow = {
   id: string;
@@ -28,6 +29,10 @@ type TemplateRow = {
 type AssignmentRow = {
   result_metric_id: string;
   sort_order: number;
+};
+
+type SelectedGroupRow = {
+  result_group_id: string;
 };
 
 type MetricRow = {
@@ -122,8 +127,16 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
 
     if (assignmentError) throw new Error("Không thể tải chỉ tiêu template.");
 
+    const selectedGroupIds = await loadSelectedResultGroupIds(
+      organizationId,
+      sample.id
+    );
     const metricIds = (assignments ?? []).map((item) => item.result_metric_id);
-    const metrics = await loadMetrics(organizationId, metricIds);
+    const metrics = await loadMetrics(
+      organizationId,
+      metricIds,
+      selectedGroupIds
+    );
     const groupIds = [
       ...new Set(metrics.map((metric) => metric.result_group_id)),
     ];
@@ -147,21 +160,54 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
     };
   }
 
-  async function loadMetrics(organizationId: string, metricIds: string[]) {
-    if (metricIds.length === 0) return [];
-
+  async function loadSelectedResultGroupIds(
+    organizationId: string,
+    sampleId: string
+  ) {
     const { data, error } = await supabase
+      .from("sample_result_groups")
+      .select("result_group_id")
+      .eq("organization_id", organizationId)
+      .eq("sample_id", sampleId)
+      .returns<SelectedGroupRow[]>();
+
+    if (error) throw new Error("Không thể tải nhóm chỉ tiêu của mẫu.");
+
+    const groupIds = [
+      ...new Set((data ?? []).map((row) => row.result_group_id)),
+    ];
+    return groupIds.length > 0 ? groupIds : null;
+  }
+
+  async function loadMetrics(
+    organizationId: string,
+    metricIds: string[],
+    selectedGroupIds: string[] | null
+  ) {
+    if (!selectedGroupIds && metricIds.length === 0) return [];
+
+    const query = supabase
       .from("result_metrics")
       .select(
         "id, result_group_id, code, name, input_type, unit, options, metric_settings, sort_order, is_required"
       )
       .eq("organization_id", organizationId)
-      .eq("is_active", true)
-      .in("id", metricIds)
-      .returns<MetricRow[]>();
+      .eq("is_active", true);
+
+    if (selectedGroupIds) {
+      query.in("result_group_id", selectedGroupIds);
+    } else {
+      query.in("id", metricIds);
+    }
+
+    const { data, error } = await query.returns<MetricRow[]>();
 
     if (error) throw new Error("Không thể tải chỉ tiêu kết quả.");
-    return data ?? [];
+    return selectedGroupIds
+      ? (data ?? []).filter((row) =>
+          selectedGroupIds.includes(row.result_group_id)
+        )
+      : (data ?? []);
   }
 
   async function loadGroups(organizationId: string, groupIds: string[]) {
@@ -263,36 +309,6 @@ function mapMetric(
   };
 }
 
-function normalizeOptions(value: unknown) {
-  return Array.isArray(value)
-    ? value.filter((option): option is string => typeof option === "string")
-    : [];
-}
-
-function normalizeMetricSettings(value: unknown): Record<string, unknown> {
-  if (!isRecord(value)) return {};
-
-  return Object.fromEntries(
-    Object.entries(value).flatMap(([key, setting]) => {
-      if (isNumericSettingKey(key)) {
-        return typeof setting === "number" && Number.isFinite(setting)
-          ? [[key, setting]]
-          : [];
-      }
-
-      return isJsonValue(setting) ? [[key, setting]] : [];
-    })
-  );
-}
-
-function isNumericSettingKey(key: string) {
-  return key === "min" || key === "max" || key === "ct_min" || key === "ct_max";
-}
-
-function normalizeInputType(value: string): ResultInputType {
-  return isResultInputType(value) ? value : "text";
-}
-
 function groupBy<T>(items: T[], getKey: (item: T) => string): Map<string, T[]> {
   const grouped = new Map<string, T[]>();
 
@@ -308,32 +324,4 @@ function groupBy<T>(items: T[], getKey: (item: T) => string): Map<string, T[]> {
   }
 
   return grouped;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isJsonValue(value: unknown): boolean {
-  if (
-    value === null ||
-    typeof value === "string" ||
-    typeof value === "boolean"
-  ) {
-    return true;
-  }
-
-  if (typeof value === "number") {
-    return Number.isFinite(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.every(isJsonValue);
-  }
-
-  if (isRecord(value)) {
-    return Object.values(value).every(isJsonValue);
-  }
-
-  return false;
 }
