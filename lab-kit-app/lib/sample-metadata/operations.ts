@@ -34,7 +34,11 @@ export type SampleMetadataPort = {
     }
   ): Promise<{ sampleId: string; sampleCode: string }>;
   updateSample(
-    input: UpdateSampleInput & { organizationId: string }
+    input: UpdateSampleInput & {
+      organizationId: string;
+      updatedBy: string;
+      auditEventPayload: Record<string, unknown>;
+    }
   ): Promise<void>;
   insertAuditEvent(input: SampleMetadataAuditInput): Promise<void>;
 };
@@ -79,13 +83,11 @@ export async function updateSampleMetadata(
 ) {
   // react-doctor-disable-next-line react-doctor/async-parallel -- Phải xác thực trước khi cập nhật mẫu.
   await ensureSampleCanBeSaved(input, actor, port);
-  await port.updateSample({ ...input, organizationId: actor.organizationId });
-
-  await audit(port, actor, {
-    action: "sample.updated",
-    entityTable: "samples",
-    entityId: input.sampleId,
-    eventPayload: createSampleAuditPayload("updatedFields"),
+  await port.updateSample({
+    ...input,
+    organizationId: actor.organizationId,
+    updatedBy: actor.profileId,
+    auditEventPayload: createSampleAuditPayload("updatedFields"),
   });
 }
 
@@ -106,18 +108,6 @@ async function ensureSampleCanBeSaved(
   if (!referencesOk) {
     throw new Error("Dữ liệu tham chiếu không thuộc tổ chức hiện tại.");
   }
-}
-
-function audit(
-  port: SampleMetadataPort,
-  actor: SampleMetadataActor,
-  input: Omit<SampleMetadataAuditInput, "organizationId" | "actorId">
-) {
-  return port.insertAuditEvent({
-    organizationId: actor.organizationId,
-    actorId: actor.profileId,
-    ...input,
-  });
 }
 
 function createSampleAuditPayload(

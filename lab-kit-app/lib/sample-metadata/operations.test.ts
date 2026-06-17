@@ -178,7 +178,7 @@ describe("sample metadata operations", () => {
     });
   });
 
-  test("updates only sample metadata and audits updated field names", async () => {
+  test("updates sample metadata with audit payload in the same write command", async () => {
     const port = createPort();
 
     await updateSampleMetadata(
@@ -192,14 +192,8 @@ describe("sample metadata operations", () => {
         sampleId: "sample-1",
         organizationId: "org-1",
         status: "in_progress",
-      })
-    );
-    expect(port.audits).toContainEqual(
-      expect.objectContaining({
-        action: "sample.updated",
-        entityTable: "samples",
-        entityId: "sample-1",
-        eventPayload: {
+        updatedBy: "profile-1",
+        auditEventPayload: {
           metadataPolicy: "field-names-only",
           updatedFields: [
             "sampleTypeId",
@@ -217,9 +211,12 @@ describe("sample metadata operations", () => {
         },
       })
     );
-    expect(JSON.stringify(port.audits)).not.toContain("Nguyễn Văn A");
-    expect(JSON.stringify(port.audits)).not.toContain("Ưu tiên");
-    expect(JSON.stringify(port.audits)).not.toContain("2026-06-06T08:30");
-    expect(JSON.stringify(port.audits)).not.toContain("customer-1");
+    expect(port.audits).toEqual([]);
+    const auditPayload = (port.writes[0] as { auditEventPayload: unknown })
+      .auditEventPayload;
+    expect(JSON.stringify(auditPayload)).not.toContain("Nguyễn Văn A");
+    expect(JSON.stringify(auditPayload)).not.toContain("Ưu tiên");
+    expect(JSON.stringify(auditPayload)).not.toContain("2026-06-06T08:30");
+    expect(JSON.stringify(auditPayload)).not.toContain("customer-1");
   });
 });

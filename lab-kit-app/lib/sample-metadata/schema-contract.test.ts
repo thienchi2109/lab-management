@@ -73,4 +73,30 @@ describe("sample metadata schema contract", () => {
       /grant\s+execute\s+on\s+function\s+public\.create_sample_metadata_with_code[\s\S]+uuid\[\][\s\S]+to\s+service_role/iu
     );
   });
+
+  test("updates sample metadata and result groups through one transaction RPC", () => {
+    const migrations = readMigrations();
+
+    expect(migrations).toMatch(
+      /create\s+or\s+replace\s+function\s+public\.update_sample_metadata_with_result_groups/iu
+    );
+    expect(migrations).toMatch(/security\s+definer/iu);
+    expect(migrations).toMatch(/set\s+search_path\s*=\s*public/iu);
+    expect(migrations).toMatch(
+      /update\s+public\.samples[\s\S]+returning\s+id\s+into\s+updated_sample_id/iu
+    );
+    expect(migrations).toMatch(
+      /delete\s+from\s+public\.sample_result_groups/iu
+    );
+    expect(migrations).toMatch(
+      /insert\s+into\s+public\.sample_result_groups/iu
+    );
+    expect(migrations).toMatch(/insert\s+into\s+public\.audit_events/iu);
+    expect(migrations).toMatch(
+      /revoke\s+all\s+on\s+function\s+public\.update_sample_metadata_with_result_groups/iu
+    );
+    expect(migrations).toMatch(
+      /grant\s+execute\s+on\s+function\s+public\.update_sample_metadata_with_result_groups[\s\S]+uuid\[\][\s\S]+jsonb[\s\S]+to\s+service_role/iu
+    );
+  });
 });

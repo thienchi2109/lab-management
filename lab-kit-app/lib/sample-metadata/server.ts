@@ -6,16 +6,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import { mapSampleMetadataRows, type SampleMetadata } from "./metadata";
 import type { SampleMetadataActor, SampleMetadataPort } from "./operations";
-import {
-  syncSampleResultGroups,
-  type SampleResultGroupRow,
-} from "./sample-result-groups-server";
-import type {
-  CreateSampleInput,
-  SampleBillingStatus,
-  SampleStatus,
-  UpdateSampleInput,
-} from "./schemas";
+import type { SampleBillingStatus, SampleStatus } from "./schemas";
 
 type CompanyRow = {
   id: string;
@@ -47,6 +38,10 @@ type ResultGroupRow = {
   name: string;
   sort_order: number;
   is_active: boolean;
+};
+
+type SampleResultGroupRow = {
+  result_group_id: string;
 };
 
 type SampleRow = {
@@ -213,14 +208,32 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
       return { sampleId: data.sample_id, sampleCode: data.sample_code };
     },
     async updateSample(input) {
-      const { error } = await supabase
-        .from("samples")
-        .update(toSampleUpdate(input))
-        .eq("id", input.sampleId)
-        .eq("organization_id", input.organizationId);
+      const { error } = await supabase.rpc(
+        "update_sample_metadata_with_result_groups",
+        {
+          p_actor_id: input.updatedBy,
+          p_audit_event_payload: input.auditEventPayload,
+          p_billing_status: input.billingStatus,
+          p_collected_at: input.collectedAt,
+          p_company_id: input.companyId,
+          p_customer_id: input.customerId,
+          p_customer_name: input.customerName,
+          p_kit_batch_id: input.kitBatchId,
+          p_note: input.note,
+          p_organization_id: input.organizationId,
+          p_received_at: input.receivedAt,
+          p_result_group_ids: input.resultGroupIds,
+          p_sample_id: input.sampleId,
+          p_sample_type_id: input.sampleTypeId,
+          p_status: input.status,
+        }
+      );
 
-      if (error) throw new Error("Không thể cập nhật mẫu xét nghiệm.");
-      await syncSampleResultGroups(supabase, input);
+      if (error) {
+        throw new Error(
+          `Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu: ${getSupabaseErrorMessage(error)}`
+        );
+      }
     },
     async insertAuditEvent(input) {
       const { error } = await supabase.from("audit_events").insert({
@@ -274,6 +287,10 @@ function existsNullableInOrg(
   return id ? existsInOrg(table, id, organizationId) : Promise.resolve(true);
 }
 
+function getSupabaseErrorMessage(error: { message?: string }) {
+  return error.message ?? "Lỗi Supabase không rõ.";
+}
+
 async function allActiveInOrg(
   table: string,
   ids: string[],
@@ -293,25 +310,6 @@ async function allActiveInOrg(
 
   if (error) throw new Error("Không thể kiểm tra dữ liệu tham chiếu.");
   return (data ?? []).length === uniqueIds.length;
-}
-
-function toSampleUpdate(input: UpdateSampleInput & { organizationId: string }) {
-  return toSampleUpdateFields(input);
-}
-
-function toSampleUpdateFields(input: CreateSampleInput) {
-  return {
-    sample_type_id: input.sampleTypeId,
-    customer_id: input.customerId,
-    company_id: input.companyId,
-    kit_batch_id: input.kitBatchId,
-    customer_name: input.customerName,
-    collected_at: input.collectedAt,
-    received_at: input.receivedAt,
-    status: input.status,
-    billing_status: input.billingStatus,
-    metadata: { note: input.note },
-  };
 }
 
 function mapKitBatchRows(rows: unknown[]): KitBatchRow[] {
