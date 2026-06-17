@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -107,3 +107,18 @@ từng tầng. Mỗi slice có story packet riêng và verify-command riêng:
 Story cha vẫn là nguồn product contract. Story con cập nhật proof và status
 của riêng mình. Khi cả 5 slice đạt verify-command, story cha được chuyển sang
 `implemented` kèm evidence tổng hợp.
+
+## Implementation Evidence
+
+- `FB-20260615-04A` implemented: schema và operations metadata yêu cầu
+  `resultGroupIds`.
+- `FB-20260615-04B` implemented: sample grid và export lọc theo nhiều nhóm chỉ
+  tiêu qua `sample_result_groups`.
+- `FB-20260615-04C` implemented: result entry tải nhóm/chỉ tiêu từ
+  `sample_result_groups` thay vì chỉ dựa vào template theo `sample_type_id`.
+- `FB-20260615-04D` implemented: migration/RPC live cho
+  `sample_result_groups`, backfill và RLS đã được chứng minh.
+- `FB-20260615-04E` implemented: form tạo/sửa mẫu chọn nhiều nhóm chỉ tiêu và
+  đồng bộ bảng nối.
+- Parent proof tổng hợp: unit/integration/platform đã có qua các slice; E2E
+  browser tổng hợp chưa chạy cho toàn bộ initiative.
