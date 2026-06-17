@@ -36,6 +36,12 @@ export type KitBatchOption = {
   lotNumber: string;
 };
 
+/** Nhóm chỉ tiêu active có thể gắn với mẫu xét nghiệm. */
+export type ResultGroupOption = {
+  id: string;
+  label: string;
+};
+
 /** Dòng metadata mẫu đã được chuẩn hóa cho bảng dashboard. */
 export type SampleMetadataRow = {
   id: string;
@@ -53,6 +59,7 @@ export type SampleMetadataRow = {
   status: SampleStatus;
   billingStatus: SampleBillingStatus;
   note: string | null;
+  resultGroupIds: string[];
   updatedAt: string;
 };
 
@@ -69,6 +76,7 @@ export type SampleMetadata = {
   customers: CustomerOption[];
   sampleTypes: SampleTypeOption[];
   kitBatches: KitBatchOption[];
+  resultGroupOptions: ResultGroupOption[];
   filterOptions: {
     sampleTypes: Array<[string, string]>;
     companies: Array<[string, string]>;
@@ -106,6 +114,15 @@ type KitBatchRow = {
   lot_number: string;
 };
 
+type ResultGroupRow = {
+  id: string;
+  name: string;
+};
+
+type SampleResultGroupRow = {
+  result_group_id: string;
+};
+
 type SampleRow = {
   id: string;
   sample_type_id: string;
@@ -119,6 +136,7 @@ type SampleRow = {
   status: SampleStatus;
   billing_status: SampleBillingStatus;
   metadata: unknown;
+  sample_result_groups?: SampleResultGroupRow[];
   updated_at: string;
 };
 
@@ -135,6 +153,7 @@ export function mapSampleMetadataRows(input: {
   customers: CustomerRow[];
   sampleTypes: SampleTypeRow[];
   kitBatches: KitBatchRow[];
+  resultGroups?: ResultGroupRow[];
   samples: SampleRow[];
 }): SampleMetadata {
   const companies = input.companies.map((row) => ({
@@ -162,6 +181,10 @@ export function mapSampleMetadataRows(input: {
     id: row.id,
     kitTypeName: row.kit_type_name,
     lotNumber: row.lot_number,
+  }));
+  const resultGroupOptions = (input.resultGroups ?? []).map((row) => ({
+    id: row.id,
+    label: row.name,
   }));
 
   const companyById = new Map(
@@ -202,6 +225,9 @@ export function mapSampleMetadataRows(input: {
       status: row.status,
       billingStatus: row.billing_status,
       note,
+      resultGroupIds: (row.sample_result_groups ?? []).map(
+        (group) => group.result_group_id
+      ),
       updatedAt: row.updated_at,
     };
   });
@@ -213,6 +239,7 @@ export function mapSampleMetadataRows(input: {
     customers,
     sampleTypes,
     kitBatches,
+    resultGroupOptions,
     filterOptions: {
       sampleTypes: sampleTypes.map((type) => [type.id, type.name]),
       companies: companies.map((company) => [company.id, company.name]),

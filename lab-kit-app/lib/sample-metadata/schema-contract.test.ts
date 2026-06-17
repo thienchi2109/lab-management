@@ -17,6 +17,21 @@ function readMigrations() {
     .join("\n");
 }
 
+function readLatestFunctionContract(functionName: string) {
+  const functionPattern = new RegExp(
+    `create\\s+or\\s+replace\\s+function\\s+public\\.${functionName}\\b`,
+    "iu"
+  );
+
+  return fs
+    .readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort()
+    .map((file) => fs.readFileSync(path.join(migrationsDir, file), "utf8"))
+    .filter((migration) => functionPattern.test(migration))
+    .at(-1);
+}
+
 describe("sample metadata schema contract", () => {
   test("creates samples through an HP random-code transaction RPC", () => {
     const migrations = readMigrations();
@@ -71,6 +86,43 @@ describe("sample metadata schema contract", () => {
     );
     expect(migrations).toMatch(
       /grant\s+execute\s+on\s+function\s+public\.create_sample_metadata_with_code[\s\S]+uuid\[\][\s\S]+to\s+service_role/iu
+    );
+  });
+
+  test("updates sample metadata and result groups through one transaction RPC", () => {
+    const rpcSql = readLatestFunctionContract(
+      "update_sample_metadata_with_result_groups"
+    );
+
+    expect(rpcSql).toMatch(
+      /create\s+or\s+replace\s+function\s+public\.update_sample_metadata_with_result_groups/iu
+    );
+    expect(rpcSql).toMatch(/security\s+definer/iu);
+    expect(rpcSql).toMatch(/set\s+search_path\s*=\s*public/iu);
+    expect(rpcSql).toMatch(
+      /unnest\s*\(\s*p_result_group_ids\s*\)[\s\S]+?is\s+null[\s\S]+?result_group_ids cannot contain null values/iu
+    );
+    expect(rpcSql).toMatch(
+      /update\s+public\.samples[\s\S]+returning\s+id\s+into\s+updated_sample_id/iu
+    );
+    expect(rpcSql).toMatch(/delete\s+from\s+public\.sample_result_groups/iu);
+    expect(rpcSql).toMatch(/insert\s+into\s+public\.sample_result_groups/iu);
+    expect(rpcSql).toMatch(/insert\s+into\s+public\.audit_events/iu);
+    expect(rpcSql).toMatch(
+      /revoke\s+all\s+on\s+function\s+public\.update_sample_metadata_with_result_groups/iu
+    );
+    expect(rpcSql).toMatch(
+      /grant\s+execute\s+on\s+function\s+public\.update_sample_metadata_with_result_groups[\s\S]+uuid\[\][\s\S]+jsonb[\s\S]+to\s+service_role/iu
+    );
+  });
+
+  test("preserves existing metadata keys when updating a sample note", () => {
+    const rpcSql = readLatestFunctionContract(
+      "update_sample_metadata_with_result_groups"
+    );
+
+    expect(rpcSql).toMatch(
+      /metadata\s*=\s*coalesce\s*\(\s*metadata\s*,\s*'\{\}'::jsonb\s*\)\s*\|\|\s*jsonb_build_object\s*\(\s*'note'\s*,\s*p_note\s*\)/iu
     );
   });
 });

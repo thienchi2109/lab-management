@@ -23,6 +23,7 @@ export function toMetadataRequestSample(
     kitSummary: sample.kitSummary,
     note: null,
     receivedAt: sample.receivedAt,
+    resultGroupIds: sample.resultSummary?.groups.map((group) => group.id) ?? [],
     sampleCode: sample.sampleCode,
     sampleTypeId: sample.sampleTypeId,
     sampleTypeName: sample.sampleTypeName,

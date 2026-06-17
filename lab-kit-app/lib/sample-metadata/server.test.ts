@@ -70,6 +70,93 @@ describe("createSupabaseSampleMetadataPort", () => {
 
     expect(ok).toBe(false);
   });
+
+  test("updates metadata and selected result groups through an atomic RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const from = vi.fn();
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from,
+      rpc,
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseSampleMetadataPort();
+    await port.updateSample({
+      sampleId: "sample-1",
+      organizationId: "org-1",
+      updatedBy: "actor-1",
+      sampleTypeId: "type-1",
+      customerId: null,
+      companyId: null,
+      kitBatchId: null,
+      customerName: "Nguyễn Văn A",
+      collectedAt: "2026-06-15",
+      receivedAt: "2026-06-16",
+      status: "received",
+      billingStatus: "unpaid",
+      note: "Ưu tiên",
+      resultGroupIds: ["group-2", "group-3"],
+      auditEventPayload: { updatedFields: ["resultGroupIds"] },
+    });
+
+    expect(from).not.toHaveBeenCalledWith("sample_result_groups");
+    expect(rpc).toHaveBeenCalledWith(
+      "update_sample_metadata_with_result_groups",
+      expect.objectContaining({
+        p_actor_id: "actor-1",
+        p_audit_event_payload: { updatedFields: ["resultGroupIds"] },
+        p_result_group_ids: ["group-2", "group-3"],
+        p_sample_id: "sample-1",
+      })
+    );
+  });
+
+  test("logs RPC diagnostics without exposing them to callers", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "duplicate key violates unique constraint" },
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from: vi.fn(),
+      rpc,
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const port = createSupabaseSampleMetadataPort();
+
+    try {
+      await expect(
+        port.updateSample({
+          sampleId: "sample-1",
+          organizationId: "org-1",
+          updatedBy: "actor-1",
+          sampleTypeId: "type-1",
+          customerId: null,
+          companyId: null,
+          kitBatchId: null,
+          customerName: "Nguyễn Văn A",
+          collectedAt: "2026-06-15",
+          receivedAt: "2026-06-16",
+          status: "received",
+          billingStatus: "unpaid",
+          note: "Ưu tiên",
+          resultGroupIds: ["group-2", "group-3"],
+          auditEventPayload: { updatedFields: ["resultGroupIds"] },
+        })
+      ).rejects.toThrow(
+        "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu."
+      );
+      expect(consoleError).toHaveBeenCalledWith(
+        "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu.",
+        expect.objectContaining({
+          message: "duplicate key violates unique constraint",
+        })
+      );
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
 
 type SupabaseRows = Record<string, unknown[]>;

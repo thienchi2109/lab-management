@@ -61,6 +61,7 @@ const metadata = {
     sampleTypes: [],
   },
   kitBatches: [],
+  resultGroupOptions: [],
   sampleTypes: [],
   samples: [],
   summary: {

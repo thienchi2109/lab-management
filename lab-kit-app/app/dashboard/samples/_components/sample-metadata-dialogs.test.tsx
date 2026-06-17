@@ -39,6 +39,16 @@ const metadata = mapSampleMetadataRows({
   kitBatches: [
     { id: "batch-1", kit_type_name: "PCR Realtime", lot_number: "LOT-01" },
   ],
+  resultGroups: [
+    {
+      id: "11111111-1111-4111-8111-111111111111",
+      name: "Sinh học phân tử",
+    },
+    {
+      id: "22222222-2222-4222-8222-222222222222",
+      name: "Hóa lý",
+    },
+  ],
   samples: [
     {
       id: "sample-1",
@@ -53,6 +63,9 @@ const metadata = mapSampleMetadataRows({
       status: "received",
       billing_status: "unpaid",
       metadata: { note: "Ưu tiên" },
+      sample_result_groups: [
+        { result_group_id: "22222222-2222-4222-8222-222222222222" },
+      ],
       updated_at: "2026-06-06T09:00:00.000Z",
     },
   ],
@@ -105,6 +118,36 @@ describe("sample metadata dialogs", () => {
     expect(document.body.innerHTML).not.toContain("text-zinc");
   });
 
+  test("submits multiple selected result groups when creating a sample", async () => {
+    const formAction = vi.fn(
+      async (_previousState: unknown, _formData: FormData) => ({
+        status: "idle" as const,
+        message: "",
+      })
+    );
+
+    renderWithToast(
+      <CreateSampleDialog
+        open
+        formAction={formAction}
+        onClose={vi.fn()}
+        {...metadata}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText("Sinh học phân tử"));
+    fireEvent.click(screen.getByLabelText("Hóa lý"));
+    fireEvent.submit(screen.getByText("Tạo mẫu").closest("form")!);
+
+    await waitFor(() => expect(formAction).toHaveBeenCalled());
+    const submitted = formAction.mock.calls[0]?.[1] as FormData;
+
+    expect(submitted.getAll("resultGroupIds")).toEqual([
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+    ]);
+  });
+
   test("renders edit sample as a right side sheet", () => {
     renderWithToast(
       <EditSampleDialog
@@ -118,6 +161,12 @@ describe("sample metadata dialogs", () => {
     expect(screen.getByText("Cập nhật T6_00012")).toBeTruthy();
     expect(screen.queryByLabelText("Mã mẫu")).toBeNull();
     expect(screen.getByRole("dialog").className).toContain("right-0");
+    expect((screen.getByLabelText("Hóa lý") as HTMLInputElement).checked).toBe(
+      true
+    );
+    expect(
+      (screen.getByLabelText("Sinh học phân tử") as HTMLInputElement).checked
+    ).toBe(false);
   });
 
   test("shows the generated sample code in a success toast after submit", async () => {

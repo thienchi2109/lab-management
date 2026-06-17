@@ -6,12 +6,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import { mapSampleMetadataRows, type SampleMetadata } from "./metadata";
 import type { SampleMetadataActor, SampleMetadataPort } from "./operations";
-import type {
-  CreateSampleInput,
-  SampleBillingStatus,
-  SampleStatus,
-  UpdateSampleInput,
-} from "./schemas";
+import type { SampleBillingStatus, SampleStatus } from "./schemas";
 
 type CompanyRow = {
   id: string;
@@ -38,6 +33,17 @@ type KitBatchRow = {
   lot_number: string;
 };
 
+type ResultGroupRow = {
+  id: string;
+  name: string;
+  sort_order: number;
+  is_active: boolean;
+};
+
+type SampleResultGroupRow = {
+  result_group_id: string;
+};
+
 type SampleRow = {
   id: string;
   sample_type_id: string;
@@ -51,6 +57,7 @@ type SampleRow = {
   status: SampleStatus;
   billing_status: SampleBillingStatus;
   metadata: Record<string, unknown>;
+  sample_result_groups?: SampleResultGroupRow[];
   updated_at: string;
 };
 
@@ -86,7 +93,7 @@ export async function getSampleMetadata(): Promise<SampleMetadata> {
   const actor = await requireSampleMetadataActor(["admin", "editor", "viewer"]);
   const supabase = getSupabaseAdminClient();
 
-  const [companies, customers, sampleTypes, kitBatches, samples] =
+  const [companies, customers, sampleTypes, kitBatches, resultGroups, samples] =
     await Promise.all([
       supabase
         .from("companies")
@@ -112,9 +119,16 @@ export async function getSampleMetadata(): Promise<SampleMetadata> {
         .eq("organization_id", actor.organizationId)
         .order("received_at", { ascending: false }),
       supabase
+        .from("result_groups")
+        .select("id, name, sort_order, is_active")
+        .eq("organization_id", actor.organizationId)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .returns<ResultGroupRow[]>(),
+      supabase
         .from("samples")
         .select(
-          "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, collected_at, received_at, status, billing_status, metadata, updated_at"
+          "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, collected_at, received_at, status, billing_status, metadata, updated_at, sample_result_groups(result_group_id)"
         )
         .eq("organization_id", actor.organizationId)
         .order("received_at", { ascending: false })
@@ -126,6 +140,7 @@ export async function getSampleMetadata(): Promise<SampleMetadata> {
     customers.error ||
     sampleTypes.error ||
     kitBatches.error ||
+    resultGroups.error ||
     samples.error
   ) {
     throw new Error("Không thể tải danh sách mẫu xét nghiệm.");
@@ -136,6 +151,7 @@ export async function getSampleMetadata(): Promise<SampleMetadata> {
     customers: customers.data ?? [],
     sampleTypes: sampleTypes.data ?? [],
     kitBatches: mapKitBatchRows(kitBatches.data ?? []),
+    resultGroups: resultGroups.data ?? [],
     samples: samples.data ?? [],
   });
 }
@@ -192,13 +208,35 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
       return { sampleId: data.sample_id, sampleCode: data.sample_code };
     },
     async updateSample(input) {
-      const { error } = await supabase
-        .from("samples")
-        .update(toSampleUpdate(input))
-        .eq("id", input.sampleId)
-        .eq("organization_id", input.organizationId);
+      const { error } = await supabase.rpc(
+        "update_sample_metadata_with_result_groups",
+        {
+          p_actor_id: input.updatedBy,
+          p_audit_event_payload: input.auditEventPayload,
+          p_billing_status: input.billingStatus,
+          p_collected_at: input.collectedAt,
+          p_company_id: input.companyId,
+          p_customer_id: input.customerId,
+          p_customer_name: input.customerName,
+          p_kit_batch_id: input.kitBatchId,
+          p_note: input.note,
+          p_organization_id: input.organizationId,
+          p_received_at: input.receivedAt,
+          p_result_group_ids: input.resultGroupIds,
+          p_sample_id: input.sampleId,
+          p_sample_type_id: input.sampleTypeId,
+          p_status: input.status,
+        }
+      );
 
-      if (error) throw new Error("Không thể cập nhật mẫu xét nghiệm.");
+      if (error) {
+        console.error("Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu.", {
+          message: getSupabaseErrorMessage(error),
+        });
+        throw new Error(
+          "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu."
+        );
+      }
     },
     async insertAuditEvent(input) {
       const { error } = await supabase.from("audit_events").insert({
@@ -252,6 +290,10 @@ function existsNullableInOrg(
   return id ? existsInOrg(table, id, organizationId) : Promise.resolve(true);
 }
 
+function getSupabaseErrorMessage(error: { message?: string }) {
+  return error.message ?? "Lỗi Supabase không rõ.";
+}
+
 async function allActiveInOrg(
   table: string,
   ids: string[],
@@ -271,25 +313,6 @@ async function allActiveInOrg(
 
   if (error) throw new Error("Không thể kiểm tra dữ liệu tham chiếu.");
   return (data ?? []).length === uniqueIds.length;
-}
-
-function toSampleUpdate(input: UpdateSampleInput & { organizationId: string }) {
-  return toSampleUpdateFields(input);
-}
-
-function toSampleUpdateFields(input: CreateSampleInput) {
-  return {
-    sample_type_id: input.sampleTypeId,
-    customer_id: input.customerId,
-    company_id: input.companyId,
-    kit_batch_id: input.kitBatchId,
-    customer_name: input.customerName,
-    collected_at: input.collectedAt,
-    received_at: input.receivedAt,
-    status: input.status,
-    billing_status: input.billingStatus,
-    metadata: { note: input.note },
-  };
 }
 
 function mapKitBatchRows(rows: unknown[]): KitBatchRow[] {

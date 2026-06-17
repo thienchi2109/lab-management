@@ -18,6 +18,7 @@ import type {
   CompanyOption,
   CustomerOption,
   KitBatchOption,
+  ResultGroupOption,
   SampleMetadataRow,
   SampleTypeOption,
 } from "@/lib/sample-metadata/metadata";
@@ -31,6 +32,7 @@ import {
   initialDialogState,
   type SampleMetadataDialogAction,
 } from "./sample-metadata-dialog-state";
+import { SampleResultGroupField } from "./sample-result-group-field";
 
 type DialogProps = {
   open: boolean;
@@ -40,6 +42,7 @@ type DialogProps = {
   customers: CustomerOption[];
   companies: CompanyOption[];
   kitBatches: KitBatchOption[];
+  resultGroupOptions: ResultGroupOption[];
 };
 
 /** Render the create-sample metadata dialog. */
@@ -139,6 +142,7 @@ function SampleForm({
   customers,
   companies,
   kitBatches,
+  resultGroupOptions,
   stickyActions,
 }: Omit<DialogProps, "open" | "formAction"> & {
   action: (formData: FormData) => void;
@@ -232,6 +236,12 @@ function SampleForm({
           ]}
           error={errors.kitBatchId}
         />
+        <SampleResultGroupField
+          className="space-y-1.5 sm:col-span-2"
+          options={resultGroupOptions}
+          selectedIds={sample?.resultGroupIds ?? []}
+          error={errors.resultGroupIds}
+        />
         <Field
           className={fieldClass}
           inputClassName={controlClass}
@@ -320,5 +330,6 @@ function toSampleFormProps(props: DialogProps | Omit<DialogProps, "open">) {
     customers: props.customers,
     companies: props.companies,
     kitBatches: props.kitBatches,
+    resultGroupOptions: props.resultGroupOptions,
   };
 }
