@@ -129,6 +129,154 @@ describe("createSupabaseSampleResultsPort", () => {
       },
     });
   });
+
+  test("loads result entry metrics only from selected sample result groups", async () => {
+    const { from } = createSupabaseQueryMock({
+      samples: [
+        {
+          id: "sample-1",
+          organization_id: "org-1",
+          sample_type_id: "type-1",
+          sample_code: "T6_00001",
+        },
+      ],
+      sample_result_groups: [
+        {
+          sample_id: "sample-1",
+          result_group_id: "group-selected",
+        },
+      ],
+      result_templates: [{ id: "template-1", name: "PCR mở rộng" }],
+      result_template_metrics: [
+        { result_metric_id: "metric-selected", sort_order: 10 },
+        { result_metric_id: "metric-unselected", sort_order: 20 },
+      ],
+      result_metrics: [
+        {
+          id: "metric-selected",
+          result_group_id: "group-selected",
+          code: "WSSV",
+          name: "WSSV",
+          input_type: "pcr_realtime",
+          unit: "Ct",
+          options: [],
+          metric_settings: {},
+          sort_order: 10,
+          is_required: true,
+        },
+        {
+          id: "metric-unselected",
+          result_group_id: "group-unselected",
+          code: "AHPND",
+          name: "AHPND",
+          input_type: "pcr_realtime",
+          unit: "Ct",
+          options: [],
+          metric_settings: {},
+          sort_order: 20,
+          is_required: true,
+        },
+      ],
+      result_groups: [
+        {
+          id: "group-selected",
+          code: "PCR",
+          name: "PCR đã chọn",
+          sort_order: 10,
+        },
+        {
+          id: "group-unselected",
+          code: "PCR2",
+          name: "PCR chưa chọn",
+          sort_order: 20,
+        },
+      ],
+      sample_results: [],
+      sample_group_conclusions: [],
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from,
+      rpc: vi.fn(),
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseSampleResultsPort();
+    const template = await port.getTemplateForSample({
+      sampleId: "sample-1",
+      organizationId: "org-1",
+    });
+
+    expect(template?.groups).toEqual([
+      expect.objectContaining({
+        id: "group-selected",
+        metrics: [
+          expect.objectContaining({
+            id: "metric-selected",
+          }),
+        ],
+      }),
+    ]);
+  });
+
+  test("loads active metrics from selected result groups even when the sample type template omits them", async () => {
+    const { from } = createSupabaseQueryMock({
+      samples: [
+        {
+          id: "sample-1",
+          organization_id: "org-1",
+          sample_type_id: "type-1",
+          sample_code: "T6_00001",
+        },
+      ],
+      sample_result_groups: [
+        {
+          sample_id: "sample-1",
+          result_group_id: "group-selected",
+        },
+      ],
+      result_templates: [{ id: "template-1", name: "Template cũ" }],
+      result_template_metrics: [],
+      result_metrics: [
+        {
+          id: "metric-from-selected-group",
+          result_group_id: "group-selected",
+          code: "WSSV",
+          name: "WSSV",
+          input_type: "pcr_realtime",
+          unit: "Ct",
+          options: [],
+          metric_settings: {},
+          sort_order: 10,
+          is_required: true,
+        },
+      ],
+      result_groups: [
+        {
+          id: "group-selected",
+          code: "PCR",
+          name: "PCR đã chọn",
+          sort_order: 10,
+        },
+      ],
+      sample_results: [],
+      sample_group_conclusions: [],
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from,
+      rpc: vi.fn(),
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseSampleResultsPort();
+    const template = await port.getTemplateForSample({
+      sampleId: "sample-1",
+      organizationId: "org-1",
+    });
+
+    expect(template?.groups[0]?.metrics).toEqual([
+      expect.objectContaining({
+        id: "metric-from-selected-group",
+      }),
+    ]);
+  });
 });
 
 type SupabaseRows = Record<string, unknown[]>;
