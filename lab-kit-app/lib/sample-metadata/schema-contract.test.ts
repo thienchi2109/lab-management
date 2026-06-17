@@ -17,6 +17,21 @@ function readMigrations() {
     .join("\n");
 }
 
+function readLatestFunctionContract(functionName: string) {
+  const functionPattern = new RegExp(
+    `create\\s+or\\s+replace\\s+function\\s+public\\.${functionName}\\b`,
+    "iu"
+  );
+
+  return fs
+    .readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort()
+    .map((file) => fs.readFileSync(path.join(migrationsDir, file), "utf8"))
+    .filter((migration) => functionPattern.test(migration))
+    .at(-1);
+}
+
 describe("sample metadata schema contract", () => {
   test("creates samples through an HP random-code transaction RPC", () => {
     const migrations = readMigrations();
@@ -75,27 +90,28 @@ describe("sample metadata schema contract", () => {
   });
 
   test("updates sample metadata and result groups through one transaction RPC", () => {
-    const migrations = readMigrations();
+    const rpcSql = readLatestFunctionContract(
+      "update_sample_metadata_with_result_groups"
+    );
 
-    expect(migrations).toMatch(
+    expect(rpcSql).toMatch(
       /create\s+or\s+replace\s+function\s+public\.update_sample_metadata_with_result_groups/iu
     );
-    expect(migrations).toMatch(/security\s+definer/iu);
-    expect(migrations).toMatch(/set\s+search_path\s*=\s*public/iu);
-    expect(migrations).toMatch(
+    expect(rpcSql).toMatch(/security\s+definer/iu);
+    expect(rpcSql).toMatch(/set\s+search_path\s*=\s*public/iu);
+    expect(rpcSql).toMatch(
+      /unnest\s*\(\s*p_result_group_ids\s*\)[\s\S]+?is\s+null[\s\S]+?result_group_ids cannot contain null values/iu
+    );
+    expect(rpcSql).toMatch(
       /update\s+public\.samples[\s\S]+returning\s+id\s+into\s+updated_sample_id/iu
     );
-    expect(migrations).toMatch(
-      /delete\s+from\s+public\.sample_result_groups/iu
-    );
-    expect(migrations).toMatch(
-      /insert\s+into\s+public\.sample_result_groups/iu
-    );
-    expect(migrations).toMatch(/insert\s+into\s+public\.audit_events/iu);
-    expect(migrations).toMatch(
+    expect(rpcSql).toMatch(/delete\s+from\s+public\.sample_result_groups/iu);
+    expect(rpcSql).toMatch(/insert\s+into\s+public\.sample_result_groups/iu);
+    expect(rpcSql).toMatch(/insert\s+into\s+public\.audit_events/iu);
+    expect(rpcSql).toMatch(
       /revoke\s+all\s+on\s+function\s+public\.update_sample_metadata_with_result_groups/iu
     );
-    expect(migrations).toMatch(
+    expect(rpcSql).toMatch(
       /grant\s+execute\s+on\s+function\s+public\.update_sample_metadata_with_result_groups[\s\S]+uuid\[\][\s\S]+jsonb[\s\S]+to\s+service_role/iu
     );
   });

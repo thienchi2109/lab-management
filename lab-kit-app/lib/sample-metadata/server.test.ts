@@ -110,7 +110,7 @@ describe("createSupabaseSampleMetadataPort", () => {
     );
   });
 
-  test("preserves RPC diagnostics when updating result groups fails", async () => {
+  test("logs RPC diagnostics without exposing them to callers", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: null,
       error: { message: "duplicate key violates unique constraint" },
@@ -119,30 +119,43 @@ describe("createSupabaseSampleMetadataPort", () => {
       from: vi.fn(),
       rpc,
     } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     const port = createSupabaseSampleMetadataPort();
 
-    await expect(
-      port.updateSample({
-        sampleId: "sample-1",
-        organizationId: "org-1",
-        updatedBy: "actor-1",
-        sampleTypeId: "type-1",
-        customerId: null,
-        companyId: null,
-        kitBatchId: null,
-        customerName: "Nguyễn Văn A",
-        collectedAt: "2026-06-15",
-        receivedAt: "2026-06-16",
-        status: "received",
-        billingStatus: "unpaid",
-        note: "Ưu tiên",
-        resultGroupIds: ["group-2", "group-3"],
-        auditEventPayload: { updatedFields: ["resultGroupIds"] },
-      })
-    ).rejects.toThrow(
-      "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu: duplicate key violates unique constraint"
-    );
+    try {
+      await expect(
+        port.updateSample({
+          sampleId: "sample-1",
+          organizationId: "org-1",
+          updatedBy: "actor-1",
+          sampleTypeId: "type-1",
+          customerId: null,
+          companyId: null,
+          kitBatchId: null,
+          customerName: "Nguyễn Văn A",
+          collectedAt: "2026-06-15",
+          receivedAt: "2026-06-16",
+          status: "received",
+          billingStatus: "unpaid",
+          note: "Ưu tiên",
+          resultGroupIds: ["group-2", "group-3"],
+          auditEventPayload: { updatedFields: ["resultGroupIds"] },
+        })
+      ).rejects.toThrow(
+        "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu."
+      );
+      expect(consoleError).toHaveBeenCalledWith(
+        "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu.",
+        expect.objectContaining({
+          message: "duplicate key violates unique constraint",
+        })
+      );
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });
 

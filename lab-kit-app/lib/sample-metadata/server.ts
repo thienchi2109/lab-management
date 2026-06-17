@@ -230,8 +230,11 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
       );
 
       if (error) {
+        console.error("Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu.", {
+          message: getSupabaseErrorMessage(error),
+        });
         throw new Error(
-          `Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu: ${getSupabaseErrorMessage(error)}`
+          "Không thể cập nhật metadata và nhóm chỉ tiêu của mẫu."
         );
       }
     },
