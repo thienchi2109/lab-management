@@ -129,7 +129,6 @@ describe("createSupabaseSampleResultsPort", () => {
       },
     });
   });
-
 });
 
 type SupabaseRows = Record<string, unknown[]>;

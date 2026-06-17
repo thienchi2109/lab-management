@@ -49,6 +49,7 @@ const basePage: SampleGridPage = {
     sort: { direction: "desc", key: "receivedAt" },
   },
   resultColumnOptions: [],
+  resultGroupOptions: [],
   selectedResultColumnKeys: [],
   rows: [
     {

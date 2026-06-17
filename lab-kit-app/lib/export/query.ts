@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import type { SampleGridSortKey } from "@/lib/sample-grid/query";
 import {
+  MAX_RESULT_GROUP_FILTERS,
+  isResultGroupId,
+  normalizeResultGroupIds,
+} from "@/lib/sample-grid/result-group-filter-contract";
+import {
   SAMPLE_BILLING_STATUSES,
   SAMPLE_STATUSES,
   type SampleBillingStatus,
@@ -56,6 +61,7 @@ export type ExportFilters = {
   kitBatchId?: string;
   receivedFrom?: string;
   receivedTo?: string;
+  resultGroupIds?: string[];
   sampleTypeId?: string;
   status?: SampleStatus;
 };
@@ -149,12 +155,17 @@ const MAX_SEARCH_LENGTH = 100;
 
 const idSchema = z.string().refine((value) => SAFE_ID_PATTERN.test(value));
 const isoDateSchema = z.string().refine(isValidIsoDate);
+const resultGroupIdsSchema = z
+  .array(z.string().refine(isResultGroupId))
+  .max(MAX_RESULT_GROUP_FILTERS)
+  .transform(normalizeResultGroupIds);
 const filterSchema = z.strictObject({
   billingStatus: z.enum(SAMPLE_BILLING_STATUSES).optional(),
   companyId: idSchema.optional(),
   kitBatchId: idSchema.optional(),
   receivedFrom: isoDateSchema.optional(),
   receivedTo: isoDateSchema.optional(),
+  resultGroupIds: resultGroupIdsSchema.optional(),
   sampleTypeId: idSchema.optional(),
   status: z.enum(SAMPLE_STATUSES).optional(),
 });

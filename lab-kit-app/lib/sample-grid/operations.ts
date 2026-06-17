@@ -58,6 +58,12 @@ export type SampleGridResultColumnOption = {
   label: string;
 };
 
+/** Nhóm chỉ tiêu có thể dùng để lọc Sample Grid. */
+export type SampleGridResultGroupFilterOption = {
+  id: string;
+  label: string;
+};
+
 /** Kết quả phân trang thô từ adapter hạ tầng. */
 export type SampleGridPortResult = {
   rows: SampleGridRow[];
@@ -74,6 +80,9 @@ export type SampleGridPort = {
     organizationId: string;
     sampleTypeId?: string;
   }): Promise<SampleGridResultColumnOption[]>;
+  listResultGroupOptions?(input: {
+    organizationId: string;
+  }): Promise<SampleGridResultGroupFilterOption[]>;
   listSampleResultSummaries?(input: {
     organizationId: string;
     sampleIds: string[];
@@ -93,6 +102,7 @@ export type SampleGridPage = {
   };
   query: SampleGridQuery;
   resultColumnOptions: SampleGridResultColumnOption[];
+  resultGroupOptions: SampleGridResultGroupFilterOption[];
   selectedResultColumnKeys: string[];
   rows: SampleGridRow[];
 };
@@ -118,6 +128,7 @@ export async function listSampleGridPage(
   });
   const rows = await attachResultSummaries(result.rows, actor, port);
   const resultColumnOptions = await loadResultColumnOptions(query, actor, port);
+  const resultGroupOptions = await loadResultGroupOptions(actor, port);
   const totalPages =
     result.totalCount > 0 ? Math.ceil(result.totalCount / query.pageSize) : 0;
 
@@ -133,6 +144,7 @@ export async function listSampleGridPage(
     },
     query,
     resultColumnOptions,
+    resultGroupOptions,
     selectedResultColumnKeys: query.resultColumnKeys.filter((key) =>
       resultColumnOptions.some((option) => option.key === key)
     ),
@@ -183,6 +195,24 @@ async function loadResultColumnOptions(
     });
   } catch (error) {
     console.error("Failed to fetch sample grid result column options:", error);
+    return [];
+  }
+}
+
+async function loadResultGroupOptions(
+  actor: SampleGridActor,
+  port: SampleGridPort
+): Promise<SampleGridResultGroupFilterOption[]> {
+  if (!port.listResultGroupOptions) {
+    return [];
+  }
+
+  try {
+    return await port.listResultGroupOptions({
+      organizationId: actor.organizationId,
+    });
+  } catch (error) {
+    console.error("Failed to fetch sample grid result group options:", error);
     return [];
   }
 }

@@ -104,6 +104,23 @@ describe("sample grid query parser", () => {
     ]);
   });
 
+  test("whitelists deduped result group filters from repeated params", () => {
+    const firstGroupId = "11111111-1111-4111-8111-111111111111";
+    const secondGroupId = "22222222-2222-4222-8222-222222222222";
+    const ignoredGroupId = "not-a-uuid";
+
+    const query = parseSampleGridQuery({
+      resultGroupIds: [
+        firstGroupId,
+        ignoredGroupId,
+        secondGroupId,
+        firstGroupId,
+      ],
+    });
+
+    expect(query.filters.resultGroupIds).toEqual([firstGroupId, secondGroupId]);
+  });
+
   test("uses a set for result column de-duplication inside the parser loop", () => {
     const parserBody = querySource.slice(
       querySource.indexOf("function parseResultColumnKeys"),

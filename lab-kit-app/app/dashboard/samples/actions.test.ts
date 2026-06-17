@@ -53,6 +53,7 @@ const previousState: SampleMetadataActionState = {
   status: "idle",
   message: "",
 };
+const resultGroupId = "11111111-1111-4111-8111-111111111111";
 
 function createSampleForm() {
   const formData = new FormData();
@@ -66,6 +67,7 @@ function createSampleForm() {
   formData.set("status", "received");
   formData.set("billingStatus", "unpaid");
   formData.set("note", "");
+  formData.append("resultGroupIds", resultGroupId);
   return formData;
 }
 

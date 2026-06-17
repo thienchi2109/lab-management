@@ -51,7 +51,20 @@ Sau khi 04D đã có live schema:
 
 ## Acceptance Evidence
 
-- Focused tests pass và ghi số file/test trong Harness evidence.
-- Typecheck và React Doctor diff pass.
-- Nếu browser/manual smoke bị skip, evidence phải ghi rõ lý do và phần proof
-  thay thế.
+- 2026-06-17: RED tests fail đúng lý do thiếu `resultGroupIds`, thiếu
+  `resultGroupOptions`, chưa join `sample_result_groups`, và UI chưa render
+  filter `Nhóm chỉ tiêu`.
+- 2026-06-17: Focused suite pass:
+  `cd lab-kit-app && bun run test --run lib/sample-grid app/dashboard/samples app/api/export lib/export`
+  với 36 files / 141 tests.
+- 2026-06-17: `cd lab-kit-app && bun run typecheck` pass.
+- 2026-06-17: `cd /root/lab-management && node scripts/validate-supabase-schema.mjs`
+  pass.
+- 2026-06-17: `cd lab-kit-app && bun run format:check` pass.
+- 2026-06-17: `cd lab-kit-app && bun run react-doctor` pass ở blocking
+  error.
+- 2026-06-17: `cd lab-kit-app && bun run docstring:check` pass với 3 changed
+  source files.
+- Browser/manual smoke chưa chạy; thay thế bằng focused UI static render tests
+  cho checkbox/chip responsive, URL state, reset `page=1`, pagination giữ
+  `resultGroupIds`, và export parser giữ cùng filter contract.
