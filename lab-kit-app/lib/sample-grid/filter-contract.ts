@@ -53,13 +53,12 @@ export function defaultSampleReceivedDateRange(
 export function withDefaultSampleReceivedDateRange<
   TFilters extends { receivedFrom?: string; receivedTo?: string },
 >(filters: TFilters): TFilters & SampleReceivedDateRange {
-  if (filters.receivedFrom || filters.receivedTo) {
-    return filters as TFilters & SampleReceivedDateRange;
-  }
+  const defaults = defaultSampleReceivedDateRange();
 
   return {
     ...filters,
-    ...defaultSampleReceivedDateRange(),
+    receivedFrom: filters.receivedFrom ?? defaults.receivedFrom,
+    receivedTo: filters.receivedTo ?? defaults.receivedTo,
   };
 }
 

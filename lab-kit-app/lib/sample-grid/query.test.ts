@@ -111,6 +111,17 @@ describe("sample grid query parser", () => {
     expect(query.sort).toEqual({ direction: "desc", key: "receivedAt" });
   });
 
+  test("fills a missing date boundary from the default received range", () => {
+    const query = parseSampleGridQuery({
+      receivedFrom: "2026-06-01",
+    });
+
+    expect(query.filters).toMatchObject({
+      receivedFrom: "2026-06-01",
+      receivedTo: "2026-06-08",
+    });
+  });
+
   test("whitelists bounded result group and metric column keys", () => {
     const query = parseSampleGridQuery({
       resultColumns: [

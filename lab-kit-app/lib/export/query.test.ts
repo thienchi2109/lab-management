@@ -130,6 +130,7 @@ describe("export query contract", () => {
       dataset: "results-normalized",
       fields: ["sampleCode", "groupName", "metricName", "value", "kqChung"],
       filters: {
+        receivedFrom: "2026-05-30",
         receivedTo: "2026-06-08",
         sampleTypeId: "sample-type-1",
       },
