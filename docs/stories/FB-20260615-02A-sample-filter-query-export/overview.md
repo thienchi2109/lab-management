@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -24,7 +24,8 @@ export.
 
 - `parseSampleGridQuery` có default date range 10 ngày gần nhất khi URL chưa có
   filter ngày.
-- Sort mặc định cố định ngày mới nhất trước; UI không cần truyền sort direction.
+- Sort mặc định cố định ngày mới nhất trước; UI không cần truyền sort
+  direction.
 - Query contract hỗ trợ `receivedFrom`, `receivedTo`, `sampleTypeId`,
   customer/company text hoặc ID theo contract hiện có, và nhiều
   `resultGroupIds`.
@@ -64,4 +65,8 @@ Không có.
 
 ## Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+- 2026-06-17: Implemented query/export contract parity cho `FB-20260615-02A`.
+  Evidence: `cd lab-kit-app && bun run test --run lib/sample-grid/query.test.ts
+  lib/export/query.test.ts app/api/export/samples/route.test.ts && bun run
+  typecheck && bun run react-doctor:diff` pass với 3 test files / 22 tests,
+  TypeScript pass, React Doctor diff không có issue.

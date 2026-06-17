@@ -5,6 +5,11 @@ import {
   type SampleStatus,
 } from "@/lib/sample-metadata/schemas";
 
+import {
+  isValidSampleFilterDate,
+  normalizeSampleFilterText,
+  withDefaultSampleReceivedDateRange,
+} from "./filter-contract";
 import { normalizeResultGroupIds } from "./result-group-filter-contract";
 
 /** Page size mặc định cho data grid mẫu. */
@@ -29,6 +34,9 @@ export type SampleGridSortDirection = "asc" | "desc";
 export type SampleGridFilters = {
   billingStatus?: SampleBillingStatus;
   companyId?: string;
+  companyName?: string;
+  customerId?: string;
+  customerName?: string;
   kitBatchId?: string;
   receivedFrom?: string;
   receivedTo?: string;
@@ -63,17 +71,8 @@ const DEFAULT_SORT: SampleGridQuery["sort"] = {
 };
 const MAX_SEARCH_LENGTH = 100;
 const MAX_RESULT_COLUMNS = 3;
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
 const RESULT_COLUMN_KEY_PATTERN = /^(group|metric):[A-Za-z0-9_-]{1,120}$/;
-const sortKeys = new Set<SampleGridSortKey>([
-  "billingStatus",
-  "customerName",
-  "receivedAt",
-  "sampleCode",
-  "status",
-  "updatedAt",
-]);
 
 /** Normalize URL search params into the safe server-side grid query contract. */
 export function parseSampleGridQuery(
@@ -94,7 +93,7 @@ export function parseSampleGridQuery(
     pageSize,
     resultColumnKeys: parseResultColumnKeys(params),
     search: normalizeSearch(firstParam(params, "search")),
-    sort: parseSort(params),
+    sort: DEFAULT_SORT,
   };
 }
 
@@ -112,8 +111,11 @@ function parseFilters(params: SampleGridSearchParams): SampleGridFilters {
   }
 
   setSafeIdFilter(filters, "companyId", firstParam(params, "companyId"));
+  setSafeIdFilter(filters, "customerId", firstParam(params, "customerId"));
   setSafeIdFilter(filters, "kitBatchId", firstParam(params, "kitBatchId"));
   setSafeIdFilter(filters, "sampleTypeId", firstParam(params, "sampleTypeId"));
+  setTextFilter(filters, "companyName", firstParam(params, "companyName"));
+  setTextFilter(filters, "customerName", firstParam(params, "customerName"));
   const resultGroupIds = parseResultGroupIds(params);
   if (resultGroupIds.length > 0) {
     filters.resultGroupIds = resultGroupIds;
@@ -122,15 +124,15 @@ function parseFilters(params: SampleGridSearchParams): SampleGridFilters {
   const receivedFrom = firstParam(params, "receivedFrom");
   const receivedTo = firstParam(params, "receivedTo");
 
-  if (receivedFrom && isValidIsoDate(receivedFrom)) {
+  if (receivedFrom && isValidSampleFilterDate(receivedFrom)) {
     filters.receivedFrom = receivedFrom;
   }
 
-  if (receivedTo && isValidIsoDate(receivedTo)) {
+  if (receivedTo && isValidSampleFilterDate(receivedTo)) {
     filters.receivedTo = receivedTo;
   }
 
-  return filters;
+  return withDefaultSampleReceivedDateRange(filters);
 }
 
 function setSafeIdFilter<K extends keyof SampleGridFilters>(
@@ -143,22 +145,20 @@ function setSafeIdFilter<K extends keyof SampleGridFilters>(
   }
 }
 
-function parseResultGroupIds(params: SampleGridSearchParams) {
-  return normalizeResultGroupIds(allParams(params, "resultGroupIds"));
+function setTextFilter<K extends keyof SampleGridFilters>(
+  filters: SampleGridFilters,
+  key: K,
+  value: string | undefined
+) {
+  const normalized = normalizeSampleFilterText(value);
+
+  if (normalized) {
+    filters[key] = normalized as SampleGridFilters[K];
+  }
 }
 
-function parseSort(params: SampleGridSearchParams): SampleGridQuery["sort"] {
-  const key = firstParam(params, "sort");
-  const direction = firstParam(params, "dir");
-
-  if (!key || !sortKeys.has(key as SampleGridSortKey)) {
-    return DEFAULT_SORT;
-  }
-
-  return {
-    direction: direction === "desc" ? "desc" : "asc",
-    key: key as SampleGridSortKey,
-  };
+function parseResultGroupIds(params: SampleGridSearchParams) {
+  return normalizeResultGroupIds(allParams(params, "resultGroupIds"));
 }
 
 function parseResultColumnKeys(params: SampleGridSearchParams) {
@@ -192,21 +192,6 @@ function normalizeSearch(value: string | undefined) {
   const search = value?.trim().replace(/\s+/g, " ") ?? "";
 
   return search.length > 0 ? search.slice(0, MAX_SEARCH_LENGTH) : null;
-}
-
-function isValidIsoDate(value: string) {
-  if (!ISO_DATE_PATTERN.test(value)) {
-    return false;
-  }
-
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
-  );
 }
 
 function positiveInteger(value: string | undefined) {
