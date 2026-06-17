@@ -70,6 +70,53 @@ describe("createSupabaseSampleMetadataPort", () => {
 
     expect(ok).toBe(false);
   });
+
+  test("syncs selected result groups when updating a sample", async () => {
+    const sampleQuery = createChainDouble();
+    const groupQuery = createChainDouble([
+      { result_group_id: "group-1" },
+      { result_group_id: "group-2" },
+    ]);
+    const from = vi.fn((table: string) => {
+      if (table === "sample_result_groups") return groupQuery;
+      return sampleQuery;
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from,
+      rpc: vi.fn(),
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseSampleMetadataPort();
+    await port.updateSample({
+      sampleId: "sample-1",
+      organizationId: "org-1",
+      sampleTypeId: "type-1",
+      customerId: null,
+      companyId: null,
+      kitBatchId: null,
+      customerName: "Nguyễn Văn A",
+      collectedAt: "2026-06-15",
+      receivedAt: "2026-06-16",
+      status: "received",
+      billingStatus: "unpaid",
+      note: "Ưu tiên",
+      resultGroupIds: ["group-2", "group-3"],
+    });
+
+    expect(from).toHaveBeenCalledWith("sample_result_groups");
+    expect(groupQuery.select).toHaveBeenCalledWith("result_group_id");
+    expect(groupQuery.eq).toHaveBeenCalledWith("sample_id", "sample-1");
+    expect(groupQuery.eq).toHaveBeenCalledWith("organization_id", "org-1");
+    expect(groupQuery.delete).toHaveBeenCalled();
+    expect(groupQuery.in).toHaveBeenCalledWith("result_group_id", ["group-1"]);
+    expect(groupQuery.insert).toHaveBeenCalledWith([
+      {
+        sample_id: "sample-1",
+        result_group_id: "group-3",
+        organization_id: "org-1",
+      },
+    ]);
+  });
 });
 
 type SupabaseRows = Record<string, unknown[]>;
@@ -86,6 +133,22 @@ function createQueryDouble(rows: unknown[]) {
     in: vi.fn(() => query),
     maybeSingle: vi.fn(async () => ({ data: rows[0] ?? null, error: null })),
     returns: vi.fn(async () => ({ data: rows, error: null })),
+  };
+  return query;
+}
+
+function createChainDouble(rows: unknown[] = []) {
+  const query = {
+    select: vi.fn(() => query),
+    update: vi.fn(() => query),
+    delete: vi.fn(() => query),
+    insert: vi.fn(() => query),
+    eq: vi.fn(() => query),
+    in: vi.fn(() => query),
+    returns: vi.fn(async () => ({ data: rows, error: null })),
+    then(resolve: (value: { error: null }) => void) {
+      resolve({ error: null });
+    },
   };
   return query;
 }

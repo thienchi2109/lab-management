@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -44,6 +44,21 @@ FB-20260615-04 - Mẫu hỗ trợ nhiều nhóm chỉ tiêu.
 - `cd lab-kit-app && bun run typecheck && bun run react-doctor:diff`
 - Live smoke (sau khi 04D applied): tạo mẫu mới với 2 nhóm, sửa lại còn 1
   nhóm, xác nhận bảng nối khớp.
+
+## Acceptance Evidence
+
+- 2026-06-17: RED tests fail đúng lý do thiếu metadata
+  `resultGroupOptions/resultGroupIds`, thiếu checkbox `resultGroupIds` trong
+  form tạo/sửa, và update adapter chưa đồng bộ `sample_result_groups`.
+- 2026-06-17: Implemented form field `Nhóm chỉ tiêu` cho
+  `CreateSampleDialog`/`EditSampleDialog`, metadata server nạp active
+  `result_groups` và nested `sample_result_groups`, update adapter diff-sync
+  insert/delete tối thiểu cho bảng nối theo contract 04D.
+- 2026-06-17: `scripts/bin/harness-cli story verify FB-20260615-04E` pass:
+  focused tests 10 files/39 tests, `typecheck`, `format:check`,
+  `react-doctor:diff`, `docstring:check`, và schema validator pass.
+- 2026-06-17: `cd lab-kit-app && bun run react-doctor` pass. Live smoke chưa
+  chạy.
 
 ## Dependencies
 

@@ -39,6 +39,16 @@ describe("sample metadata mapping", () => {
           lot_number: "LOT-01",
         },
       ],
+      resultGroups: [
+        {
+          id: "group-1",
+          name: "Sinh học phân tử",
+        },
+        {
+          id: "group-2",
+          name: "Hóa lý",
+        },
+      ],
       samples: [
         {
           id: "sample-1",
@@ -53,6 +63,7 @@ describe("sample metadata mapping", () => {
           status: "received",
           billing_status: "unpaid",
           metadata: { note: "Ưu tiên" },
+          sample_result_groups: [{ result_group_id: "group-2" }],
           updated_at: "2026-06-06T09:00:00.000Z",
         },
       ],
@@ -72,9 +83,14 @@ describe("sample metadata mapping", () => {
         companyName: "Công ty Minh Phú",
         kitSummary: "PCR Realtime - LOT-01",
         note: "Ưu tiên",
+        resultGroupIds: ["group-2"],
       })
     );
     expect(metadata.filterOptions.sampleTypes).toEqual([["type-1", "Mẫu PCR"]]);
+    expect(metadata.resultGroupOptions).toEqual([
+      { id: "group-1", label: "Sinh học phân tử" },
+      { id: "group-2", label: "Hóa lý" },
+    ]);
   });
 
   test("summarizes samples in one mapped metadata view", () => {
