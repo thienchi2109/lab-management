@@ -14,6 +14,7 @@ import {
   createSupabaseSampleGridPort,
   getSampleGridPage,
 } from "./server";
+import { createSupabaseOptionsDouble } from "./server-test-doubles";
 
 vi.mock("server-only", () => ({}));
 
@@ -175,6 +176,10 @@ describe("sample grid server contract", () => {
       query: {
         filters: {
           billingStatus: "unpaid",
+          companyId: "company-1",
+          companyName: "Công ty A",
+          customerId: "customer-1",
+          customerName: "Nguyễn Văn A",
           receivedFrom: "2026-06-01",
           receivedTo: "2026-06-08",
           status: "received",
@@ -200,6 +205,10 @@ describe("sample grid server contract", () => {
     expect(query.eq).toHaveBeenCalledWith("organization_id", "org-1");
     expect(query.eq).toHaveBeenCalledWith("status", "received");
     expect(query.eq).toHaveBeenCalledWith("billing_status", "unpaid");
+    expect(query.eq).toHaveBeenCalledWith("company_id", "company-1");
+    expect(query.eq).toHaveBeenCalledWith("customer_id", "customer-1");
+    expect(query.ilike).toHaveBeenCalledWith("companies.name", "%Công ty A%");
+    expect(query.ilike).toHaveBeenCalledWith("customer_name", "%Nguyễn Văn A%");
     expect(query.gte).toHaveBeenCalledWith("received_at", "2026-06-01");
     expect(query.lte).toHaveBeenCalledWith("received_at", "2026-06-08");
     expect(query.or).toHaveBeenCalledWith(
@@ -210,6 +219,74 @@ describe("sample grid server contract", () => {
     });
     expect(query.range).toHaveBeenCalledWith(20, 29);
   });
+
+  test("loads server-side filter options from tenant-scoped sources", async () => {
+    const { client, calls } = createSupabaseOptionsDouble({
+      companies: [
+        {
+          id: "company-1",
+          is_active: true,
+          name: "Công ty A",
+          organization_id: "org-1",
+        },
+      ],
+      customers: [
+        {
+          id: "customer-1",
+          is_active: true,
+          name: "Khách hàng A",
+          organization_id: "org-1",
+        },
+      ],
+      result_groups: [
+        {
+          id: "group-1",
+          is_active: true,
+          name: "PCR",
+          organization_id: "org-1",
+          sort_order: 10,
+        },
+      ],
+      sample_types: [
+        {
+          id: "type-1",
+          is_active: true,
+          name: "Mẫu PCR",
+          organization_id: "org-1",
+        },
+      ],
+      samples: [
+        { id: "sample-1", organization_id: "org-1", sample_type_id: "type-1" },
+        { id: "sample-2", organization_id: "org-1", sample_type_id: "type-1" },
+      ],
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue(
+      client as unknown as ReturnType<typeof getSupabaseAdminClient>
+    );
+
+    const port = createSupabaseSampleGridPort();
+
+    await expect(
+      port.listFilterOptions!({ organizationId: "org-1" })
+    ).resolves.toEqual({
+      companies: [{ id: "company-1", label: "Công ty A" }],
+      customers: [{ id: "customer-1", label: "Khách hàng A" }],
+      resultGroups: [{ id: "group-1", label: "PCR" }],
+      sampleTypes: [{ id: "type-1", label: "Mẫu PCR" }],
+    });
+    expect(calls).toContainEqual({
+      column: "organization_id",
+      table: "samples",
+      type: "eq",
+      value: "org-1",
+    });
+    expect(calls).toContainEqual({
+      column: "id",
+      table: "sample_types",
+      type: "in",
+      values: ["type-1"],
+    });
+  });
 });
 
 function createSupabaseClientDouble(input: {
@@ -219,6 +296,8 @@ function createSupabaseClientDouble(input: {
   const query = {
     eq: vi.fn(() => query),
     gte: vi.fn(() => query),
+    ilike: vi.fn(() => query),
+    in: vi.fn(() => query),
     lte: vi.fn(() => query),
     or: vi.fn(() => query),
     order: vi.fn(() => query),
@@ -228,6 +307,13 @@ function createSupabaseClientDouble(input: {
       error: null,
     })),
     select: vi.fn(() => query),
+    then<TResult1 = { data: unknown[]; error: null }>(
+      onfulfilled?:
+        | ((value: { data: unknown[]; error: null }) => TResult1)
+        | null
+    ) {
+      return Promise.resolve({ data: [], error: null }).then(onfulfilled);
+    },
   };
   const client = {
     from: vi.fn(() => query),

@@ -46,6 +46,12 @@ describe("SampleGridPage", () => {
         search: "T6_00012",
         sort: { direction: "desc", key: "receivedAt" },
       },
+      filterOptions: {
+        companies: [],
+        customers: [],
+        resultGroups: [],
+        sampleTypes: [],
+      },
       resultColumnOptions: [],
       resultGroupOptions: [],
       selectedResultColumnKeys: [],

@@ -64,6 +64,20 @@ export type SampleGridResultGroupFilterOption = {
   label: string;
 };
 
+/** Option chọn theo ID cho bộ lọc Sample Grid. */
+export type SampleGridFilterOption = {
+  id: string;
+  label: string;
+};
+
+/** Payload option server-side cho bộ lọc Sample Grid. */
+export type SampleGridFilterOptions = {
+  companies: SampleGridFilterOption[];
+  customers: SampleGridFilterOption[];
+  resultGroups: SampleGridResultGroupFilterOption[];
+  sampleTypes: SampleGridFilterOption[];
+};
+
 /** Kết quả phân trang thô từ adapter hạ tầng. */
 export type SampleGridPortResult = {
   rows: SampleGridRow[];
@@ -83,6 +97,9 @@ export type SampleGridPort = {
   listResultGroupOptions?(input: {
     organizationId: string;
   }): Promise<SampleGridResultGroupFilterOption[]>;
+  listFilterOptions?(input: {
+    organizationId: string;
+  }): Promise<SampleGridFilterOptions>;
   listSampleResultSummaries?(input: {
     organizationId: string;
     sampleIds: string[];
@@ -101,6 +118,7 @@ export type SampleGridPage = {
     totalPages: number;
   };
   query: SampleGridQuery;
+  filterOptions: SampleGridFilterOptions;
   resultColumnOptions: SampleGridResultColumnOption[];
   resultGroupOptions: SampleGridResultGroupFilterOption[];
   selectedResultColumnKeys: string[];
@@ -128,7 +146,7 @@ export async function listSampleGridPage(
   });
   const rows = await attachResultSummaries(result.rows, actor, port);
   const resultColumnOptions = await loadResultColumnOptions(query, actor, port);
-  const resultGroupOptions = await loadResultGroupOptions(actor, port);
+  const filterOptions = await loadFilterOptions(actor, port);
   const totalPages =
     result.totalCount > 0 ? Math.ceil(result.totalCount / query.pageSize) : 0;
 
@@ -143,8 +161,9 @@ export async function listSampleGridPage(
       totalPages,
     },
     query,
+    filterOptions,
     resultColumnOptions,
-    resultGroupOptions,
+    resultGroupOptions: filterOptions.resultGroups,
     selectedResultColumnKeys: query.resultColumnKeys.filter((key) =>
       resultColumnOptions.some((option) => option.key === key)
     ),
@@ -196,6 +215,34 @@ async function loadResultColumnOptions(
   } catch (error) {
     console.error("Failed to fetch sample grid result column options:", error);
     return [];
+  }
+}
+
+async function loadFilterOptions(
+  actor: SampleGridActor,
+  port: SampleGridPort
+): Promise<SampleGridFilterOptions> {
+  const emptyOptions: SampleGridFilterOptions = {
+    companies: [],
+    customers: [],
+    resultGroups: [],
+    sampleTypes: [],
+  };
+
+  if (!port.listFilterOptions) {
+    return {
+      ...emptyOptions,
+      resultGroups: await loadResultGroupOptions(actor, port),
+    };
+  }
+
+  try {
+    return await port.listFilterOptions({
+      organizationId: actor.organizationId,
+    });
+  } catch (error) {
+    console.error("Failed to fetch sample grid filter options:", error);
+    return emptyOptions;
   }
 }
 
