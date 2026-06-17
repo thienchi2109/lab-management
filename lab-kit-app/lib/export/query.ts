@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import type { SampleGridSortKey } from "@/lib/sample-grid/query";
 import {
+  isValidSampleFilterDate,
+  normalizeSampleFilterText,
+  withDefaultSampleReceivedDateRange,
+} from "@/lib/sample-grid/filter-contract";
+import {
   MAX_RESULT_GROUP_FILTERS,
   isResultGroupId,
   normalizeResultGroupIds,
@@ -58,6 +63,9 @@ export type ExportField = SampleExportField | NormalizedResultsExportField;
 export type ExportFilters = {
   billingStatus?: SampleBillingStatus;
   companyId?: string;
+  companyName?: string;
+  customerId?: string;
+  customerName?: string;
   kitBatchId?: string;
   receivedFrom?: string;
   receivedTo?: string;
@@ -149,12 +157,12 @@ const DEFAULT_SORT: ExportQuery["sort"] = {
   direction: "desc",
   key: "receivedAt",
 };
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
 const MAX_SEARCH_LENGTH = 100;
 
 const idSchema = z.string().refine((value) => SAFE_ID_PATTERN.test(value));
-const isoDateSchema = z.string().refine(isValidIsoDate);
+const filterTextSchema = z.string().transform(normalizeSampleFilterText);
+const isoDateSchema = z.string().refine(isValidSampleFilterDate);
 const resultGroupIdsSchema = z
   .array(z.string().refine(isResultGroupId))
   .max(MAX_RESULT_GROUP_FILTERS)
@@ -162,6 +170,9 @@ const resultGroupIdsSchema = z
 const filterSchema = z.strictObject({
   billingStatus: z.enum(SAMPLE_BILLING_STATUSES).optional(),
   companyId: idSchema.optional(),
+  companyName: filterTextSchema.optional(),
+  customerId: idSchema.optional(),
+  customerName: filterTextSchema.optional(),
   kitBatchId: idSchema.optional(),
   receivedFrom: isoDateSchema.optional(),
   receivedTo: isoDateSchema.optional(),
@@ -219,7 +230,7 @@ export function parseExportQuery(input: unknown): ExportQuery {
   }
 
   const baseQuery = {
-    filters: result.data.filters ?? {},
+    filters: normalizeFilters(result.data.filters ?? {}),
     format: result.data.format,
     rowLimit,
     search: normalizeSearch(result.data.search),
@@ -242,33 +253,17 @@ export function parseExportQuery(input: unknown): ExportQuery {
 }
 
 function normalizeSort(sort: z.infer<typeof sortSchema> | undefined) {
-  if (!sort) {
-    return DEFAULT_SORT;
-  }
+  void sort;
 
-  return {
-    direction: sort.direction ?? DEFAULT_SORT.direction,
-    key: sort.key,
-  };
+  return DEFAULT_SORT;
+}
+
+function normalizeFilters(filters: ExportFilters) {
+  return withDefaultSampleReceivedDateRange(filters);
 }
 
 function normalizeSearch(value: string | undefined) {
   const search = value?.trim().replace(/\s+/g, " ") ?? "";
 
   return search.length > 0 ? search.slice(0, MAX_SEARCH_LENGTH) : null;
-}
-
-function isValidIsoDate(value: string) {
-  if (!ISO_DATE_PATTERN.test(value)) {
-    return false;
-  }
-
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
-  );
 }

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   DEFAULT_EXPORT_ROW_LIMIT,
@@ -8,6 +8,15 @@ import {
 } from "./query";
 
 describe("export query contract", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-08T10:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   test("rejects raw SQL, free table names, and unknown fields", () => {
     expect(() =>
       parseExportQuery({
@@ -55,7 +64,11 @@ describe("export query contract", () => {
         fields: ["sampleCode", "customerName", "status"],
         filters: {
           companyId: "company-1",
+          companyName: "  Công ty   Minh Phú  ",
+          customerId: "customer-1",
+          customerName: "  Nguyễn   Văn A  ",
           receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
           resultGroupIds: [resultGroupId],
           status: "in_progress",
         },
@@ -68,14 +81,34 @@ describe("export query contract", () => {
       fields: ["sampleCode", "customerName", "status"],
       filters: {
         companyId: "company-1",
+        companyName: "Công ty Minh Phú",
+        customerId: "customer-1",
+        customerName: "Nguyễn Văn A",
         receivedFrom: "2026-06-01",
+        receivedTo: "2026-06-08",
         resultGroupIds: [resultGroupId],
         status: "in_progress",
       },
       format: "csv",
       rowLimit: DEFAULT_EXPORT_ROW_LIMIT,
       search: "T6_00012",
-      sort: { direction: "asc", key: "customerName" },
+      sort: { direction: "desc", key: "receivedAt" },
+    });
+  });
+
+  test("defaults sample export filters to the last 10 received days", () => {
+    expect(
+      parseExportQuery({
+        dataset: "samples",
+        fields: ["sampleCode"],
+        format: "csv",
+      })
+    ).toMatchObject({
+      filters: {
+        receivedFrom: "2026-05-30",
+        receivedTo: "2026-06-08",
+      },
+      sort: { direction: "desc", key: "receivedAt" },
     });
   });
 
@@ -97,6 +130,7 @@ describe("export query contract", () => {
       dataset: "results-normalized",
       fields: ["sampleCode", "groupName", "metricName", "value", "kqChung"],
       filters: {
+        receivedFrom: "2026-05-30",
         receivedTo: "2026-06-08",
         sampleTypeId: "sample-type-1",
       },

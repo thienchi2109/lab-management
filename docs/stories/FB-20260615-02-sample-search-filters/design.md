@@ -6,6 +6,10 @@ Mở rộng filter surface của `SampleGridPageContent` dựa trên query contr
 có. Những filter chưa có source option rõ ràng phải đọc từ server cùng page
 payload thay vì hard-code ở client.
 
+Implementation đi theo 3 slice: query/export contract trước, server options sau,
+cuối cùng mới render UI. Cách này giữ URL state và export parity được test trước
+khi chạm layout.
+
 ## Interface Contract
 
 - Query giữ key ngày hiện có: `receivedFrom`, `receivedTo`.
@@ -16,6 +20,8 @@ payload thay vì hard-code ở client.
   `customerName`; nếu cần filter riêng theo customer ID/text, phải mở rộng query
   contract.
 - Query nhóm chỉ tiêu hỗ trợ nhiều giá trị, ví dụ `resultGroups=<id>`.
+- UI mới không phát sinh filter trạng thái mẫu, trạng thái thanh toán hoặc sort
+  direction.
 
 ## Component Scope
 
@@ -24,6 +30,13 @@ payload thay vì hard-code ở client.
 - `lab-kit-app/lib/sample-grid/server.ts`
 - `lab-kit-app/lib/sample-grid/operations.ts`
 - export sample query nếu cần đồng bộ filter.
+
+## Slice Boundaries
+
+- `FB-20260615-02A`: parser/query/export contract, không render UI.
+- `FB-20260615-02B`: server page payload và adapter filter, không làm layout
+  cuối.
+- `FB-20260615-02C`: UI filter, URL submit/pagination và browser ergonomics.
 
 ## Error Handling
 
@@ -36,4 +49,3 @@ payload thay vì hard-code ở client.
 Cần xác nhận live DB/source option trước implementation: khách hàng/công ty đang
 là reference table hay phần lớn chỉ là text trên `samples.customer_name`. Việc
 này dùng Supabase MCP read-only, không write.
-

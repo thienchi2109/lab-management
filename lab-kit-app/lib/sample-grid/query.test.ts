@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   DEFAULT_SAMPLE_GRID_PAGE_SIZE,
@@ -14,11 +14,23 @@ const querySource = readFileSync(
 );
 
 describe("sample grid query parser", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-08T10:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   test("uses stable defaults for an empty search param set", () => {
     const query = parseSampleGridQuery({});
 
     expect(query).toEqual({
-      filters: {},
+      filters: {
+        receivedFrom: "2026-05-30",
+        receivedTo: "2026-06-08",
+      },
       limit: DEFAULT_SAMPLE_GRID_PAGE_SIZE,
       offset: 0,
       page: 1,
@@ -44,13 +56,18 @@ describe("sample grid query parser", () => {
     expect(query.search?.startsWith("T6_00012")).toBe(true);
   });
 
-  test("keeps only whitelisted filters and sort keys", () => {
+  test("normalizes filter contract and keeps newest-first sort fixed", () => {
+    const resultGroupId = "11111111-1111-4111-8111-111111111111";
     const query = parseSampleGridQuery({
       billingStatus: "paid",
       companyId: "company-1",
+      companyName: "  Công ty   Minh Phú  ",
+      customerId: "customer-1",
+      customerName: "  Nguyễn   Văn A  ",
       kitBatchId: "batch-1",
       receivedFrom: "2026-06-01",
       receivedTo: "2026-06-08",
+      resultGroupIds: [resultGroupId],
       sampleTypeId: "type-1",
       sort: "customerName",
       status: "in_progress",
@@ -60,13 +77,17 @@ describe("sample grid query parser", () => {
     expect(query.filters).toEqual({
       billingStatus: "paid",
       companyId: "company-1",
+      companyName: "Công ty Minh Phú",
+      customerId: "customer-1",
+      customerName: "Nguyễn Văn A",
       kitBatchId: "batch-1",
       receivedFrom: "2026-06-01",
       receivedTo: "2026-06-08",
+      resultGroupIds: [resultGroupId],
       sampleTypeId: "type-1",
       status: "in_progress",
     });
-    expect(query.sort).toEqual({ direction: "asc", key: "customerName" });
+    expect(query.sort).toEqual({ direction: "desc", key: "receivedAt" });
   });
 
   test("falls back safely for invalid page, filter, and sort input", () => {
@@ -83,8 +104,22 @@ describe("sample grid query parser", () => {
 
     expect(query.page).toBe(1);
     expect(query.pageSize).toBe(DEFAULT_SAMPLE_GRID_PAGE_SIZE);
-    expect(query.filters).toEqual({});
+    expect(query.filters).toEqual({
+      receivedFrom: "2026-05-30",
+      receivedTo: "2026-06-08",
+    });
     expect(query.sort).toEqual({ direction: "desc", key: "receivedAt" });
+  });
+
+  test("fills a missing date boundary from the default received range", () => {
+    const query = parseSampleGridQuery({
+      receivedFrom: "2026-06-01",
+    });
+
+    expect(query.filters).toMatchObject({
+      receivedFrom: "2026-06-01",
+      receivedTo: "2026-06-08",
+    });
   });
 
   test("whitelists bounded result group and metric column keys", () => {

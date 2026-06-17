@@ -25,9 +25,9 @@ high-risk
 
 ## Current Behavior
 
-Trang Mẫu hiện có tìm kiếm tự do, trạng thái, thanh toán, sort và hướng sort.
-Query layer đã có `receivedFrom`, `receivedTo`, `sampleTypeId`, `companyId`
-nhưng UI chưa expose đầy đủ các filter khách hàng yêu cầu.
+Trang Mẫu hiện có tìm kiếm tự do, trạng thái mẫu, trạng thái thanh toán, sort và
+hướng sort. Query layer đã có `receivedFrom`, `receivedTo`, `sampleTypeId`,
+`companyId` nhưng UI chưa expose đầy đủ các filter khách hàng yêu cầu.
 
 ## Target Behavior
 
@@ -41,6 +41,7 @@ nhưng UI chưa expose đầy đủ các filter khách hàng yêu cầu.
   `Tất cả`.
 - Tên công ty có hành vi giống khách hàng.
 - Nhóm chỉ tiêu mặc định `Tất cả`, hỗ trợ chọn nhiều nhóm đang có.
+- UI không còn filter trạng thái mẫu và trạng thái thanh toán.
 - Sort cố định ngày mới nhất trước, không hiện bộ lọc tăng/giảm dần.
 
 ## Acceptance Criteria
@@ -50,6 +51,7 @@ nhưng UI chưa expose đầy đủ các filter khách hàng yêu cầu.
 - Customer/company combobox nhận text tự do nhưng vẫn gợi ý từ dữ liệu hiện có.
 - Filter nhóm chỉ tiêu hỗ trợ chọn nhiều nhóm.
 - Export dùng cùng query đã lọc.
+- Không còn UI filter trạng thái mẫu và trạng thái thanh toán.
 - Không còn UI sort direction.
 
 ## Non-Goals
@@ -59,3 +61,21 @@ nhưng UI chưa expose đầy đủ các filter khách hàng yêu cầu.
 - Không làm migration trong story này trừ khi story
   `FB-20260615-04-sample-multi-result-groups` đã chốt data contract.
 
+## Slice Plan
+
+Story cha được chia thành 3 slice để giảm blast radius và giữ proof rõ theo
+từng tầng:
+
+- `FB-20260615-02A` - Query contract và export parity. Chuẩn hóa parser,
+  default date range, fixed sort ngày mới nhất trước, và đảm bảo export dùng
+  cùng filter contract.
+- `FB-20260615-02B` - Server/options cho bộ lọc mẫu. Chuẩn hóa payload option
+  cho loại mẫu, khách hàng, công ty và nhóm chỉ tiêu; hỗ trợ text tự do cho
+  customer/company qua server boundary.
+- `FB-20260615-02C` - UI bộ lọc mẫu. Render title, mô tả, export placement,
+  date range, dropdown/combobox/multi-select và bỏ UI filter trạng thái mẫu,
+  trạng thái thanh toán, sort direction.
+
+Story cha vẫn là nguồn product contract. Story con cập nhật proof và status
+của riêng mình. Khi cả 3 slice đạt verify-command, story cha được chuyển sang
+`implemented` kèm evidence tổng hợp.

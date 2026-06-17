@@ -7,15 +7,14 @@ export đồng bộ.
 
 ## TDD Flow
 
-1. RED: test `parseSampleGridQuery` cho default 10 ngày gần nhất, bỏ sort
-   direction UI, nhiều nhóm chỉ tiêu và input không hợp lệ.
-2. RED: test server adapter áp dụng filter ngày, loại mẫu, công ty, khách hàng
-   và nhóm chỉ tiêu.
-3. RED: test render page content có tiêu đề/chú thích/export/filter mới.
-4. GREEN: mở rộng query contract và server data payload.
-5. GREEN: build filter controls bằng shared dashboard form/select primitives;
-   chỉ thêm combobox shared nếu codebase chưa có tương đương.
-6. REFACTOR: giữ file dưới 350 dòng bằng cách tách component filter nếu cần.
+1. `FB-20260615-02A`: RED/GREEN parser tests cho default 10 ngày gần nhất,
+   fixed sort, nhiều nhóm chỉ tiêu, input không hợp lệ và export parity.
+2. `FB-20260615-02B`: RED/GREEN operations/server tests cho option payload và
+   filter ngày, loại mẫu, công ty, khách hàng, nhóm chỉ tiêu.
+3. `FB-20260615-02C`: RED/GREEN component/browser tests cho tiêu đề, chú thích,
+   export placement, filter controls, URL state, pagination và việc bỏ filter
+   trạng thái mẫu/thanh toán/sort direction.
+4. REFACTOR: giữ file dưới 350 dòng bằng cách tách component filter nếu cần.
 
 ## Stop Conditions
 
@@ -27,7 +26,10 @@ export đồng bộ.
 ## Expected Commands
 
 ```bash
-cd lab-kit-app && bun run test -- \
+cd lab-kit-app && bun run test --run \
+  lib/sample-grid/query.test.ts \
+  lib/export/query.test.ts
+cd lab-kit-app && bun run test --run \
   lib/sample-grid/query.test.ts \
   lib/sample-grid/operations.test.ts \
   app/dashboard/samples/_components/sample-grid-page-content.test.tsx

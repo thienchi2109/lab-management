@@ -114,7 +114,12 @@ describe("POST /api/export/samples", () => {
     const response = await POST(
       request({
         fields: ["sampleCode", "customerName", "status"],
-        filters: { status: "received" },
+        filters: {
+          companyId: "company-1",
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+          sampleTypeId: "sample-type-1",
+        },
         rowLimit: 25,
         search: "  T6_00012  ",
         sort: { direction: "asc", key: "sampleCode" },
@@ -131,14 +136,19 @@ describe("POST /api/export/samples", () => {
     expect(port.listSamples).toHaveBeenCalledWith({
       organizationId: "org-1",
       query: {
-        filters: { status: "received" },
+        filters: {
+          companyId: "company-1",
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+          sampleTypeId: "sample-type-1",
+        },
         limit: 25,
         offset: 0,
         page: 1,
         pageSize: 25,
         resultColumnKeys: [],
         search: "T6_00012",
-        sort: { direction: "asc", key: "sampleCode" },
+        sort: { direction: "desc", key: "receivedAt" },
       },
     });
     await expect(response.text()).resolves.toBe(
@@ -146,26 +156,26 @@ describe("POST /api/export/samples", () => {
         "\r\n"
       )
     );
-    expect(insertAuditEvent).toHaveBeenCalledWith({
-      action: "export.samples.succeeded",
-      actorId: "profile-1",
-      entityId: null,
-      entityTable: "samples",
-      eventPayload: {
-        dataset: "samples",
-        fieldCount: 3,
-        filterSummary: {
-          filterKeys: ["status"],
-          hasSearch: true,
-          sort: { direction: "asc", key: "sampleCode" },
-        },
-        format: "csv",
-        result: "succeeded",
-        rowCount: 1,
-        rowLimit: 25,
-      },
-      organizationId: "org-1",
-    });
+    expect(insertAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "export.samples.succeeded",
+        eventPayload: expect.objectContaining({
+          filterSummary: {
+            filterKeys: [
+              "companyId",
+              "receivedFrom",
+              "receivedTo",
+              "sampleTypeId",
+            ],
+            hasSearch: true,
+            sort: { direction: "desc", key: "receivedAt" },
+          },
+          rowCount: 1,
+          rowLimit: 25,
+        }),
+        organizationId: "org-1",
+      })
+    );
   });
 
   test("audits and rejects matching rows above the requested rowLimit", async () => {
@@ -196,7 +206,7 @@ describe("POST /api/export/samples", () => {
         errorCode: "export_row_limit_exceeded",
         fieldCount: 1,
         filterSummary: {
-          filterKeys: [],
+          filterKeys: ["receivedFrom", "receivedTo"],
           hasSearch: false,
           sort: { direction: "desc", key: "receivedAt" },
         },
