@@ -17,5 +17,6 @@ migration forward-only, parent chỉ được close sau khi migration slice bổ
 
 ## Acceptance Evidence
 
-Chưa có. Parent story đang ở trạng thái planned và đã được tách thành 06A,
-06B, 06C.
+- 06A implemented: limit contract 20, product docs, local migration source,
+  Supabase live RPC migration and focused validation passed.
+- 06B, 06C pending.

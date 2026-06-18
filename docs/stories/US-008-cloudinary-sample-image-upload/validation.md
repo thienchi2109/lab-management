@@ -14,7 +14,7 @@ Proof must show:
 - `sample_images` can represent Cloudinary assets without a large migration, or
   a forward-only migration is added with live proof.
 - Admin and Editor can upload/delete; Viewer can view only.
-- Max 10 images per sample is enforced.
+- Max 20 images per sample is enforced.
 - Max 5 MB and `jpeg/png/webp` rules are enforced.
 - Audit evidence exists for upload and delete.
 - UI works on desktop and mobile.
@@ -47,7 +47,7 @@ Use deterministic fixtures:
 - Admin, Editor, and Viewer profiles;
 - one sample with zero images;
 - one sample with nine images;
-- one sample with ten images;
+- one sample with twenty images;
 - valid JPEG/PNG/WebP fixtures under 5 MB;
 - invalid MIME fixture;
 - oversized fixture metadata;

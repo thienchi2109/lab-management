@@ -25,8 +25,8 @@ high-risk
 
 ## Current Behavior
 
-Image panel chỉ xử lý một file mỗi lần (`files?.[0]`) và giới hạn 10 ảnh/mẫu ở
-client/domain. Story US-008 cũng document max 10 ảnh.
+Image panel chỉ xử lý một file mỗi lần (`files?.[0]`). Sau 06A,
+client/domain/API docs và live RPC đã dùng giới hạn 20 ảnh/mẫu.
 
 ## Target Behavior
 
@@ -48,8 +48,8 @@ client/domain. Story US-008 cũng document max 10 ảnh.
 - `FB-20260615-06C` - Gallery ảnh mẫu và preview lớn: thêm thumbnail grid,
   lightbox/preview, next/previous, Viewer read-only và browser proof.
 
-Thứ tự mặc định là 06A -> 06B -> 06C. Nếu 06A phát hiện live DB/RPC enforce
-10 ảnh, tạo migration slice forward-only riêng trước khi làm 06B.
+Thứ tự mặc định là 06A -> 06B -> 06C. 06A đã nâng live DB/RPC bằng migration
+forward-only `20260618141838_sample_image_limit_20`.
 
 ## Acceptance Criteria
 

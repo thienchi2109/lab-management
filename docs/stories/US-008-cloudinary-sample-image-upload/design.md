@@ -13,7 +13,7 @@ Core terms:
 
 Business rules:
 
-- A sample can have at most 10 images.
+- A sample can have at most 20 images.
 - Each image must be at most 5 MB.
 - Accepted MIME types are `image/jpeg`, `image/png`, and `image/webp`.
 - Admins and Editors can upload and delete images.

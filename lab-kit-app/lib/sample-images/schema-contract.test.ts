@@ -27,10 +27,10 @@ describe("sample image schema contract", () => {
       /select\s+count\s*\(\s*\*\s*\)[\s\S]+into\s+current_image_count[\s\S]+from\s+public\.sample_images/i
     );
     expect(migrations).toMatch(
-      /if\s+current_image_count\s*>=\s*10\s+then[\s\S]+raise\s+exception\s+'sample image limit reached'/i
+      /if\s+current_image_count\s*>=\s*20\s+then[\s\S]+raise\s+exception\s+'sample image limit reached'/i
     );
     expect(migrations).toMatch(
-      /if\s+current_image_count\s*>=\s*10[\s\S]+end\s+if;[\s\S]+insert\s+into\s+public\.sample_images/i
+      /if\s+current_image_count\s*>=\s*20[\s\S]+end\s+if;[\s\S]+insert\s+into\s+public\.sample_images/i
     );
   });
 });

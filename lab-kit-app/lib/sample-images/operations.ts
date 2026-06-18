@@ -85,7 +85,8 @@ const ACCEPTED_CONTENT_TYPES = new Set([
   "image/png",
   "image/webp",
 ]);
-const MAX_IMAGES_PER_SAMPLE = 10;
+/** Giới hạn số ảnh minh chứng được lưu cho một mẫu. */
+export const MAX_IMAGES_PER_SAMPLE = 20;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const IMAGE_AUDIT_POLICY = "field-names-only";
 
@@ -256,6 +257,6 @@ async function ensureImageSlotAvailable(
   });
 
   if (count >= MAX_IMAGES_PER_SAMPLE) {
-    throw new Error("Mỗi mẫu chỉ được tối đa 10 ảnh minh chứng.");
+    throw new Error("Mỗi mẫu chỉ được tối đa 20 ảnh minh chứng.");
   }
 }

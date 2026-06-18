@@ -30,7 +30,7 @@ Viewers can view existing evidence images but cannot upload or delete them.
 
 The flow should:
 
-- enforce max 10 images per sample;
+- enforce max 20 images per sample;
 - enforce max 5 MB per image;
 - accept only `jpeg`, `png`, and `webp`;
 - request signed Cloudinary upload parameters from the server;

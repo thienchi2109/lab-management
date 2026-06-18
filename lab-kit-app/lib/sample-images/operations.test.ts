@@ -66,9 +66,9 @@ describe("prepareSampleImageUpload", () => {
     ).rejects.toThrow("Định dạng ảnh không được hỗ trợ.");
   });
 
-  test("rejects samples that already have 10 images", async () => {
+  test("allows samples that still have one slot under the 20 image limit", async () => {
     const port = createPort({
-      countImagesForSample: vi.fn().mockResolvedValue(10),
+      countImagesForSample: vi.fn().mockResolvedValue(19),
     });
 
     await expect(
@@ -78,7 +78,22 @@ describe("prepareSampleImageUpload", () => {
         { contentType: "image/webp", sizeBytes: 1200 },
         port
       )
-    ).rejects.toThrow("Mỗi mẫu chỉ được tối đa 10 ảnh minh chứng.");
+    ).resolves.toBeUndefined();
+  });
+
+  test("rejects samples that already have 20 images", async () => {
+    const port = createPort({
+      countImagesForSample: vi.fn().mockResolvedValue(20),
+    });
+
+    await expect(
+      prepareSampleImageUpload(
+        "sample-1",
+        actor,
+        { contentType: "image/webp", sizeBytes: 1200 },
+        port
+      )
+    ).rejects.toThrow("Mỗi mẫu chỉ được tối đa 20 ảnh minh chứng.");
   });
 });
 

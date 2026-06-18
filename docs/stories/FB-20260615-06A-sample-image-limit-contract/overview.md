@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -31,8 +31,8 @@ high-risk
 
 ## Current Behavior
 
-Image panel và domain hiện document/enforce tối đa 10 ảnh/mẫu. Chưa có proof
-hiện hành cho live DB/RPC constraint trong packet `FB-06`.
+Image panel vẫn xử lý một file mỗi lần. Sau 06A, client/domain/API docs và
+live RPC đã dùng giới hạn 20 ảnh/mẫu.
 
 ## Target Behavior
 
@@ -42,13 +42,13 @@ hiện hành cho live DB/RPC constraint trong packet `FB-06`.
 - Có Supabase read proof cho namespace `mcp__supabase_lab_management`,
   project-ref `tuuqgpzgollcerqqszjr`, migration history và function/constraint
   liên quan.
-- Nếu live DB/RPC đang enforce 10, tạo follow-up migration slice riêng trước
-  khi làm `FB-06B`.
+- Live DB/RPC đã được nâng bằng migration forward-only
+  `20260618141838_sample_image_limit_20`.
 
 ## Acceptance Criteria
 
 - Unit/domain tests chứng minh limit 20 và không cho vượt slot.
-- Product docs không còn mô tả max 10 cho ảnh mẫu.
+- Product docs đã mô tả giới hạn 20 ảnh/mẫu.
 - Supabase read proof ghi rõ live DB/RPC có hoặc không enforce giới hạn ảnh.
 - Không thực hiện Supabase write nếu chưa chứng minh đúng namespace,
   project-ref, migration history và target function/constraint.
