@@ -10,6 +10,8 @@ export type DashboardDataTableCell = {
   primary?: boolean;
   desktopClassName?: string;
   mobileClassName?: string;
+  mobileContent?: ReactNode;
+  mobileHeader?: string;
 };
 
 /** Dòng dữ liệu chung cho bảng dashboard và mobile card fallback. */
@@ -28,6 +30,7 @@ type DashboardDataTableProps = {
   emptyTitle: string;
   emptyDescription: string;
   hiddenColumnKeys?: readonly string[];
+  mobileHiddenColumnKeys?: readonly string[];
   rows: DashboardDataTableRow[];
   tone?: "default" | "workspace";
 };
@@ -42,6 +45,7 @@ export function DashboardDataTable({
   emptyTitle,
   emptyDescription,
   hiddenColumnKeys = emptyHiddenColumnKeys,
+  mobileHiddenColumnKeys = emptyHiddenColumnKeys,
   rows,
   tone = "default",
 }: DashboardDataTableProps) {
@@ -58,10 +62,17 @@ export function DashboardDataTable({
   }
 
   const hiddenColumnKeySet = new Set(hiddenColumnKeys);
+  const mobileHiddenColumnKeySet = new Set(mobileHiddenColumnKeys);
   const visibleRows = rows.map((row) => ({
     ...row,
     cells: row.cells.filter((cell) =>
       isColumnVisible(cell, hiddenColumnKeySet)
+    ),
+  }));
+  const mobileRows = visibleRows.map((row) => ({
+    ...row,
+    cells: row.cells.filter((cell) =>
+      isColumnVisible(cell, mobileHiddenColumnKeySet)
     ),
   }));
   const headerCells = visibleRows[0]?.cells ?? [];
@@ -119,35 +130,38 @@ export function DashboardDataTable({
       </div>
 
       <div className="divide-y md:hidden">
-        {visibleRows.map((row) => (
+        {mobileRows.map((row) => (
           <div key={row.id} className={tableStyles.mobileRow(row.rowTone)}>
             {row.cells.map((cell) => (
               <div
                 key={cell.columnKey ?? cell.header}
                 className={cn(
-                  "flex justify-between gap-4",
+                  "grid grid-cols-[minmax(4.75rem,auto)_minmax(0,1fr)] items-start gap-3",
                   cell.mobileClassName
                 )}
-                data-sample-column-key={cell.columnKey}
+                data-mobile-card-column-key={cell.columnKey}
               >
-                <span className="text-xs font-medium uppercase text-muted-foreground">
-                  {cell.header}
+                <span className="text-xs font-medium text-muted-foreground">
+                  {cell.mobileHeader ?? cell.header}
                 </span>
                 <span
-                  className={
-                    cell.primary
-                      ? "text-right text-sm font-medium"
-                      : "text-right text-sm text-muted-foreground"
-                  }
+                  className={cn(
+                    "min-w-0 text-right text-sm",
+                    cell.primary ? "font-medium" : "text-muted-foreground"
+                  )}
                 >
-                  {cell.content}
+                  {cell.mobileContent ?? cell.content}
                 </span>
               </div>
             ))}
             {row.mobilePrimaryAction ? (
-              <div className="pt-1">{row.mobilePrimaryAction}</div>
+              <div className="pt-1 [&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
+                {row.mobilePrimaryAction}
+              </div>
             ) : row.actions ? (
-              <div className="pt-1">{row.actions}</div>
+              <div className="pt-1 [&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
+                {row.actions}
+              </div>
             ) : null}
           </div>
         ))}
@@ -187,7 +201,7 @@ function getTableStyles(
     headerCell: cn(compact ? "px-4 py-2.5" : "px-4 py-3", "font-medium"),
     mobileRow: (rowTone?: DashboardDataTableRow["rowTone"]) =>
       cn(
-        "space-y-3 p-4",
+        compact ? "space-y-2 px-3 py-2.5" : "space-y-3 p-4",
         workspace && "bg-card",
         rowTone === "highlight" && "border-l-2 border-l-primary"
       ),

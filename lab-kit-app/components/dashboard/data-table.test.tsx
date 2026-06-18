@@ -126,6 +126,37 @@ describe("DashboardDataTable", () => {
     expect(html).not.toContain('data-sample-column-key="lot"');
   });
 
+  test("omits mobile-only hidden columns while keeping desktop data", () => {
+    const html = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Danh sách mẫu"
+        emptyTitle="Không có mẫu phù hợp"
+        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+        mobileHiddenColumnKeys={["sample"]}
+        rows={[
+          {
+            id: "sample-1",
+            cells: [
+              {
+                columnKey: "sample",
+                header: "Mã mẫu",
+                content: "T6_00012",
+                primary: true,
+              },
+              { columnKey: "customer", header: "Khách", content: "An Phú" },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(html).toContain("Mã mẫu");
+    expect(html).toContain("T6_00012");
+    expect(html).toContain('data-sample-column-key="customer"');
+    expect(html).toContain('data-mobile-card-column-key="customer"');
+    expect(html).not.toContain('data-mobile-card-column-key="sample"');
+  });
+
   test("supports polished dense tables with row tone, mobile primary action, and empty action", () => {
     const emptyHtml = renderToStaticMarkup(
       <DashboardDataTable

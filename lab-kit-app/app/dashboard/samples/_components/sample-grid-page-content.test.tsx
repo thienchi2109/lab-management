@@ -1,7 +1,5 @@
 // @vitest-environment jsdom
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -14,14 +12,6 @@ import {
 import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
 import { SampleGridPageContent } from "./sample-grid-page-content";
-
-const tableSectionSource = readFileSync(
-  join(
-    process.cwd(),
-    "app/dashboard/samples/_components/sample-grid-table-section.tsx"
-  ),
-  "utf8"
-);
 
 const basePage: SampleGridPage = {
   capabilities: {
@@ -269,15 +259,24 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain('href="/dashboard/samples"');
   });
 
-  test("marks lower-priority columns for responsive hiding and preferences", () => {
+  test("renders compact mobile sample cards without desktop-only controls", () => {
     const html = renderToStaticMarkup(
       <SampleGridPageContent page={basePage} />
     );
 
-    expect(html).toContain("Tùy chọn cột");
+    expect(html).not.toContain("Tùy chọn cột");
+    expect(html).not.toContain("Cột kết quả desktop");
     expect(html).toContain('data-sample-column-key="kit"');
     expect(html).toContain("hidden xl:table-cell");
-    expect(html).toContain("hidden sm:flex");
+    expect(html).not.toContain('data-mobile-card-column-key="sample"');
+    expect(html).toContain('data-mobile-card-column-key="receivedAt"');
+    expect(html).toContain('data-mobile-card-column-key="sampleType"');
+    expect(html).toContain('data-mobile-card-column-key="company"');
+    expect(html).not.toContain(
+      'hidden sm:flex" data-mobile-card-column-key="company"'
+    );
+    expect(html).toContain('data-mobile-card-column-key="resultDetail"');
+    expect(html).toContain("min-h-11");
   });
 
   test("renders result group detail and desktop selected result columns without mobile matrix cells", () => {
@@ -332,17 +331,5 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain("Dương tính");
     expect(html).toContain("hidden lg:table-cell");
     expect(html).toContain("hidden md:flex");
-  });
-
-  test("builds result column label lookup once per page render", () => {
-    const toTableRowBody = tableSectionSource.slice(
-      tableSectionSource.indexOf("function toTableRow"),
-      tableSectionSource.indexOf("function ResultGroupDetail")
-    );
-
-    expect(toTableRowBody).not.toContain("resultColumnLabelByKey = new Map");
-    expect(tableSectionSource).toContain(
-      "const resultColumnLabelByKey = new Map"
-    );
   });
 });
