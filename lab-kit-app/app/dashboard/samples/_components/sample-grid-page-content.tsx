@@ -9,6 +9,7 @@ import type { SampleGridPage } from "@/lib/sample-grid/operations";
 import { SampleExportControls } from "./sample-export-controls";
 import { SampleFilterCombobox } from "./sample-filter-combobox";
 import { SampleGridTableSection } from "./sample-grid-table-section";
+import { SampleResultViewer } from "./sample-result-viewer";
 
 type SampleGridPageContentProps = {
   page: SampleGridPage;
@@ -35,8 +36,8 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
             DANH SÁCH MẪU
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Tra cứu mẫu theo ngày, loại mẫu, khách hàng, tên công ty và nhóm
-            chỉ tiêu trong phạm vi dữ liệu đã phân quyền.
+            Tra cứu mẫu theo ngày, loại mẫu, khách hàng, tên công ty và nhóm chỉ
+            tiêu trong phạm vi dữ liệu đã phân quyền.
           </p>
         </div>
         <div className="flex flex-col gap-3 md:items-end">
@@ -180,6 +181,7 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
       </form>
 
       <SampleGridTableSection page={page} />
+      <SampleResultViewer />
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>

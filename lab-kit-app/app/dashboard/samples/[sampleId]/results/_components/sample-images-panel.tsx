@@ -76,7 +76,10 @@ export function SampleImagesPanel({
   }
 
   return (
-    <section className="rounded-lg border bg-background p-4">
+    <section
+      id="sample-result-images"
+      className="rounded-lg border bg-background p-4"
+    >
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
           <h2 className="text-base font-semibold">Ảnh minh chứng</h2>

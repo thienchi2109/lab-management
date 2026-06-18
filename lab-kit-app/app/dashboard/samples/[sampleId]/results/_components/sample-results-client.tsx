@@ -32,6 +32,12 @@ const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
   year: "numeric",
 });
 
+const resultSectionLinks = [
+  ["#sample-result-summary", "Thông tin mẫu"],
+  ["#sample-result-details", "Kết quả"],
+  ["#sample-result-images", "Ảnh"],
+] as const;
+
 /** Render màn hình nhập kết quả động cho một mẫu xét nghiệm. */
 export function SampleResultsClient({
   entry,
@@ -101,6 +107,7 @@ export function SampleResultsClient({
           ) : null}
         </div>
       </div>
+      <ResultSectionControls />
       <SampleSummary entry={entry} />
       <section className="grid gap-3" aria-labelledby="sample-result-details">
         <h2 id="sample-result-details" className="text-base font-semibold">
@@ -140,7 +147,10 @@ function SampleSummary({ entry }: { entry: SampleResultEntry }) {
   ];
 
   return (
-    <section className="rounded-lg border bg-background p-4">
+    <section
+      id="sample-result-summary"
+      className="rounded-lg border bg-background p-4"
+    >
       <h2 className="text-base font-semibold">Thông tin mẫu</h2>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {fields.map(([label, value]) => (
@@ -153,6 +163,25 @@ function SampleSummary({ entry }: { entry: SampleResultEntry }) {
         ))}
       </dl>
     </section>
+  );
+}
+
+function ResultSectionControls() {
+  return (
+    <nav
+      aria-label="Chuyển nhanh kết quả mẫu"
+      className="flex flex-wrap gap-2 rounded-lg border bg-muted/30 p-1"
+    >
+      {resultSectionLinks.map(([href, label]) => (
+        <a
+          key={href}
+          className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-background hover:text-foreground"
+          href={href}
+        >
+          {label}
+        </a>
+      ))}
+    </nav>
   );
 }
 

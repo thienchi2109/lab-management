@@ -1,7 +1,7 @@
 ---
 id: FB-20260615-08
 title: Xem kết quả không làm mất context danh sách mẫu
-status: planned
+status: implemented
 lane: normal
 ---
 
@@ -9,7 +9,7 @@ lane: normal
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 

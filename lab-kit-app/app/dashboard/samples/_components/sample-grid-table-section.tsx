@@ -25,6 +25,7 @@ import {
   sampleStatusLabels,
 } from "./sample-metadata-labels";
 import { toMetadataRequestSample } from "./sample-grid-metadata-request";
+import { SampleResultViewerLink } from "./sample-result-viewer-link";
 
 type SampleGridTableSectionProps = {
   page: SampleGridPage;
@@ -83,7 +84,9 @@ function toTableRow(
     id: sample.id,
     mobilePrimaryAction: (
       <Button asChild size="sm">
-        <Link href={`/dashboard/samples/${sample.id}/results`}>Mở kết quả</Link>
+        <SampleResultViewerLink sampleId={sample.id}>
+          Mở kết quả
+        </SampleResultViewerLink>
       </Button>
     ),
     cells: [
@@ -181,12 +184,12 @@ function toTableRow(
           </Button>
         ) : null}
         <Button asChild size="sm" variant="outline">
-          <Link href={`/dashboard/samples/${sample.id}/results`}>
+          <SampleResultViewerLink sampleId={sample.id}>
             {page.capabilities.canEnterResults ||
             page.capabilities.canManageImages
               ? "Kết quả & ảnh"
               : "Xem kết quả & ảnh"}
-          </Link>
+          </SampleResultViewerLink>
         </Button>
       </div>
     ),
@@ -222,12 +225,12 @@ function ResultGroupDetail({
                 {metric.name}: {formatResultValue(metric.value)}
               </p>
             ))}
-            <Link
+            <SampleResultViewerLink
               className="inline-flex text-foreground underline-offset-4 hover:underline"
-              href={`/dashboard/samples/${sampleId}/results`}
+              sampleId={sampleId}
             >
               {canWrite ? "Chỉnh sửa kết quả" : "Xem kết quả"}
-            </Link>
+            </SampleResultViewerLink>
           </div>
         </details>
       ))}
