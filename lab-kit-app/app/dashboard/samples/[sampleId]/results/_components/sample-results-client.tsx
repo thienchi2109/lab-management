@@ -8,6 +8,7 @@ import { ActionMessage } from "@/components/dashboard/action-message";
 import { Button } from "@/components/ui/button";
 import type { SampleImage } from "@/lib/sample-images/operations";
 import type { SampleResultEntry } from "@/lib/sample-results/operations";
+import { sampleStatusLabels } from "@/lib/sample-metadata/labels";
 
 import { createSavePayloadFromForm } from "./form-payload";
 import { ResultGroupAccordion } from "./result-group-accordion";
@@ -24,6 +25,12 @@ type SaveState = {
   status: "idle" | "success" | "error";
   message: string;
 };
+
+const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
 
 /** Render màn hình nhập kết quả động cho một mẫu xét nghiệm. */
 export function SampleResultsClient({
@@ -94,19 +101,61 @@ export function SampleResultsClient({
           ) : null}
         </div>
       </div>
+      <SampleSummary entry={entry} />
+      <section className="grid gap-3" aria-labelledby="sample-result-details">
+        <h2 id="sample-result-details" className="text-base font-semibold">
+          Kết quả chi tiết
+        </h2>
+        {entry.groups.map((group) => (
+          <ResultGroupAccordion
+            key={group.id}
+            group={group}
+            results={results}
+            readOnly={!canWrite || pending}
+          />
+        ))}
+      </section>
       <SampleImagesPanel
         canWrite={canWrite}
         initialImages={initialImages}
         sampleId={entry.sample.id}
       />
-      {entry.groups.map((group) => (
-        <ResultGroupAccordion
-          key={group.id}
-          group={group}
-          results={results}
-          readOnly={!canWrite || pending}
-        />
-      ))}
     </form>
   );
+}
+
+function SampleSummary({ entry }: { entry: SampleResultEntry }) {
+  const groupNames = entry.groups.map((group) => group.name).join(", ");
+  const fields = [
+    ["Mã mẫu", entry.sample.sampleCode],
+    ["Ngày nhận", formatDate(entry.sample.receivedAt)],
+    ["Loại mẫu", entry.sample.sampleTypeName],
+    ["Khách hàng", entry.sample.customerName ?? "Chưa có"],
+    ["Công ty", entry.sample.companyName ?? "Chưa có"],
+    [
+      "Trạng thái",
+      sampleStatusLabels[entry.sample.status] ?? entry.sample.status,
+    ],
+    ["Nhóm chỉ tiêu", groupNames || "Chưa có"],
+  ];
+
+  return (
+    <section className="rounded-lg border bg-background p-4">
+      <h2 className="text-base font-semibold">Thông tin mẫu</h2>
+      <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {fields.map(([label, value]) => (
+          <div key={label} className="min-w-0 rounded-md border p-3">
+            <dt className="text-xs font-medium text-muted-foreground">
+              {label}
+            </dt>
+            <dd className="mt-1 break-words text-sm font-medium">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function formatDate(value: string) {
+  return sampleDateFormatter.format(new Date(value));
 }

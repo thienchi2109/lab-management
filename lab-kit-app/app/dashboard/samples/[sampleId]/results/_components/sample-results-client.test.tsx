@@ -74,6 +74,51 @@ describe("SampleResultsClient", () => {
     expect(html).toContain("Ảnh minh chứng");
     expect(html).toContain("image/png");
   });
+
+  test("renders sample summary before result details and images", () => {
+    const html = renderToStaticMarkup(
+      <SampleResultsClient
+        canWrite={true}
+        entry={detailEntry}
+        initialImages={[
+          {
+            id: "image-1",
+            contentType: "image/png",
+            createdAt: "2026-06-07T00:00:00.000Z",
+            publicId: "lab/org-1/sample-1/evidence-1",
+            secureUrl: "https://res.cloudinary.com/lab/image/upload/evidence-1",
+            sizeBytes: 2048,
+          },
+        ]}
+      />
+    );
+
+    expect(html).toContain("Thông tin mẫu");
+    expect(html).toContain("Mã mẫu");
+    expect(html).toContain("T6_00012");
+    expect(html).toContain("Ngày nhận");
+    expect(html).toContain("18/06/2026");
+    expect(html).toContain("Loại mẫu");
+    expect(html).toContain("PCR nước thải");
+    expect(html).toContain("Khách hàng");
+    expect(html).toContain("Khách hàng A");
+    expect(html).toContain("Công ty");
+    expect(html).toContain("Công ty nội bộ");
+    expect(html).toContain("Trạng thái");
+    expect(html).toContain("Đã nhận");
+    expect(html).toContain("Nhóm chỉ tiêu");
+    expect(html).toContain("Vi sinh");
+    expect(html).toContain("Hóa lý");
+    expect(html).toContain("Kết quả chi tiết");
+
+    const summaryIndex = html.indexOf("Thông tin mẫu");
+    const resultIndex = html.indexOf("Kết quả chi tiết");
+    const imageIndex = html.indexOf("Ảnh minh chứng");
+
+    expect(summaryIndex).toBeGreaterThanOrEqual(0);
+    expect(resultIndex).toBeGreaterThan(summaryIndex);
+    expect(imageIndex).toBeGreaterThan(resultIndex);
+  });
 });
 
 const entry: SampleResultEntry = {
@@ -82,9 +127,50 @@ const entry: SampleResultEntry = {
     organizationId: "org-1",
     sampleCode: "T6_00012",
     sampleTypeId: "type-1",
+    sampleTypeName: "PCR cơ bản",
+    receivedAt: "2026-06-07T00:00:00.000Z",
+    customerName: "Khách hàng A",
+    companyName: "Công ty nội bộ",
+    status: "received",
   },
   template: { id: "template-1", name: "PCR cơ bản" },
   groups: [],
   results: [],
   conclusions: [],
+};
+
+const detailEntry: SampleResultEntry = {
+  ...entry,
+  sample: {
+    ...entry.sample,
+    receivedAt: "2026-06-18T08:00:00.000Z",
+    sampleTypeName: "PCR nước thải",
+    customerName: "Khách hàng A",
+    companyName: "Công ty nội bộ",
+    status: "received",
+  } as SampleResultEntry["sample"],
+  groups: [
+    {
+      id: "group-1",
+      code: "VS",
+      name: "Vi sinh",
+      sortOrder: 1,
+      enteredMetrics: 0,
+      totalMetrics: 0,
+      kqChung: null,
+      abnormalMetrics: 0,
+      metrics: [],
+    },
+    {
+      id: "group-2",
+      code: "HL",
+      name: "Hóa lý",
+      sortOrder: 2,
+      enteredMetrics: 0,
+      totalMetrics: 0,
+      kqChung: null,
+      abnormalMetrics: 0,
+      metrics: [],
+    },
+  ],
 };

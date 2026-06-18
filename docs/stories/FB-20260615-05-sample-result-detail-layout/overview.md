@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -51,4 +51,3 @@ danh sách bên ngoài.
 - Không đổi upload ảnh, ngoài việc dời panel xuống cuối.
 - Không triển khai multi-group nếu story FB-20260615-04 chưa xong; story này
   chỉ hiển thị theo data contract hiện có.
-

@@ -20,7 +20,12 @@ const pcrTemplate: SampleResultTemplate = {
     id: "sample-1",
     sampleCode: "T6_00012",
     sampleTypeId: "type-1",
+    sampleTypeName: "PCR cơ bản",
     organizationId: "org-1",
+    receivedAt: "2026-06-07T00:00:00.000Z",
+    customerName: "Khách hàng A",
+    companyName: "Công ty nội bộ",
+    status: "received",
   },
   template: {
     id: "template-1",
@@ -60,6 +65,26 @@ const pcrTemplate: SampleResultTemplate = {
   ],
   results: [],
   conclusions: [],
+};
+
+const waterGroup: SampleResultTemplate["groups"][number] = {
+  id: "group-water",
+  code: "WATER",
+  name: "Chất lượng nước",
+  sortOrder: 10,
+  metrics: [
+    {
+      id: "metric-ph",
+      code: "PH",
+      name: "pH",
+      inputType: "number",
+      unit: null,
+      options: [],
+      metricSettings: { min: 0, max: 14 },
+      sortOrder: 10,
+      isRequired: true,
+    },
+  ],
 };
 
 function createPort(
@@ -197,27 +222,7 @@ describe("saveSampleResults", () => {
   test("stores free-text conclusions for non-PCR groups", async () => {
     const port = createPort({
       ...pcrTemplate,
-      groups: [
-        {
-          id: "group-water",
-          code: "WATER",
-          name: "Chất lượng nước",
-          sortOrder: 10,
-          metrics: [
-            {
-              id: "metric-ph",
-              code: "PH",
-              name: "pH",
-              inputType: "number",
-              unit: null,
-              options: [],
-              metricSettings: { min: 0, max: 14 },
-              sortOrder: 10,
-              isRequired: true,
-            },
-          ],
-        },
-      ],
+      groups: [waterGroup],
     });
 
     await saveSampleResults(
@@ -246,27 +251,7 @@ describe("saveSampleResults", () => {
   test("ignores empty free-text conclusions from untrusted payloads", async () => {
     const port = createPort({
       ...pcrTemplate,
-      groups: [
-        {
-          id: "group-water",
-          code: "WATER",
-          name: "Chất lượng nước",
-          sortOrder: 10,
-          metrics: [
-            {
-              id: "metric-ph",
-              code: "PH",
-              name: "pH",
-              inputType: "number",
-              unit: null,
-              options: [],
-              metricSettings: { min: 0, max: 14 },
-              sortOrder: 10,
-              isRequired: true,
-            },
-          ],
-        },
-      ],
+      groups: [waterGroup],
     });
 
     await saveSampleResults(

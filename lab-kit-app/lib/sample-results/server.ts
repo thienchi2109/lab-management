@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { SampleStatus } from "@/lib/sample-metadata/schemas";
 
 import type {
   SampleResultGroup,
@@ -19,6 +20,15 @@ type SampleRow = {
   organization_id: string;
   sample_type_id: string;
   sample_code: string;
+  customer_name: string | null;
+  received_at: string;
+  status: SampleStatus;
+  sample_types?: RelationName | RelationName[] | null;
+  companies?: RelationName | RelationName[] | null;
+};
+
+type RelationName = {
+  name?: string | null;
 };
 
 type TemplateRow = {
@@ -73,7 +83,9 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
     async getTemplateForSample(input) {
       const { data: sample, error: sampleError } = await supabase
         .from("samples")
-        .select("id, organization_id, sample_type_id, sample_code")
+        .select(
+          "id, organization_id, sample_type_id, sample_code, customer_name, received_at, status, sample_types(name), companies(name)"
+        )
         .eq("id", input.sampleId)
         .eq("organization_id", input.organizationId)
         .maybeSingle<SampleRow>();
@@ -151,7 +163,13 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
         id: sample.id,
         sampleCode: sample.sample_code,
         sampleTypeId: sample.sample_type_id,
+        sampleTypeName:
+          firstRelation(sample.sample_types)?.name ?? "Không rõ loại mẫu",
         organizationId,
+        receivedAt: sample.received_at,
+        customerName: sample.customer_name,
+        companyName: firstRelation(sample.companies)?.name ?? null,
+        status: sample.status,
       },
       template,
       groups: buildGroups(assignments ?? [], metrics, groups),
@@ -257,6 +275,11 @@ export function createSupabaseSampleResultsPort(): SampleResultsPort {
       kqChung: row.kq_chung,
     }));
   }
+}
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
 function buildGroups(

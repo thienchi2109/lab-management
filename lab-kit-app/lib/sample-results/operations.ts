@@ -1,4 +1,5 @@
 import type { ResultInputType } from "@/lib/result-configuration/configuration";
+import type { SampleStatus } from "@/lib/sample-metadata/schemas";
 
 import {
   isAbnormalMetricValue,
@@ -53,7 +54,12 @@ export type SampleResultTemplate = {
     id: string;
     sampleCode: string;
     sampleTypeId: string;
+    sampleTypeName: string;
     organizationId: string;
+    receivedAt: string;
+    customerName: string | null;
+    companyName: string | null;
+    status: SampleStatus;
   };
   template: {
     id: string;
