@@ -6,36 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
-import {
-  billingStatusLabels,
-  sampleStatusLabels,
-} from "./sample-metadata-labels";
 import { SampleExportControls } from "./sample-export-controls";
+import { SampleFilterCombobox } from "./sample-filter-combobox";
 import { SampleGridTableSection } from "./sample-grid-table-section";
 
 type SampleGridPageContentProps = {
   page: SampleGridPage;
 };
-
-const statusOptions: Array<[string, string]> = [
-  ["all", "Tất cả trạng thái"],
-  ...Object.entries(sampleStatusLabels),
-];
-const billingOptions: Array<[string, string]> = [
-  ["all", "Tất cả thanh toán"],
-  ...Object.entries(billingStatusLabels),
-];
-const sortOptions: Array<[string, string]> = [
-  ["receivedAt", "Ngày nhận"],
-  ["sampleCode", "Mã mẫu"],
-  ["customerName", "Khách hàng"],
-  ["status", "Trạng thái"],
-  ["billingStatus", "Thanh toán"],
-];
-const directionOptions: Array<[string, string]> = [
-  ["desc", "Giảm dần"],
-  ["asc", "Tăng dần"],
-];
 
 /** Render bảng mẫu MVP bằng shared DashboardDataTable và URL state. */
 export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
@@ -55,11 +32,11 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            Bảng mẫu xét nghiệm
+            DANH SÁCH MẪU
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Tra cứu mẫu theo mã, khách hàng, trạng thái và trang dữ liệu đã phân
-            quyền theo tổ chức.
+            Tra cứu mẫu theo ngày, loại mẫu, khách hàng, tên công ty và nhóm
+            chỉ tiêu trong phạm vi dữ liệu đã phân quyền.
           </p>
         </div>
         <div className="flex flex-col gap-3 md:items-end">
@@ -82,7 +59,7 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         {page.selectedResultColumnKeys.map((key) => (
           <input key={key} name="resultColumns" type="hidden" value={key} />
         ))}
-        <div className="grid gap-3 lg:grid-cols-[1fr_180px_190px_150px_150px_auto] lg:items-end">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_150px_150px_170px_190px_190px_auto] xl:items-end">
           <label
             className="space-y-1.5 text-sm font-medium"
             htmlFor="sample-grid-search"
@@ -99,29 +76,62 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
               />
             </div>
           </label>
+          <label
+            className="space-y-1.5 text-sm font-medium"
+            htmlFor="sample-grid-received-from"
+          >
+            <span>Từ ngày nhận</span>
+            <Input
+              defaultValue={page.query.filters.receivedFrom ?? ""}
+              id="sample-grid-received-from"
+              name="receivedFrom"
+              type="date"
+            />
+          </label>
+          <label
+            className="space-y-1.5 text-sm font-medium"
+            htmlFor="sample-grid-received-to"
+          >
+            <span>Đến ngày nhận</span>
+            <Input
+              defaultValue={page.query.filters.receivedTo ?? ""}
+              id="sample-grid-received-to"
+              name="receivedTo"
+              type="date"
+            />
+          </label>
           <SelectField
-            defaultValue={page.query.filters.status ?? "all"}
-            label="Trạng thái"
-            name="status"
-            options={statusOptions}
+            defaultValue={page.query.filters.sampleTypeId ?? ""}
+            label="Loại mẫu"
+            name="sampleTypeId"
+            options={[
+              ["", "Tất cả"],
+              ...page.filterOptions.sampleTypes.map(
+                (option) => [option.id, option.label] as [string, string]
+              ),
+            ]}
           />
-          <SelectField
-            defaultValue={page.query.filters.billingStatus ?? "all"}
-            label="Thanh toán"
-            name="billingStatus"
-            options={billingOptions}
+          <SampleFilterCombobox
+            defaultIdValue={page.query.filters.customerId}
+            defaultTextValue={page.query.filters.customerName}
+            idName="customerId"
+            inputId="sample-grid-customer"
+            label="Khách hàng"
+            listId="sample-grid-customer-options"
+            options={page.filterOptions.customers}
+            placeholder="Tất cả khách hàng"
+            textName="customerName"
           />
-          <SelectField
-            defaultValue={page.query.sort.key}
-            label="Sắp xếp"
-            name="sort"
-            options={sortOptions}
-          />
-          <SelectField
-            defaultValue={page.query.sort.direction}
-            label="Hướng"
-            name="dir"
-            options={directionOptions}
+          <SampleFilterCombobox
+            defaultIdValue={page.query.filters.companyId}
+            defaultTextValue={page.query.filters.companyName}
+            idName="companyId"
+            inputId="sample-grid-company"
+            label="Công ty"
+            listId="sample-grid-company-options"
+            options={page.filterOptions.companies}
+            placeholder="Tất cả công ty"
+            textName="companyName"
           />
           <Button type="submit">Áp dụng</Button>
         </div>
@@ -220,18 +230,8 @@ function PaginationButton({
 function buildPageHref(page: SampleGridPage, nextPage: number) {
   const params = new URLSearchParams();
 
-  if (page.query.search) params.set("search", page.query.search);
-  if (page.query.filters.status)
-    params.set("status", page.query.filters.status);
-  if (page.query.filters.billingStatus) {
-    params.set("billingStatus", page.query.filters.billingStatus);
-  }
-  for (const groupId of page.query.filters.resultGroupIds ?? []) {
-    params.append("resultGroupIds", groupId);
-  }
+  appendFilterParams(params, page);
 
-  params.set("sort", page.query.sort.key);
-  params.set("dir", page.query.sort.direction);
   params.set("page", String(nextPage));
   params.set("pageSize", String(page.query.pageSize));
   for (const key of page.selectedResultColumnKeys) {
@@ -247,19 +247,7 @@ function buildResultGroupRemovalHref(
 ) {
   const params = new URLSearchParams();
 
-  if (page.query.search) params.set("search", page.query.search);
-  if (page.query.filters.status)
-    params.set("status", page.query.filters.status);
-  if (page.query.filters.billingStatus) {
-    params.set("billingStatus", page.query.filters.billingStatus);
-  }
-  for (const groupId of page.query.filters.resultGroupIds ?? []) {
-    if (groupId !== removedGroupId) {
-      params.append("resultGroupIds", groupId);
-    }
-  }
-  params.set("sort", page.query.sort.key);
-  params.set("dir", page.query.sort.direction);
+  appendFilterParams(params, page, removedGroupId);
   params.set("page", "1");
   params.set("pageSize", String(page.query.pageSize));
   for (const key of page.selectedResultColumnKeys) {
@@ -267,4 +255,34 @@ function buildResultGroupRemovalHref(
   }
 
   return `/dashboard/samples?${params.toString()}`;
+}
+
+function appendFilterParams(
+  params: URLSearchParams,
+  page: SampleGridPage,
+  removedGroupId?: string
+) {
+  if (page.query.search) params.set("search", page.query.search);
+  appendOptionalParam(params, "receivedFrom", page.query.filters.receivedFrom);
+  appendOptionalParam(params, "receivedTo", page.query.filters.receivedTo);
+  appendOptionalParam(params, "sampleTypeId", page.query.filters.sampleTypeId);
+  appendOptionalParam(params, "customerId", page.query.filters.customerId);
+  appendOptionalParam(params, "customerName", page.query.filters.customerName);
+  appendOptionalParam(params, "companyId", page.query.filters.companyId);
+  appendOptionalParam(params, "companyName", page.query.filters.companyName);
+  for (const groupId of page.query.filters.resultGroupIds ?? []) {
+    if (groupId !== removedGroupId) {
+      params.append("resultGroupIds", groupId);
+    }
+  }
+}
+
+function appendOptionalParam(
+  params: URLSearchParams,
+  key: string,
+  value: string | undefined
+) {
+  if (value) {
+    params.set(key, value);
+  }
 }
