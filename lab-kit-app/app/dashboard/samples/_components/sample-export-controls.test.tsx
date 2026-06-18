@@ -15,7 +15,16 @@ vi.mock("./sample-export-request", () => ({
 }));
 
 const query: SampleGridQuery = {
-  filters: { billingStatus: "unpaid", status: "received" },
+  filters: {
+    companyId: "company-1",
+    companyName: "Công ty Minh Phú",
+    customerId: "customer-1",
+    customerName: "Nguyễn Văn A",
+    receivedFrom: "2026-06-08",
+    receivedTo: "2026-06-18",
+    resultGroupIds: ["group-1"],
+    sampleTypeId: "sample-type-1",
+  },
   limit: 25,
   offset: 0,
   page: 1,

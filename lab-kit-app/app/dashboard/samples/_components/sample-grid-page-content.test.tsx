@@ -39,7 +39,16 @@ const basePage: SampleGridPage = {
     totalPages: 2,
   },
   query: {
-    filters: { billingStatus: "unpaid", status: "received" },
+    filters: {
+      companyId: "company-1",
+      companyName: "Công ty Minh Phú",
+      customerId: "customer-1",
+      customerName: "Nguyễn Văn A",
+      receivedFrom: "2026-06-08",
+      receivedTo: "2026-06-18",
+      resultGroupIds: ["group-1"],
+      sampleTypeId: "sample-type-1",
+    },
     limit: 25,
     offset: 0,
     page: 1,
@@ -49,13 +58,13 @@ const basePage: SampleGridPage = {
     sort: { direction: "desc", key: "receivedAt" },
   },
   filterOptions: {
-    companies: [],
-    customers: [],
-    resultGroups: [],
-    sampleTypes: [],
+    companies: [{ id: "company-1", label: "Công ty Minh Phú" }],
+    customers: [{ id: "customer-1", label: "Nguyễn Văn A" }],
+    resultGroups: [{ id: "group-1", label: "PCR" }],
+    sampleTypes: [{ id: "sample-type-1", label: "Mẫu PCR" }],
   },
   resultColumnOptions: [],
-  resultGroupOptions: [],
+  resultGroupOptions: [{ id: "group-1", label: "PCR" }],
   selectedResultColumnKeys: [],
   rows: [
     {
@@ -88,7 +97,10 @@ describe("SampleGridPageContent", () => {
       <SampleGridPageContent page={basePage} />
     );
 
-    expect(html).toContain("Bảng mẫu xét nghiệm");
+    expect(html).toContain("DANH SÁCH MẪU");
+    expect(html).toContain(
+      "Tra cứu mẫu theo ngày, loại mẫu, khách hàng, tên công ty và nhóm chỉ tiêu"
+    );
     expect(html).toContain("Tìm kiếm");
     expect(html).toContain("T6_00012");
     expect(html).toContain("Công ty Minh Phú");
@@ -103,17 +115,37 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain("Export kết quả");
   });
 
-  test("keeps URL state in controls and resets page on new filtering", () => {
+  test("renders the customer-requested filter controls without legacy filters", () => {
     const html = renderToStaticMarkup(
       <SampleGridPageContent page={basePage} />
     );
 
     expect(html).toContain('name="search"');
     expect(html).toContain('value="T6"');
+    expect(html).toContain('name="receivedFrom"');
+    expect(html).toContain('value="2026-06-08"');
+    expect(html).toContain('name="receivedTo"');
+    expect(html).toContain('value="2026-06-18"');
+    expect(html).toContain('name="sampleTypeId"');
+    expect(html).toContain('value="sample-type-1"');
+    expect(html).toContain('name="customerId"');
+    expect(html).toContain('name="customerName"');
+    expect(html).toContain('list="sample-grid-customer-options"');
+    expect(html).toContain('name="companyId"');
+    expect(html).toContain('name="companyName"');
+    expect(html).toContain('list="sample-grid-company-options"');
+    expect(html).toContain('name="resultGroupIds"');
     expect(html).toContain('name="page" value="1"');
     expect(html).toContain('href="/dashboard/samples?search=T6');
-    expect(html).toContain("billingStatus=unpaid");
-    expect(html).toContain("status=received");
+    expect(html).toContain("receivedFrom=2026-06-08");
+    expect(html).toContain("sampleTypeId=sample-type-1");
+    expect(html).toContain("customerId=customer-1");
+    expect(html).toContain("companyId=company-1");
+    expect(html).toContain("resultGroupIds=group-1");
+    expect(html).not.toContain('name="status"');
+    expect(html).not.toContain('name="billingStatus"');
+    expect(html).not.toContain('name="sort"');
+    expect(html).not.toContain('name="dir"');
     expect(html).toContain("page=2");
   });
 
