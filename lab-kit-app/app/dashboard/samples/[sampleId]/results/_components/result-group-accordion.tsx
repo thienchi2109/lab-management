@@ -23,9 +23,9 @@ export function ResultGroupAccordion({
   );
 
   return (
-    <details open className="rounded-lg border bg-background p-4">
+    <details open className="rounded-lg border bg-background p-3">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-base font-semibold">{group.name}</h2>
             <p className="text-sm text-muted-foreground">
@@ -33,16 +33,16 @@ export function ResultGroupAccordion({
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-medium">
-            <span className="rounded-md border px-2 py-1">
+            <span className="rounded-md border px-1.5 py-0.5">
               {GROUP_CONCLUSION_DISPLAY_LABEL}: {group.kqChung ?? "Chưa có"}
             </span>
-            <span className="rounded-md border px-2 py-1">
+            <span className="rounded-md border px-1.5 py-0.5">
               {group.abnormalMetrics} bất thường
             </span>
           </div>
         </div>
       </summary>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <div className="mt-3 grid gap-2 md:grid-cols-2">
         {group.metrics.map((metric) => (
           <MetricInputRenderer
             key={metric.id}
@@ -53,13 +53,13 @@ export function ResultGroupAccordion({
         ))}
       </div>
       {!isPcr ? (
-        <label className="mt-4 grid gap-1.5 text-sm font-medium">
+        <label className="mt-3 grid gap-1 text-sm font-medium">
           Kết luận nhóm
           <textarea
             name={groupConclusionFieldName(group.id)}
             defaultValue={group.kqChung ?? ""}
             disabled={readOnly}
-            className="min-h-20 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="min-h-16 w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </label>
       ) : null}

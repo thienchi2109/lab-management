@@ -1,5 +1,9 @@
+// @vitest-environment jsdom
+
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { SampleResultEntry } from "@/lib/sample-results/operations";
 
@@ -9,6 +13,10 @@ import { SampleResultsClient } from "./sample-results-client";
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("saveSampleResultsRequest", () => {
   test("returns a connection error state when the save request fails before a response", async () => {
@@ -52,6 +60,72 @@ describe("saveSampleResultsRequest", () => {
 });
 
 describe("SampleResultsClient", () => {
+  test("uses compact spacing so the result viewer shows more fields before scrolling", () => {
+    const html = renderToStaticMarkup(
+      <SampleResultsClient
+        canWrite={true}
+        entry={detailEntry}
+        initialImages={[]}
+      />
+    );
+
+    expect(html).toContain("max-w-5xl flex-col gap-3");
+    expect(html).toContain("justify-between gap-2");
+    expect(html).toContain("rounded-lg border bg-background p-3");
+    expect(html).toContain("mt-3 grid gap-2");
+    expect(html).toContain("rounded-md border p-2");
+    expect(html).toContain("grid gap-2");
+  });
+
+  test("switches result sections with real tabs instead of anchor jumps", async () => {
+    const user = userEvent.setup();
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(Element.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+
+    render(
+      <SampleResultsClient
+        canWrite={false}
+        entry={detailEntry}
+        initialImages={[]}
+      />
+    );
+
+    expect(screen.queryByRole("link", { name: "Thông tin mẫu" })).toBeNull();
+    expect(screen.getByRole("tab", { name: "Thông tin mẫu" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Kết quả" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Ảnh" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Thông tin mẫu" })).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "Kết quả chi tiết" })
+    ).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: "Ảnh minh chứng" })
+    ).toBeNull();
+
+    await user.click(screen.getByRole("tab", { name: "Kết quả" }));
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "Thông tin mẫu" })).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: "Kết quả chi tiết" })
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "Ảnh minh chứng" })
+    ).toBeNull();
+
+    await user.click(screen.getByRole("tab", { name: "Ảnh" }));
+
+    expect(
+      screen.queryByRole("heading", { name: "Kết quả chi tiết" })
+    ).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: "Ảnh minh chứng" })
+    ).toBeTruthy();
+  });
+
   test("renders the sample image panel on the result entry surface", () => {
     const html = renderToStaticMarkup(
       <SampleResultsClient

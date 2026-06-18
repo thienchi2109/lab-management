@@ -28,6 +28,25 @@ describe("Overlay frame primitive", () => {
     expect(html).toContain("max-w-xl");
   });
 
+  test("uses compact frame spacing to reduce scrolling in dense side sheets", () => {
+    const html = renderToStaticMarkup(
+      <SideSheetFrame
+        title="Kết quả mẫu T6_00012"
+        closeLabel="Đóng"
+        footer={<button type="button">Lưu</button>}
+        onClose={vi.fn()}
+      >
+        <p>Nội dung</p>
+      </SideSheetFrame>
+    );
+
+    expect(html).toContain("border-b px-4 py-3");
+    expect(html).toContain("overflow-y-auto overscroll-contain p-4");
+    expect(html).toContain("border-t bg-background px-4 py-3");
+    expect(html).not.toContain("px-5 py-4");
+    expect(html).not.toContain("overscroll-contain p-5");
+  });
+
   test("renders sticky side sheet footer from the global UI primitive", () => {
     const html = renderToStaticMarkup(
       <SideSheetFrame

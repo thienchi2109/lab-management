@@ -29,7 +29,7 @@ export function MetricInputRenderer({
   const inputId = `metric-${metric.id}`;
 
   return (
-    <div className="grid gap-1.5 text-sm font-medium">
+    <div className="grid gap-1 text-sm font-medium">
       <label htmlFor={inputId}>
         {metric.name}
         {metric.unit ? (
@@ -104,7 +104,7 @@ function MetricInputControl({
           defaultValue={stringValue(value)}
           disabled={readOnly}
           required={metric.isRequired}
-          className="min-h-20 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="min-h-16 w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       );
     case "select":
@@ -116,7 +116,7 @@ function MetricInputControl({
           defaultValue={stringValue(value)}
           disabled={readOnly}
           required={metric.isRequired}
-          className="h-10 rounded-lg border border-input bg-background px-2.5 text-sm"
+          className="h-9 rounded-lg border border-input bg-background px-2.5 text-sm"
         >
           <option value="">Chọn</option>
           {stringOptions(metric).map((option) => (
@@ -135,7 +135,7 @@ function MetricInputControl({
           multiple
           defaultValue={arrayValue(value)}
           disabled={readOnly}
-          className="min-h-24 rounded-lg border border-input bg-background px-2.5 py-2 text-sm"
+          className="min-h-20 rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm"
         >
           {stringOptions(metric).map((option) => (
             <option key={option} value={option}>
@@ -146,9 +146,9 @@ function MetricInputControl({
       );
     case "boolean":
       return (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-1.5">
           <input type="hidden" name={name} value="false" />
-          <label htmlFor={inputId} className="flex items-center gap-2">
+          <label htmlFor={inputId} className="flex items-center gap-1.5">
             <Checkbox
               id={inputId}
               aria-label={metric.name}
@@ -172,7 +172,7 @@ function MetricInputControl({
       );
     case "pcr_realtime":
       return (
-        <div className="grid gap-2 sm:grid-cols-[1fr_140px]">
+        <div className="grid gap-1.5 sm:grid-cols-[1fr_140px]">
           <PcrStatusInputs
             inputId={inputId}
             metricId={metric.id}
@@ -223,7 +223,7 @@ function PcrStatusInputs({
       name={pcrStatusFieldName(metricId)}
       defaultValue={status}
       disabled={readOnly}
-      className="h-10 rounded-lg border border-input bg-background px-2.5 text-sm"
+      className="h-9 rounded-lg border border-input bg-background px-2.5 text-sm"
     >
       <option value="negative">Âm tính</option>
       <option value="positive">Dương tính</option>

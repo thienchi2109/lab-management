@@ -78,12 +78,12 @@ export function SampleImagesPanel({
   return (
     <section
       id="sample-result-images"
-      className="rounded-lg border bg-background p-4"
+      className="rounded-lg border bg-background p-3"
     >
-      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
         <div>
           <h2 className="text-base font-semibold">Ảnh minh chứng</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Tối đa 10 ảnh JPEG, PNG hoặc WEBP, mỗi ảnh không quá 5 MB.
           </p>
         </div>
@@ -101,7 +101,7 @@ export function SampleImagesPanel({
               type="file"
             />
             <Button
-              className="h-11 w-full justify-center px-4 md:w-auto"
+              className="h-9 w-full justify-center px-3 md:w-auto"
               disabled={pending}
               onClick={() => cameraInputRef.current?.click()}
               type="button"
@@ -120,7 +120,7 @@ export function SampleImagesPanel({
               type="file"
             />
             <Button
-              className="h-11 w-full justify-center px-4 md:w-auto"
+              className="h-9 w-full justify-center px-3 md:w-auto"
               disabled={pending}
               onClick={() => libraryInputRef.current?.click()}
               type="button"
@@ -133,20 +133,20 @@ export function SampleImagesPanel({
         ) : null}
       </div>
 
-      <div className="mt-3">
+      <div className="mt-2">
         <ActionMessage state={state} />
       </div>
 
       {initialImages.length === 0 ? (
-        <p className="mt-4 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+        <p className="mt-3 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
           Chưa có ảnh minh chứng.
         </p>
       ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {initialImages.map((image, index) => (
             <figure
               key={image.id}
-              className="rounded-lg border bg-background p-2"
+              className="rounded-lg border bg-background p-1.5"
             >
               <Image
                 alt={`Ảnh minh chứng ${image.publicId}`}
@@ -157,7 +157,7 @@ export function SampleImagesPanel({
                 src={image.secureUrl}
                 width={640}
               />
-              <figcaption className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <figcaption className="mt-1.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>{image.contentType}</span>
                 {canWrite ? (
                   <Button

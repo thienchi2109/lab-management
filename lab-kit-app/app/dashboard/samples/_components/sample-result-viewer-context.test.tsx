@@ -55,9 +55,9 @@ describe("Sample result context-preserving viewer", () => {
     expect(screen.getAllByText("Kết quả mẫu T6_00012").length).toBeGreaterThan(
       0
     );
-    expect(screen.getByRole("link", { name: "Thông tin mẫu" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Kết quả" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Ảnh" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Thông tin mẫu" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Kết quả" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Ảnh" })).toBeTruthy();
     expect(window.location.pathname + window.location.search).toBe(listUrl);
 
     await user.keyboard("{Escape}");

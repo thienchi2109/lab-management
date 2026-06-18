@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useState, useTransition, type FormEvent } from "react";
+import {
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 
@@ -26,16 +32,18 @@ type SaveState = {
   message: string;
 };
 
+type ResultSectionTab = "summary" | "results" | "images";
+
 const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
 });
 
-const resultSectionLinks = [
-  ["#sample-result-summary", "Thông tin mẫu"],
-  ["#sample-result-details", "Kết quả"],
-  ["#sample-result-images", "Ảnh"],
+const resultSectionTabs = [
+  ["summary", "Thông tin mẫu"],
+  ["results", "Kết quả"],
+  ["images", "Ảnh"],
 ] as const;
 
 /** Render màn hình nhập kết quả động cho một mẫu xét nghiệm. */
@@ -48,6 +56,7 @@ export function SampleResultsClient({
     status: "idle",
     message: "",
   });
+  const [activeTab, setActiveTab] = useState<ResultSectionTab>("summary");
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -80,18 +89,18 @@ export function SampleResultsClient({
     <form
       onSubmit={handleSubmit}
       ref={formRef}
-      className="mx-auto flex w-full max-w-5xl flex-col gap-5"
+      className="mx-auto flex w-full max-w-5xl flex-col gap-3"
     >
-      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+      <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Kết quả mẫu {entry.sample.sampleCode}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Template: {entry.template.name}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <ActionMessage state={state} />
           {canWrite ? (
             <Button
@@ -107,26 +116,32 @@ export function SampleResultsClient({
           ) : null}
         </div>
       </div>
-      <ResultSectionControls />
-      <SampleSummary entry={entry} />
-      <section className="grid gap-3" aria-labelledby="sample-result-details">
-        <h2 id="sample-result-details" className="text-base font-semibold">
-          Kết quả chi tiết
-        </h2>
-        {entry.groups.map((group) => (
-          <ResultGroupAccordion
-            key={group.id}
-            group={group}
-            results={results}
-            readOnly={!canWrite || pending}
-          />
-        ))}
-      </section>
-      <SampleImagesPanel
-        canWrite={canWrite}
-        initialImages={initialImages}
-        sampleId={entry.sample.id}
-      />
+      <ResultSectionTabs activeTab={activeTab} onChange={setActiveTab} />
+      <ResultSectionPanel activeTab={activeTab} tab="summary">
+        <SampleSummary entry={entry} />
+      </ResultSectionPanel>
+      <ResultSectionPanel activeTab={activeTab} tab="results">
+        <section className="grid gap-2" aria-labelledby="sample-result-details">
+          <h2 id="sample-result-details" className="text-base font-semibold">
+            Kết quả chi tiết
+          </h2>
+          {entry.groups.map((group) => (
+            <ResultGroupAccordion
+              key={group.id}
+              group={group}
+              results={results}
+              readOnly={!canWrite || pending}
+            />
+          ))}
+        </section>
+      </ResultSectionPanel>
+      <ResultSectionPanel activeTab={activeTab} tab="images">
+        <SampleImagesPanel
+          canWrite={canWrite}
+          initialImages={initialImages}
+          sampleId={entry.sample.id}
+        />
+      </ResultSectionPanel>
     </form>
   );
 }
@@ -149,12 +164,12 @@ function SampleSummary({ entry }: { entry: SampleResultEntry }) {
   return (
     <section
       id="sample-result-summary"
-      className="rounded-lg border bg-background p-4"
+      className="rounded-lg border bg-background p-3"
     >
       <h2 className="text-base font-semibold">Thông tin mẫu</h2>
-      <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <dl className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {fields.map(([label, value]) => (
-          <div key={label} className="min-w-0 rounded-md border p-3">
+          <div key={label} className="min-w-0 rounded-md border p-2">
             <dt className="text-xs font-medium text-muted-foreground">
               {label}
             </dt>
@@ -166,23 +181,74 @@ function SampleSummary({ entry }: { entry: SampleResultEntry }) {
   );
 }
 
-function ResultSectionControls() {
+function ResultSectionTabs({
+  activeTab,
+  onChange,
+}: {
+  activeTab: ResultSectionTab;
+  onChange: (tab: ResultSectionTab) => void;
+}) {
   return (
-    <nav
-      aria-label="Chuyển nhanh kết quả mẫu"
-      className="flex flex-wrap gap-2 rounded-lg border bg-muted/30 p-1"
+    <div
+      aria-label="Nội dung kết quả mẫu"
+      className="flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1"
+      role="tablist"
     >
-      {resultSectionLinks.map(([href, label]) => (
-        <a
-          key={href}
-          className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-background hover:text-foreground"
-          href={href}
-        >
-          {label}
-        </a>
-      ))}
-    </nav>
+      {resultSectionTabs.map(([tab, label]) => {
+        const selected = activeTab === tab;
+
+        return (
+          <button
+            aria-controls={getResultTabPanelId(tab)}
+            aria-selected={selected}
+            className={
+              selected
+                ? "rounded-md bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-xs"
+                : "rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-background hover:text-foreground"
+            }
+            id={getResultTabId(tab)}
+            key={tab}
+            onClick={() => onChange(tab)}
+            role="tab"
+            tabIndex={selected ? 0 : -1}
+            type="button"
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
   );
+}
+
+function ResultSectionPanel({
+  activeTab,
+  children,
+  tab,
+}: {
+  activeTab: ResultSectionTab;
+  children: ReactNode;
+  tab: ResultSectionTab;
+}) {
+  return (
+    <div
+      aria-labelledby={getResultTabId(tab)}
+      hidden={activeTab !== tab}
+      id={getResultTabPanelId(tab)}
+      role="tabpanel"
+      tabIndex={0}
+    >
+      {children}
+    </div>
+  );
+}
+
+function getResultTabId(tab: ResultSectionTab) {
+  return `sample-result-${tab}-tab`;
+}
+
+function getResultTabPanelId(tab: ResultSectionTab) {
+  return `sample-result-${tab}-panel`;
 }
 
 function formatDate(value: string) {

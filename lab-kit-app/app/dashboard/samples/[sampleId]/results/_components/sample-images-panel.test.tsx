@@ -133,6 +133,26 @@ describe("SampleImagesPanel", () => {
     expect(screen.queryByRole("button", { name: "Xóa ảnh" })).toBeNull();
   });
 
+  test("uses compact spacing for dense viewer content", () => {
+    const { container } = render(
+      <SampleImagesPanel
+        canWrite={true}
+        initialImages={images}
+        sampleId="sample-1"
+      />
+    );
+
+    const panel = container.querySelector("#sample-result-images");
+    expect(panel?.className).toContain("p-3");
+    expect(panel?.className).not.toContain("p-4");
+    expect(container.innerHTML).toContain("justify-between gap-2");
+    expect(container.innerHTML).toContain("mt-2");
+    expect(container.innerHTML).toContain("mt-3 grid gap-2");
+    expect(
+      screen.getByRole("button", { name: /Chụp ảnh/ }).className
+    ).toContain("h-9");
+  });
+
   test("blocks upload when the sample already has ten images", async () => {
     const tenImages = Array.from({ length: 10 }, (_, index) => ({
       ...images[0],

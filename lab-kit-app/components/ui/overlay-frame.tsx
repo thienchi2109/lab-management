@@ -119,7 +119,7 @@ export function DialogFrame({
               : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b px-4 py-3">
           <h2 id={titleId} className="text-base font-semibold text-foreground">
             {title}
           </h2>
@@ -136,14 +136,14 @@ export function DialogFrame({
         </div>
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-contain p-5",
+            "min-h-0 flex-1 overflow-y-auto overscroll-contain p-4",
             isSheet ? "max-h-[calc(100dvh-4rem)]" : undefined
           )}
         >
           {children}
         </div>
         {footer ? (
-          <div className="sticky bottom-0 shrink-0 border-t bg-background px-5 py-4">
+          <div className="sticky bottom-0 shrink-0 border-t bg-background px-4 py-3">
             {footer}
           </div>
         ) : null}
@@ -169,8 +169,8 @@ export function DialogActions({
   return (
     <div
       className={cn(
-        "mt-5 flex justify-end gap-2 border-t bg-background pt-4",
-        sticky && "sticky bottom-0 -mx-5 -mb-5 px-5 py-4"
+        "mt-4 flex justify-end gap-2 border-t bg-background pt-3",
+        sticky && "sticky bottom-0 -mx-4 -mb-4 px-4 py-3"
       )}
     >
       <Button type="button" variant="outline" onClick={onClose}>

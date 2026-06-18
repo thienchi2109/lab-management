@@ -44,4 +44,42 @@ describe("ResultGroupAccordion", () => {
     expect(html).toContain("[&amp;::-webkit-details-marker]:hidden");
     expect(html).toContain('name="groupConclusions[group-1]"');
   });
+
+  test("uses compact spacing for dense result entry", () => {
+    const html = renderToStaticMarkup(
+      <ResultGroupAccordion
+        group={{
+          id: "group-1",
+          code: "WATER",
+          name: "Chất lượng nước",
+          sortOrder: 10,
+          enteredMetrics: 1,
+          totalMetrics: 2,
+          kqChung: "Đạt yêu cầu",
+          abnormalMetrics: 1,
+          metrics: [
+            {
+              id: "metric-ph",
+              code: "PH",
+              name: "pH",
+              inputType: "number",
+              unit: null,
+              options: [],
+              metricSettings: {},
+              sortOrder: 10,
+              isRequired: true,
+            },
+          ],
+        }}
+        results={{ "metric-ph": 7.8 }}
+        readOnly={false}
+      />
+    );
+
+    expect(html).toContain("rounded-lg border bg-background p-3");
+    expect(html).toContain("flex flex-col gap-1");
+    expect(html).toContain("mt-3 grid gap-2");
+    expect(html).toContain("mt-3 grid gap-1");
+    expect(html).toContain("min-h-16");
+  });
 });

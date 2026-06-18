@@ -70,6 +70,10 @@ describe("MetricInputRenderer", () => {
     expect(html).toContain('max="100"');
     expect(html).toContain('name="results[pcr_qualitative][status]"');
     expect(html).toContain('name="results[pcr_realtime][ct]"');
+    expect(html).toContain("grid gap-1 text-sm font-medium");
+    expect(html).toContain("min-h-16");
+    expect(html).toContain("h-9");
+    expect(html).toContain("py-1.5");
   });
 
   test("keeps PCR realtime CT optional while status remains the primary result", () => {
