@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import type { SampleGridFilterOption } from "@/lib/sample-grid/operations";
@@ -31,10 +31,6 @@ export function SampleFilterCombobox({
   placeholder,
   textName,
 }: SampleFilterComboboxProps) {
-  const optionByLabel = useMemo(
-    () => new Map(options.map((option) => [option.label, option.id])),
-    [options]
-  );
   const defaultLabel =
     options.find((option) => option.id === defaultIdValue)?.label ??
     defaultTextValue ??
@@ -42,7 +38,9 @@ export function SampleFilterCombobox({
   const [draftText, setDraftText] = useState(defaultLabel);
   const [debouncedText, setDebouncedText] = useState(defaultLabel);
   const isDebouncing = draftText !== debouncedText;
-  const selectedId = isDebouncing ? "" : (optionByLabel.get(debouncedText) ?? "");
+  const selectedId = isDebouncing
+    ? ""
+    : uniqueOptionIdForLabel(options, debouncedText);
   const normalizedSearch = debouncedText.trim().toLocaleLowerCase("vi-VN");
   const visibleOptions = normalizedSearch
     ? options.filter((option) =>
@@ -83,4 +81,21 @@ export function SampleFilterCombobox({
       </datalist>
     </label>
   );
+}
+
+function uniqueOptionIdForLabel(
+  options: SampleGridFilterOption[],
+  label: string
+) {
+  let matchedId = "";
+  let matchCount = 0;
+
+  for (const option of options) {
+    if (option.label === label) {
+      matchedId = option.id;
+      matchCount += 1;
+    }
+  }
+
+  return matchCount === 1 ? matchedId : "";
 }
