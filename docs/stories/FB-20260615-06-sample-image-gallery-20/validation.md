@@ -2,21 +2,20 @@
 
 ## Proof Strategy
 
-Story hoàn tất khi tests, DB proof và browser proof cùng chứng minh gallery 20
-ảnh hoạt động, không vượt slot và vẫn bảo toàn audit/provider safety.
+Parent story hoàn tất khi 06A, 06B và 06C cùng pass. Nếu 06A phát hiện cần
+migration forward-only, parent chỉ được close sau khi migration slice bổ sung
+đã có proof.
 
 ## Test Plan
 
 | Layer | Cases |
 | --- | --- |
-| Supabase read proof | Namespace/project-ref/migration history/function/constraint giới hạn ảnh. |
-| Unit | Limit 20, MIME/size validation, slot remaining, duplicate public ID. |
-| Integration | Upload metadata API, delete API, audit payload, provider cleanup. |
-| Component | Multi-file select, upload progress, thumbnail grid, preview next/previous, Viewer read-only. |
-| Browser | Mobile/desktop gallery, no overflow, controls usable. |
-| Platform | Typecheck, React Doctor diff, schema validation, docstring gate. |
+| 06A | Limit 20, product docs, Supabase read proof, schema validation. |
+| 06B | Multi-file upload queue, slot enforcement, delete audit/provider cleanup. |
+| 06C | Thumbnail grid, preview next/previous, Viewer read-only, browser no-overflow. |
+| Parent | Aggregate proof từ các slice và Harness story verify cho từng slice. |
 
 ## Acceptance Evidence
 
-Chưa có. Story đang ở trạng thái planned.
-
+Chưa có. Parent story đang ở trạng thái planned và đã được tách thành 06A,
+06B, 06C.

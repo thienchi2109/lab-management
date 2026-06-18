@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+planned, đã tách slice
 
 ## Lane
 
@@ -38,18 +38,29 @@ client/domain. Story US-008 cũng document max 10 ảnh.
 - Bấm từng ảnh mở preview lớn.
 - Preview có nút qua/lại để xem ảnh khác cùng mẫu.
 
+## Slice Plan
+
+- `FB-20260615-06A` - Hợp đồng giới hạn 20 ảnh mẫu: khóa constant/domain/API
+  copy, product docs và Supabase read proof.
+- `FB-20260615-06B` - Upload nhiều ảnh mẫu theo hàng đợi: thêm input
+  `multiple`, queue upload, slot enforcement, audit và provider cleanup
+  regression.
+- `FB-20260615-06C` - Gallery ảnh mẫu và preview lớn: thêm thumbnail grid,
+  lightbox/preview, next/previous, Viewer read-only và browser proof.
+
+Thứ tự mặc định là 06A -> 06B -> 06C. Nếu 06A phát hiện live DB/RPC enforce
+10 ảnh, tạo migration slice forward-only riêng trước khi làm 06B.
+
 ## Acceptance Criteria
 
-- Upload nhiều ảnh từ thư viện xử lý tuần tự hoặc có hàng đợi rõ ràng.
-- Client, domain, API và DB/RPC cùng enforce tối đa 20 ảnh.
-- Không upload vượt số slot còn lại.
-- Delete ảnh vẫn audit và cleanup provider như hiện tại.
-- Viewer chỉ xem ảnh, không upload/delete.
-- Không log secret, signature hoặc provider response nhạy cảm.
+- Các acceptance của parent được chứng minh qua 06A, 06B và 06C.
+- 06A chứng minh client/domain/API/DB-RPC contract giới hạn 20 ảnh.
+- 06B chứng minh upload nhiều ảnh, slot enforcement, delete audit và provider
+  cleanup.
+- 06C chứng minh gallery preview, Viewer read-only và browser no-overflow.
 
 ## Non-Goals
 
 - Không đổi provider Cloudinary.
 - Không thêm chỉnh sửa ảnh nâng cao.
 - Không thay đổi quyền Admin/Editor/Viewer.
-

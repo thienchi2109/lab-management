@@ -6,16 +6,12 @@ Nâng ảnh minh chứng lên gallery 20 ảnh, hỗ trợ upload nhiều ảnh 
 
 ## TDD Flow
 
-1. RED: operation tests chứng minh giới hạn 20 thay cho 10.
-2. RED: component tests cho `multiple`, upload nhiều file, slot còn lại,
-   Viewer read-only và delete icon.
-3. RED: gallery tests cho thumbnail, preview, next/previous.
-4. DISCOVERY: Supabase MCP read-only xác nhận DB/RPC constraint hiện tại.
-5. GREEN: cập nhật domain constant/API/client copy.
-6. GREEN: nếu live DB enforce 10, tạo migration forward-only nâng lên 20.
-7. GREEN: thêm multi-file upload queue và gallery preview.
-8. REFACTOR: tách gallery/lightbox/upload queue khỏi `sample-images-panel.tsx`
-   để giữ file dưới 350 dòng.
+1. 06A: RED/GREEN giới hạn 20 ảnh, product docs và Supabase read proof.
+2. 06B: RED/GREEN upload nhiều file, slot enforcement, delete audit/provider
+   cleanup và Viewer read-only controls.
+3. 06C: RED/GREEN thumbnail grid, preview lớn, next/previous và browser proof.
+4. Parent chỉ được close khi cả ba slice có evidence, hoặc khi có migration
+   slice phát sinh đã hoàn tất.
 
 ## Stop Conditions
 
@@ -28,10 +24,7 @@ Nâng ảnh minh chứng lên gallery 20 ảnh, hỗ trợ upload nhiều ảnh 
 ## Expected Commands
 
 ```bash
-cd lab-kit-app && bun run test -- \
-  lib/sample-images \
-  app/dashboard/samples/[sampleId]/results/_components/sample-images-panel.test.tsx
-cd lab-kit-app && bun run typecheck
-cd lab-kit-app && bun run react-doctor:diff
-node scripts/validate-supabase-schema.mjs
+scripts/bin/harness-cli story verify FB-20260615-06A
+scripts/bin/harness-cli story verify FB-20260615-06B
+scripts/bin/harness-cli story verify FB-20260615-06C
 ```
