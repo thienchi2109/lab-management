@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import type { SampleGridFilterOption } from "@/lib/sample-grid/operations";
@@ -16,6 +16,8 @@ type SampleFilterComboboxProps = {
   placeholder: string;
   textName: string;
 };
+
+const COMBOBOX_SEARCH_DEBOUNCE_MS = 300;
 
 /** Render combobox lọc mẫu hỗ trợ chọn option theo ID và nhập text tự do. */
 export function SampleFilterCombobox({
@@ -37,8 +39,24 @@ export function SampleFilterCombobox({
     options.find((option) => option.id === defaultIdValue)?.label ??
     defaultTextValue ??
     "";
-  const [text, setText] = useState(defaultLabel);
-  const selectedId = optionByLabel.get(text) ?? "";
+  const [draftText, setDraftText] = useState(defaultLabel);
+  const [debouncedText, setDebouncedText] = useState(defaultLabel);
+  const isDebouncing = draftText !== debouncedText;
+  const selectedId = isDebouncing ? "" : (optionByLabel.get(debouncedText) ?? "");
+  const normalizedSearch = debouncedText.trim().toLocaleLowerCase("vi-VN");
+  const visibleOptions = normalizedSearch
+    ? options.filter((option) =>
+        option.label.toLocaleLowerCase("vi-VN").includes(normalizedSearch)
+      )
+    : options;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedText(draftText);
+    }, COMBOBOX_SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [draftText]);
 
   return (
     <label className="space-y-1.5 text-sm font-medium" htmlFor={inputId}>
@@ -48,12 +66,12 @@ export function SampleFilterCombobox({
         id={inputId}
         list={listId}
         name={textName}
-        onChange={(event) => setText(event.currentTarget.value)}
+        onChange={(event) => setDraftText(event.currentTarget.value)}
         placeholder={placeholder}
-        value={text}
+        value={draftText}
       />
       <datalist id={listId}>
-        {options.map((option) => (
+        {visibleOptions.map((option) => (
           <option
             aria-label={option.label}
             data-option-id={option.id}
