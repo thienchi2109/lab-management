@@ -3,6 +3,7 @@
 import { useActionState, useCallback } from "react";
 
 import { ActionMessage } from "@/components/dashboard/action-message";
+import { ComboboxField } from "@/components/dashboard/combobox-field";
 import {
   DialogActions,
   DialogFrame,
@@ -156,7 +157,7 @@ function SampleForm({
   const errors = actionState.fieldErrors ?? {};
   const fieldClass = "block w-full space-y-1.5 text-sm font-medium";
   const controlClass =
-    "h-10 rounded-md border-input bg-background px-3 text-sm text-foreground shadow-xs";
+    "min-h-11 rounded-md border-input bg-background px-3 text-sm text-foreground shadow-xs";
   const textAreaClass =
     "min-h-28 w-full rounded-md border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs";
 
@@ -191,22 +192,28 @@ function SampleForm({
           options={sampleTypes.map((type) => [type.id, type.name])}
           error={errors.sampleTypeId}
         />
-        <SelectField
+        <ComboboxField
           className={fieldClass}
-          triggerClassName={controlClass}
+          inputClassName={controlClass}
           label="Khách hàng"
-          name="customerId"
-          defaultValue={sample?.customerId ?? ""}
-          options={[["", "Không chọn"], ...customers.map(optionLabel)]}
+          idName="customerId"
+          inputId="sample-customer-combobox"
+          listId="sample-customer-options"
+          defaultIdValue={sample?.customerId ?? ""}
+          options={customers.map(toComboboxOption)}
+          placeholder="Không chọn"
           error={errors.customerId}
         />
-        <SelectField
+        <ComboboxField
           className={fieldClass}
-          triggerClassName={controlClass}
+          inputClassName={controlClass}
           label="Công ty"
-          name="companyId"
-          defaultValue={sample?.companyId ?? ""}
-          options={[["", "Không chọn"], ...companies.map(optionLabel)]}
+          idName="companyId"
+          inputId="sample-company-combobox"
+          listId="sample-company-options"
+          defaultIdValue={sample?.companyId ?? ""}
+          options={companies.map(toComboboxOption)}
+          placeholder="Không chọn"
           error={errors.companyId}
         />
         <Field
@@ -314,6 +321,10 @@ function SampleForm({
 
 function optionLabel(item: { id: string; name: string }): [string, string] {
   return [item.id, item.name];
+}
+
+function toComboboxOption(item: { id: string; name: string }) {
+  return { id: item.id, label: item.name };
 }
 
 function toDateInput(value: string | null | undefined) {

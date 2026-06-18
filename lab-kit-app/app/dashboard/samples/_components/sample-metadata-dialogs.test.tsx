@@ -79,10 +79,18 @@ const dialogAction = vi.fn(async () => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 function renderWithToast(ui: React.ReactElement) {
   return render(<AppToastProvider>{ui}</AppToastProvider>);
+}
+
+function idleAction() {
+  return vi.fn(async (_previousState: unknown, _formData: FormData) => ({
+    status: "idle" as const,
+    message: "",
+  }));
 }
 
 describe("sample metadata dialogs", () => {
@@ -119,12 +127,7 @@ describe("sample metadata dialogs", () => {
   });
 
   test("submits multiple selected result groups when creating a sample", async () => {
-    const formAction = vi.fn(
-      async (_previousState: unknown, _formData: FormData) => ({
-        status: "idle" as const,
-        message: "",
-      })
-    );
+    const formAction = idleAction();
 
     renderWithToast(
       <CreateSampleDialog
@@ -148,6 +151,99 @@ describe("sample metadata dialogs", () => {
     ]);
   });
 
+  test("submits customer and company IDs from typed unique labels when creating a sample", async () => {
+    const formAction = idleAction();
+
+    renderWithToast(
+      <CreateSampleDialog
+        open
+        formAction={formAction}
+        onClose={vi.fn()}
+        {...metadata}
+      />
+    );
+
+    const customerInput = screen.getByRole("combobox", {
+      name: "Khách hàng",
+    });
+    const companyInput = screen.getByRole("combobox", { name: "Công ty" });
+
+    expect(customerInput.tagName).toBe("INPUT");
+    expect(companyInput.tagName).toBe("INPUT");
+
+    fireEvent.change(customerInput, { target: { value: "Nguyễn Văn A" } });
+    fireEvent.change(companyInput, { target: { value: "Công ty Minh Phú" } });
+    fireEvent.submit(screen.getByText("Tạo mẫu").closest("form")!);
+
+    await waitFor(() => expect(formAction).toHaveBeenCalled());
+    const submitted = formAction.mock.calls[0]?.[1] as FormData;
+
+    expect(submitted.get("customerId")).toBe("customer-1");
+    expect(submitted.get("companyId")).toBe("company-1");
+  });
+
+  test("fails closed for duplicate customer labels when creating a sample", async () => {
+    const formAction = idleAction();
+    const duplicateCustomerMetadata = {
+      ...metadata,
+      customers: [
+        ...metadata.customers,
+        {
+          ...metadata.customers[0],
+          id: "customer-2",
+        },
+      ],
+    };
+
+    renderWithToast(
+      <CreateSampleDialog
+        open
+        formAction={formAction}
+        onClose={vi.fn()}
+        {...duplicateCustomerMetadata}
+      />
+    );
+
+    const customerInput = screen.getByRole("combobox", {
+      name: "Khách hàng",
+    });
+
+    expect(customerInput.tagName).toBe("INPUT");
+
+    fireEvent.change(customerInput, { target: { value: "Nguyễn Văn A" } });
+    fireEvent.submit(screen.getByText("Tạo mẫu").closest("form")!);
+
+    await waitFor(() => expect(formAction).toHaveBeenCalled());
+    const submitted = formAction.mock.calls[0]?.[1] as FormData;
+
+    expect(submitted.get("customerId")).toBe("");
+  });
+
+  test("fails closed for unmatched customer labels when creating a sample", async () => {
+    const formAction = idleAction();
+
+    renderWithToast(
+      <CreateSampleDialog
+        open
+        formAction={formAction}
+        onClose={vi.fn()}
+        {...metadata}
+      />
+    );
+
+    const customerInput = screen.getByRole("combobox", {
+      name: "Khách hàng",
+    });
+
+    fireEvent.change(customerInput, { target: { value: "Tên tự nhập" } });
+    fireEvent.submit(screen.getByText("Tạo mẫu").closest("form")!);
+
+    await waitFor(() => expect(formAction).toHaveBeenCalled());
+    const submitted = formAction.mock.calls[0]?.[1] as FormData;
+
+    expect(submitted.get("customerId")).toBe("");
+  });
+
   test("renders edit sample as a right side sheet", () => {
     renderWithToast(
       <EditSampleDialog
@@ -167,6 +263,49 @@ describe("sample metadata dialogs", () => {
     expect(
       (screen.getByLabelText("Sinh học phân tử") as HTMLInputElement).checked
     ).toBe(false);
+  });
+
+  test("renders edit sample customer and company defaults as searchable labels", () => {
+    renderWithToast(
+      <EditSampleDialog
+        sample={metadata.samples[0]}
+        formAction={dialogAction}
+        onClose={vi.fn()}
+        {...metadata}
+      />
+    );
+
+    const customerInput = screen.getByRole("combobox", {
+      name: "Khách hàng",
+    });
+    const companyInput = screen.getByRole("combobox", { name: "Công ty" });
+
+    expect(customerInput.tagName).toBe("INPUT");
+    expect(companyInput.tagName).toBe("INPUT");
+    expect(customerInput).toHaveProperty("value", "Nguyễn Văn A");
+    expect(companyInput).toHaveProperty("value", "Công ty Minh Phú");
+  });
+
+  test("keeps current customer and company IDs when submitting an unchanged edit sample", async () => {
+    const formAction = idleAction();
+
+    renderWithToast(
+      <EditSampleDialog
+        sample={metadata.samples[0]}
+        formAction={formAction}
+        onClose={vi.fn()}
+        {...metadata}
+      />
+    );
+
+    fireEvent.submit(screen.getByText("Cập nhật").closest("form")!);
+
+    await waitFor(() => expect(formAction).toHaveBeenCalled());
+    const submitted = formAction.mock.calls[0]?.[1] as FormData;
+
+    expect(submitted.get("sampleId")).toBe("sample-1");
+    expect(submitted.get("customerId")).toBe("customer-1");
+    expect(submitted.get("companyId")).toBe("company-1");
   });
 
   test("shows the generated sample code in a success toast after submit", async () => {
