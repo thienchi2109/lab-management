@@ -319,10 +319,6 @@ function SampleForm({
   );
 }
 
-function optionLabel(item: { id: string; name: string }): [string, string] {
-  return [item.id, item.name];
-}
-
 function toComboboxOption(item: { id: string; name: string }) {
   return { id: item.id, label: item.name };
 }

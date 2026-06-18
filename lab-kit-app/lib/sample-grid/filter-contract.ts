@@ -1,5 +1,5 @@
 /** Số ngày mặc định cho bộ lọc ngày nhận mẫu khi URL chưa có ngày. */
-export const DEFAULT_SAMPLE_RECEIVED_RANGE_DAYS = 10;
+const DEFAULT_SAMPLE_RECEIVED_RANGE_DAYS = 10;
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_FILTER_TEXT_LENGTH = 100;
@@ -34,7 +34,7 @@ export function normalizeSampleFilterText(value: string | undefined) {
 }
 
 /** Tạo date range mặc định 10 ngày gần nhất, tính cả ngày hiện tại theo UTC. */
-export function defaultSampleReceivedDateRange(
+function defaultSampleReceivedDateRange(
   now = new Date()
 ): SampleReceivedDateRange {
   const end = new Date(

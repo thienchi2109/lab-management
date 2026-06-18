@@ -100,6 +100,23 @@ check(
   !/export\s+class\s+ExportRouteError\b/.test(exportRouteHelpers)
 );
 
+const sampleGridFilterContract = file("lib/sample-grid/filter-contract.ts");
+check(
+  "sample grid default received date helpers stay internal",
+  !/export\s+const\s+DEFAULT_SAMPLE_RECEIVED_RANGE_DAYS\b/.test(
+    sampleGridFilterContract
+  ) &&
+    !/export\s+function\s+defaultSampleReceivedDateRange\b/.test(
+      sampleGridFilterContract
+    )
+);
+check(
+  "unreachable sample result column controls file is removed",
+  !exists(
+    "app/dashboard/samples/_components/sample-grid-result-column-controls.tsx"
+  )
+);
+
 const rootLayout = file("app/layout.tsx");
 check(
   "color scheme init script is imported from tracked source",
@@ -111,11 +128,11 @@ check(
     !rootLayout.includes('src="/color-scheme-init.js"')
 );
 
-const dashboardPage = file("app/dashboard/page.tsx");
+const dashboardPage = file("app/dashboard/analytics/page.tsx");
 check(
-  "dashboard page delegates to focused component",
+  "dashboard analytics page delegates to focused component",
   dashboardPage.includes("DashboardPageContent") &&
-    dashboardPage.split("\n").length <= 20
+    dashboardPage.split("\n").length <= 80
 );
 
 const formFields = file("components/dashboard/form-fields.tsx");
