@@ -35,4 +35,15 @@ cd lab-kit-app && bun run react-doctor:diff
 
 ## Acceptance Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+Implemented on 2026-06-19.
+
+- Unit proof: dashboard layout test khóa việc không fetch full metadata trong
+  shell và Topbar test khóa CTA viewer.
+- Integration proof: `getSampleCreateMetadata` test khóa loader chỉ đọc
+  reference metadata, không query bảng `samples`, và bridge test khóa lazy load
+  khi event tạo mẫu xảy ra.
+- Platform proof: focused Vitest 4 files / 13 tests, `bun run typecheck`,
+  `bun run lint:strict`, Prettier check trực tiếp trên file đổi,
+  `bun run docstring:check`, `bun run react-doctor:diff`, và
+  `scripts/bin/harness-cli story verify PERF-20260619-02` đều pass.
+- E2E/browser smoke chưa chạy.

@@ -8,6 +8,8 @@ import {
   createSampleMetadata,
   updateSampleMetadata,
 } from "@/lib/sample-metadata/operations";
+import { getSampleCreateMetadata } from "@/lib/sample-metadata/create-metadata-server";
+import type { SampleMetadata } from "@/lib/sample-metadata/metadata";
 import {
   parseCreateSampleInput,
   parseUpdateSampleInput,
@@ -25,6 +27,23 @@ export type SampleMetadataActionState = {
   message: string;
   fieldErrors?: Partial<Record<keyof UpdateSampleInput, string>>;
 };
+
+/** Load reference metadata for the create-sample dialog on demand. */
+export async function getSampleCreateMetadataAction(): Promise<SampleMetadata> {
+  const session = await auth();
+
+  if (!session || !hasAnyRole(session.memberships, ["admin", "editor"])) {
+    throw new Error("Sample metadata read access required.");
+  }
+
+  const actor = getSampleMetadataActor(session, ["admin", "editor"]);
+
+  if (!actor) {
+    throw new Error("Sample metadata read access required.");
+  }
+
+  return getSampleCreateMetadata(actor);
+}
 
 /** Create a sample metadata record from the dashboard dialog. */
 export async function createSampleMetadataAction(

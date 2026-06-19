@@ -47,7 +47,10 @@ const dialogAction = vi.fn(async () => ({
   message: "",
 }));
 
+const loadMetadata = vi.fn(async () => metadata);
+
 beforeEach(() => {
+  vi.clearAllMocks();
   HTMLDialogElement.prototype.showModal = vi.fn(function showModal(
     this: HTMLDialogElement
   ) {
@@ -73,27 +76,31 @@ describe("SampleCreateOverlayBridge", () => {
   test("opens the create sample modal when the global request event fires", async () => {
     renderWithToast(
       <SampleCreateOverlayBridge
-        metadata={metadata}
         formAction={dialogAction}
+        initialMetadata={null}
+        loadMetadata={loadMetadata}
         updateAction={dialogAction}
       />
     );
 
     expect(screen.queryByText("Tạo mẫu xét nghiệm")).toBeNull();
+    expect(loadMetadata).not.toHaveBeenCalled();
 
     window.dispatchEvent(new Event(sampleCreateRequestedEvent));
 
     await waitFor(() => {
       expect(screen.getByText("Tạo mẫu xét nghiệm")).toBeTruthy();
     });
+    expect(loadMetadata).toHaveBeenCalledTimes(1);
     expect(screen.queryByLabelText("Mã mẫu")).toBeNull();
   });
 
   test("opens a read-only sample side sheet from the global view event", async () => {
     renderWithToast(
       <SampleCreateOverlayBridge
-        metadata={metadata}
         formAction={dialogAction}
+        initialMetadata={metadata}
+        loadMetadata={loadMetadata}
         updateAction={dialogAction}
       />
     );
@@ -115,8 +122,9 @@ describe("SampleCreateOverlayBridge", () => {
   test("opens a side sheet from event sample data when layout metadata is stale", async () => {
     renderWithToast(
       <SampleCreateOverlayBridge
-        metadata={{ ...metadata, samples: [] }}
         formAction={dialogAction}
+        initialMetadata={{ ...metadata, samples: [] }}
+        loadMetadata={loadMetadata}
         updateAction={dialogAction}
       />
     );
@@ -153,8 +161,9 @@ describe("SampleCreateOverlayBridge", () => {
   test("opens the edit sample side sheet from the global edit event", async () => {
     renderWithToast(
       <SampleCreateOverlayBridge
-        metadata={metadata}
         formAction={dialogAction}
+        initialMetadata={metadata}
+        loadMetadata={loadMetadata}
         updateAction={dialogAction}
       />
     );

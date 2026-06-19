@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -68,4 +68,15 @@ Không có.
 
 ## Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+Implemented on 2026-06-19.
+
+- `DashboardLayout` không gọi `getSampleMetadata()` khi render shell cho
+  admin/editor; shell chỉ truyền lazy loader cho bridge.
+- `Topbar` ẩn CTA `Thêm mẫu` với viewer.
+- `SampleCreateOverlayBridge` chỉ gọi loader metadata khi nhận event tạo mẫu.
+- `getSampleCreateMetadata` chỉ đọc reference tables và trả `samples: []`.
+- Proof: focused Vitest 4 files / 13 tests, `bun run typecheck`,
+  `bun run lint:strict`, Prettier check trực tiếp trên file đổi,
+  `bun run docstring:check`, `bun run react-doctor:diff`, và
+  `scripts/bin/harness-cli story verify PERF-20260619-02` đều pass.
+- E2E/browser smoke chưa chạy.

@@ -5,10 +5,10 @@ import { Topbar } from "@/components/layout/topbar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { hasAnyRole } from "@/lib/auth/permissions";
 import { getCurrentSession } from "@/lib/auth/session";
-import { getSampleMetadata } from "@/lib/sample-metadata/server";
 
 import {
   createSampleMetadataAction,
+  getSampleCreateMetadataAction,
   updateSampleMetadataAction,
 } from "./samples/actions";
 import { SampleCreateOverlayBridge } from "./samples/_components/sample-create-overlay-bridge";
@@ -27,11 +27,11 @@ export default async function DashboardLayout({
   }
 
   const canCreateSamples = hasAnyRole(session.memberships, ["admin", "editor"]);
-  const sampleMetadata = canCreateSamples ? await getSampleMetadata() : null;
 
   return (
     <div className="flex min-h-svh flex-col pb-[4.5rem] md:pb-0">
       <Topbar
+        canCreateSamples={canCreateSamples}
         displayName={session.profile.displayName}
         username={session.profile.username}
       />
@@ -39,10 +39,11 @@ export default async function DashboardLayout({
         {children}
       </main>
       <BottomNav />
-      {sampleMetadata ? (
+      {canCreateSamples ? (
         <SampleCreateOverlayBridge
-          metadata={sampleMetadata}
           formAction={createSampleMetadataAction}
+          initialMetadata={null}
+          loadMetadata={getSampleCreateMetadataAction}
           updateAction={updateSampleMetadataAction}
         />
       ) : null}

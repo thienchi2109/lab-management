@@ -21,8 +21,9 @@ import type { SampleMetadataDialogAction } from "./sample-metadata-dialog-state"
 import { SampleMetadataViewSheet } from "./sample-metadata-view-sheet";
 
 type SampleCreateOverlayBridgeProps = {
-  metadata: SampleMetadata;
   formAction: SampleMetadataDialogAction;
+  initialMetadata: SampleMetadata | null;
+  loadMetadata: () => Promise<SampleMetadata>;
   updateAction: SampleMetadataDialogAction;
 };
 
@@ -36,14 +37,30 @@ const closedState: OverlayState = { mode: "closed" };
 
 /** Mount các overlay metadata mẫu toàn cục trên dashboard shell. */
 export function SampleCreateOverlayBridge({
-  metadata,
   formAction,
+  initialMetadata,
+  loadMetadata,
   updateAction,
 }: SampleCreateOverlayBridgeProps) {
   const [state, setState] = useState<OverlayState>(closedState);
+  const [metadata, setMetadata] = useState<SampleMetadata | null>(
+    initialMetadata
+  );
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    async function loadCreateMetadata() {
+      if (metadata) return;
+      try {
+        setLoadError(null);
+        setMetadata(await loadMetadata());
+      } catch {
+        setLoadError("Không thể tải dữ liệu tạo mẫu. Vui lòng thử lại.");
+      }
+    }
+
     function handleCreateRequest() {
+      void loadCreateMetadata();
       setState({ mode: "create" });
     }
 
@@ -80,32 +97,41 @@ export function SampleCreateOverlayBridge({
         handleEditRequest
       );
     };
-  }, []);
+  }, [loadMetadata, metadata]);
 
   const selectedSample =
     state.mode === "view" || state.mode === "edit"
-      ? (metadata.samples.find((sample) => sample.id === state.sampleId) ??
+      ? (metadata?.samples.find((sample) => sample.id === state.sampleId) ??
         state.sample)
       : null;
 
   return (
     <>
-      <CreateSampleDialog
-        open={state.mode === "create"}
-        formAction={formAction}
-        onClose={() => setState(closedState)}
-        {...metadata}
-      />
+      {metadata ? (
+        <CreateSampleDialog
+          open={state.mode === "create"}
+          formAction={formAction}
+          onClose={() => setState(closedState)}
+          {...metadata}
+        />
+      ) : null}
+      {state.mode === "create" && loadError ? (
+        <p role="alert" className="sr-only">
+          {loadError}
+        </p>
+      ) : null}
       <SampleMetadataViewSheet
         sample={state.mode === "view" ? selectedSample : null}
         onClose={() => setState(closedState)}
       />
-      <EditSampleDialog
-        sample={state.mode === "edit" ? selectedSample : null}
-        formAction={updateAction}
-        onClose={() => setState(closedState)}
-        {...metadata}
-      />
+      {metadata ? (
+        <EditSampleDialog
+          sample={state.mode === "edit" ? selectedSample : null}
+          formAction={updateAction}
+          onClose={() => setState(closedState)}
+          {...metadata}
+        />
+      ) : null}
     </>
   );
 }
