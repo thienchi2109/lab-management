@@ -38,6 +38,7 @@ type ResultSummaryIndex = {
 
 const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
   dateStyle: "short",
+  timeZone: "Asia/Ho_Chi_Minh",
   timeStyle: "short",
 });
 
