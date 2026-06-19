@@ -27,6 +27,11 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
     page.resultGroupOptions.map((option) => [option.id, option.label])
   );
   const selectedResultGroupIds = page.query.filters.resultGroupIds ?? [];
+  const activeFilterCount = getActiveSampleFilterCount(page);
+  const filterSummary =
+    activeFilterCount > 0
+      ? `Đang áp dụng ${activeFilterCount} bộ lọc`
+      : "Chưa áp dụng bộ lọc";
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
@@ -51,134 +56,147 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         </div>
       </div>
 
-      <form
-        action="/dashboard/samples"
-        className="rounded-lg border bg-background p-4"
-        method="get"
+      <details
+        className="rounded-lg border bg-background"
+        open={activeFilterCount > 0}
       >
-        <input name="page" type="hidden" value="1" />
-        {page.selectedResultColumnKeys.map((key) => (
-          <input key={key} name="resultColumns" type="hidden" value={key} />
-        ))}
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_150px_150px_170px_190px_190px_auto] xl:items-end">
-          <label
-            className="space-y-1.5 text-sm font-medium"
-            htmlFor="sample-grid-search"
-          >
-            <span>Tìm kiếm</span>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                defaultValue={page.query.search ?? ""}
-                id="sample-grid-search"
-                name="search"
-                placeholder="Mã mẫu hoặc khách hàng"
-              />
+        <summary className="cursor-pointer list-none px-4 py-3 [&::-webkit-details-marker]:hidden">
+          <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold">
+                Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+              </h2>
+              <p className="text-xs text-muted-foreground">{filterSummary}</p>
             </div>
-          </label>
-          <label
-            className="space-y-1.5 text-sm font-medium"
-            htmlFor="sample-grid-received-from"
-          >
-            <span>Từ ngày nhận</span>
-            <Input
-              defaultValue={page.query.filters.receivedFrom ?? ""}
-              id="sample-grid-received-from"
-              name="receivedFrom"
-              type="date"
-            />
-          </label>
-          <label
-            className="space-y-1.5 text-sm font-medium"
-            htmlFor="sample-grid-received-to"
-          >
-            <span>Đến ngày nhận</span>
-            <Input
-              defaultValue={page.query.filters.receivedTo ?? ""}
-              id="sample-grid-received-to"
-              name="receivedTo"
-              type="date"
-            />
-          </label>
-          <SelectField
-            defaultValue={page.query.filters.sampleTypeId ?? ""}
-            label="Loại mẫu"
-            name="sampleTypeId"
-            options={[
-              ["", "Tất cả"],
-              ...page.filterOptions.sampleTypes.map(
-                (option) => [option.id, option.label] as [string, string]
-              ),
-            ]}
-          />
-          <SampleFilterCombobox
-            defaultIdValue={page.query.filters.customerId}
-            defaultTextValue={page.query.filters.customerName}
-            idName="customerId"
-            inputId="sample-grid-customer"
-            label="Khách hàng"
-            listId="sample-grid-customer-options"
-            options={page.filterOptions.customers}
-            placeholder="Tất cả khách hàng"
-            textName="customerName"
-          />
-          <SampleFilterCombobox
-            defaultIdValue={page.query.filters.companyId}
-            defaultTextValue={page.query.filters.companyName}
-            idName="companyId"
-            inputId="sample-grid-company"
-            label="Công ty"
-            listId="sample-grid-company-options"
-            options={page.filterOptions.companies}
-            placeholder="Tất cả công ty"
-            textName="companyName"
-          />
-          <Button type="submit">Áp dụng</Button>
-        </div>
-        {page.resultGroupOptions.length > 0 ? (
-          <fieldset className="mt-4 space-y-2">
-            <legend className="text-xs font-semibold text-foreground">
-              Nhóm chỉ tiêu
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {page.resultGroupOptions.map((option) => (
-                <label
-                  key={option.id}
-                  className="flex min-h-9 items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm"
-                >
-                  <input
-                    className="size-4 accent-primary"
-                    defaultChecked={selectedResultGroupIds.includes(option.id)}
-                    name="resultGroupIds"
-                    type="checkbox"
-                    value={option.id}
-                  />
-                  <span>{option.label}</span>
-                </label>
-              ))}
-            </div>
-            {selectedResultGroupIds.length > 0 ? (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {selectedResultGroupIds.map((groupId) => {
-                  const label = resultGroupLabelById.get(groupId) ?? groupId;
-
-                  return (
-                    <Link
-                      key={groupId}
-                      aria-label={`Xóa ${label}`}
-                      className="rounded-md border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
-                      href={buildResultGroupRemovalHref(page, groupId)}
-                    >
-                      Đang lọc: {label}
-                    </Link>
-                  );
-                })}
+          </div>
+        </summary>
+        <form action="/dashboard/samples" className="border-t p-4" method="get">
+          <input name="page" type="hidden" value="1" />
+          {page.selectedResultColumnKeys.map((key) => (
+            <input key={key} name="resultColumns" type="hidden" value={key} />
+          ))}
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_150px_150px_170px_190px_190px_auto] xl:items-end">
+            <label
+              className="space-y-1.5 text-sm font-medium"
+              htmlFor="sample-grid-search"
+            >
+              <span>Tìm kiếm</span>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                <Input
+                  className="pl-8"
+                  defaultValue={page.query.search ?? ""}
+                  id="sample-grid-search"
+                  name="search"
+                  placeholder="Mã mẫu hoặc khách hàng"
+                />
               </div>
-            ) : null}
-          </fieldset>
-        ) : null}
-      </form>
+            </label>
+            <label
+              className="space-y-1.5 text-sm font-medium"
+              htmlFor="sample-grid-received-from"
+            >
+              <span>Từ ngày nhận</span>
+              <Input
+                defaultValue={page.query.filters.receivedFrom ?? ""}
+                id="sample-grid-received-from"
+                name="receivedFrom"
+                type="date"
+              />
+            </label>
+            <label
+              className="space-y-1.5 text-sm font-medium"
+              htmlFor="sample-grid-received-to"
+            >
+              <span>Đến ngày nhận</span>
+              <Input
+                defaultValue={page.query.filters.receivedTo ?? ""}
+                id="sample-grid-received-to"
+                name="receivedTo"
+                type="date"
+              />
+            </label>
+            <SelectField
+              defaultValue={page.query.filters.sampleTypeId ?? ""}
+              label="Loại mẫu"
+              name="sampleTypeId"
+              options={[
+                ["", "Tất cả"],
+                ...page.filterOptions.sampleTypes.map(
+                  (option) => [option.id, option.label] as [string, string]
+                ),
+              ]}
+            />
+            <SampleFilterCombobox
+              defaultIdValue={page.query.filters.customerId}
+              defaultTextValue={page.query.filters.customerName}
+              idName="customerId"
+              inputId="sample-grid-customer"
+              label="Khách hàng"
+              listId="sample-grid-customer-options"
+              options={page.filterOptions.customers}
+              placeholder="Tất cả khách hàng"
+              textName="customerName"
+            />
+            <SampleFilterCombobox
+              defaultIdValue={page.query.filters.companyId}
+              defaultTextValue={page.query.filters.companyName}
+              idName="companyId"
+              inputId="sample-grid-company"
+              label="Công ty"
+              listId="sample-grid-company-options"
+              options={page.filterOptions.companies}
+              placeholder="Tất cả công ty"
+              textName="companyName"
+            />
+            <Button type="submit">Áp dụng</Button>
+          </div>
+          {page.resultGroupOptions.length > 0 ? (
+            <fieldset className="mt-4 space-y-2">
+              <legend className="text-xs font-semibold text-foreground">
+                Nhóm chỉ tiêu
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {page.resultGroupOptions.map((option) => (
+                  <label
+                    key={option.id}
+                    className="flex min-h-9 items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm"
+                  >
+                    <input
+                      className="size-4 accent-primary"
+                      defaultChecked={selectedResultGroupIds.includes(
+                        option.id
+                      )}
+                      name="resultGroupIds"
+                      type="checkbox"
+                      value={option.id}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedResultGroupIds.length > 0 ? (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {selectedResultGroupIds.map((groupId) => {
+                    const label = resultGroupLabelById.get(groupId) ?? groupId;
+
+                    return (
+                      <Link
+                        key={groupId}
+                        aria-label={`Xóa ${label}`}
+                        className="rounded-md border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
+                        href={buildResultGroupRemovalHref(page, groupId)}
+                      >
+                        Đang lọc: {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </fieldset>
+          ) : null}
+        </form>
+      </details>
 
       <SampleGridTableSection page={page} />
       <SampleResultViewer />
@@ -203,6 +221,21 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
       </div>
     </div>
   );
+}
+
+function getActiveSampleFilterCount(page: SampleGridPage) {
+  const { filters, search } = page.query;
+  let count = 0;
+
+  if (search?.trim()) count += 1;
+  if (filters.receivedFrom) count += 1;
+  if (filters.receivedTo) count += 1;
+  if (filters.sampleTypeId) count += 1;
+  if (filters.customerId || filters.customerName?.trim()) count += 1;
+  if (filters.companyId || filters.companyName?.trim()) count += 1;
+  if (filters.resultGroupIds && filters.resultGroupIds.length > 0) count += 1;
+
+  return count;
 }
 
 function PaginationButton({

@@ -73,7 +73,10 @@ export function ComboboxField({
 
   return (
     <label
-      className={cn("block w-full space-y-1.5 text-sm font-medium", className)}
+      className={cn(
+        "flex w-full flex-col gap-1.5 text-sm font-medium",
+        className
+      )}
       htmlFor={inputId}
     >
       <span>{label}</span>

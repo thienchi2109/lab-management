@@ -17,6 +17,28 @@ describe("SampleFilterCombobox", () => {
     vi.useRealTimers();
   });
 
+  test("keeps the visible filter input aligned with neighboring controls", () => {
+    render(
+      <SampleFilterCombobox
+        idName="customerId"
+        inputId="customer-filter"
+        label="Khách hàng"
+        listId="customer-options"
+        options={[{ id: "customer-1", label: "Nguyễn Văn A" }]}
+        placeholder="Tất cả khách hàng"
+        textName="customerName"
+      />
+    );
+
+    const field = screen.getByText("Khách hàng").closest("label");
+    const className = field?.getAttribute("class") ?? "";
+
+    expect(className).toContain("flex");
+    expect(className).toContain("flex-col");
+    expect(className).toContain("gap-1.5");
+    expect(className).not.toContain("space-y-1.5");
+  });
+
   test("debounces option ID matching by 300ms while keeping free text editable", async () => {
     vi.useFakeTimers();
     const { container } = render(
