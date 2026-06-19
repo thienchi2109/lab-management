@@ -48,8 +48,33 @@ vi.mock("./samples/_components/sample-create-overlay-bridge", () => ({
 const session = {
   profile: {
     displayName: "Quản trị viên",
+    id: "profile-1",
+    email: "admin@example.test",
     username: "admin",
   },
+  memberships: [
+    {
+      organizationId: "org-1",
+      role: "admin",
+      isActive: true,
+    },
+  ],
+};
+
+const viewerSession = {
+  profile: {
+    displayName: "Người xem",
+    id: "profile-2",
+    email: "viewer@example.test",
+    username: "viewer",
+  },
+  memberships: [
+    {
+      organizationId: "org-1",
+      role: "viewer",
+      isActive: true,
+    },
+  ],
 };
 
 const metadata = {
@@ -98,6 +123,18 @@ describe("DashboardLayout", () => {
     expect(getSampleMetadata).toHaveBeenCalledTimes(1);
     expect(sampleCreateOverlayBridge).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Global thêm mẫu")).toBeTruthy();
+    expect(screen.getByText("Trang con")).toBeTruthy();
+  });
+
+  test("skips sample-create metadata for viewer sessions", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(viewerSession as never);
+    vi.mocked(getSampleMetadata).mockResolvedValue(metadata);
+
+    render(await DashboardLayout({ children: <div>Trang con</div> }));
+
+    expect(getSampleMetadata).not.toHaveBeenCalled();
+    expect(sampleCreateOverlayBridge).not.toHaveBeenCalled();
+    expect(screen.queryByText("Global thêm mẫu")).toBeNull();
     expect(screen.getByText("Trang con")).toBeTruthy();
   });
 });
