@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 

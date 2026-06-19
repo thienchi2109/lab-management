@@ -48,6 +48,23 @@ const images = [
   },
 ];
 
+function createImages(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    ...images[0],
+    id: `image-${index + 1}`,
+    publicId: `lab-management/org-1/sample-1/evidence-${index + 1}`,
+  }));
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolver) => {
+    resolve = resolver;
+  });
+
+  return { promise, resolve };
+}
+
 describe("SampleImagesPanel", () => {
   test("renders existing evidence images and upload controls for editors", async () => {
     vi.mocked(uploadSampleImageRequest).mockResolvedValue({
@@ -109,7 +126,9 @@ describe("SampleImagesPanel", () => {
     const deleteButton = screen.getByRole("button", { name: "Xóa ảnh" });
 
     expect(captureInput.getAttribute("capture")).toBe("environment");
+    expect((captureInput as HTMLInputElement).multiple).toBe(false);
     expect(libraryInput.hasAttribute("capture")).toBe(false);
+    expect((libraryInput as HTMLInputElement).multiple).toBe(true);
     expect(screen.getByRole("button", { name: /Chụp ảnh/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Thư viện/ })).toBeTruthy();
     expect(deleteButton.className).toContain("size-9");
@@ -153,17 +172,115 @@ describe("SampleImagesPanel", () => {
     ).toContain("h-9");
   });
 
-  test("blocks upload when the sample already has ten images", async () => {
-    const tenImages = Array.from({ length: 10 }, (_, index) => ({
-      ...images[0],
-      id: `image-${index + 1}`,
-      publicId: `lab-management/org-1/sample-1/evidence-${index + 1}`,
-    }));
+  test("uploads selected library files sequentially without exceeding remaining slots", async () => {
+    const firstUpload =
+      createDeferred<Awaited<ReturnType<typeof uploadSampleImageRequest>>>();
+    vi.mocked(uploadSampleImageRequest)
+      .mockReturnValueOnce(firstUpload.promise)
+      .mockResolvedValue({
+        refresh: true,
+        state: { status: "success", message: "Đã tải ảnh minh chứng." },
+      });
 
     render(
       <SampleImagesPanel
         canWrite={true}
-        initialImages={tenImages}
+        initialImages={createImages(18)}
+        sampleId="sample-1"
+      />
+    );
+
+    await userEvent.upload(
+      screen.getByLabelText("Chọn ảnh từ thư viện") as HTMLInputElement,
+      [
+        new File(["first"], "first.png", { type: "image/png" }),
+        new File(["second"], "second.png", { type: "image/png" }),
+        new File(["third"], "third.png", { type: "image/png" }),
+      ]
+    );
+
+    await waitFor(() =>
+      expect(uploadSampleImageRequest).toHaveBeenCalledTimes(1)
+    );
+    expect(uploadSampleImageRequest).toHaveBeenNthCalledWith(
+      1,
+      "sample-1",
+      expect.objectContaining({ name: "first.png" })
+    );
+
+    firstUpload.resolve({
+      refresh: true,
+      state: { status: "success", message: "Đã tải ảnh minh chứng." },
+    });
+
+    await waitFor(() =>
+      expect(uploadSampleImageRequest).toHaveBeenCalledTimes(2)
+    );
+    expect(uploadSampleImageRequest).toHaveBeenNthCalledWith(
+      2,
+      "sample-1",
+      expect.objectContaining({ name: "second.png" })
+    );
+    expect(uploadSampleImageRequest).not.toHaveBeenCalledWith(
+      "sample-1",
+      expect.objectContaining({ name: "third.png" })
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(
+        "Đã tải 2 ảnh minh chứng. Đã bỏ qua 1 ảnh vì mẫu còn 2 vị trí."
+      )
+    ).toBeTruthy();
+  });
+
+  test("continues the upload queue after a file failure and reports the file name", async () => {
+    vi.mocked(uploadSampleImageRequest)
+      .mockResolvedValueOnce({
+        refresh: false,
+        state: {
+          status: "error",
+          message: "Chỉ hỗ trợ ảnh JPEG, PNG hoặc WEBP.",
+        },
+      })
+      .mockResolvedValueOnce({
+        refresh: true,
+        state: { status: "success", message: "Đã tải ảnh minh chứng." },
+      });
+
+    render(
+      <SampleImagesPanel
+        canWrite={true}
+        initialImages={images}
+        sampleId="sample-1"
+      />
+    );
+
+    await userEvent.upload(
+      screen.getByLabelText("Chọn ảnh từ thư viện") as HTMLInputElement,
+      [
+        new File(["bad"], "bad.png", { type: "image/png" }),
+        new File(["good"], "good.png", { type: "image/png" }),
+      ]
+    );
+
+    await waitFor(() =>
+      expect(uploadSampleImageRequest).toHaveBeenCalledTimes(2)
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "Đã tải 1 ảnh minh chứng. Không thể tải 1 ảnh: bad.png: Chỉ hỗ trợ ảnh JPEG, PNG hoặc WEBP."
+        )
+      ).toBeTruthy()
+    );
+  });
+
+  test("blocks upload when the sample already has twenty images", async () => {
+    render(
+      <SampleImagesPanel
+        canWrite={true}
+        initialImages={createImages(20)}
         sampleId="sample-1"
       />
     );
@@ -176,7 +293,7 @@ describe("SampleImagesPanel", () => {
 
     expect(uploadSampleImageRequest).not.toHaveBeenCalled();
     expect(
-      screen.getByText("Mỗi mẫu chỉ được tối đa 10 ảnh minh chứng.")
+      screen.getByText("Mỗi mẫu chỉ được tối đa 20 ảnh minh chứng.")
     ).toBeTruthy();
   });
 });
