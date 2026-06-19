@@ -88,7 +88,7 @@ describe("SampleImagesPanel", () => {
       screen.getByRole("heading", { name: "Ảnh minh chứng" })
     ).toBeTruthy();
     expect(screen.getByRole("img", { name: /evidence-1/ })).toBeTruthy();
-    expect(screen.getByText("image/png")).toBeTruthy();
+    expect(screen.getByText("PNG")).toBeTruthy();
 
     await userEvent.click(screen.getByRole("button", { name: /Thư viện/ }));
     await userEvent.upload(
@@ -102,7 +102,9 @@ describe("SampleImagesPanel", () => {
       )
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Xóa ảnh" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Xóa ảnh minh chứng 1" })
+    );
     await waitFor(() =>
       expect(deleteSampleImageRequest).toHaveBeenCalledWith(
         "sample-1",
@@ -123,7 +125,9 @@ describe("SampleImagesPanel", () => {
 
     const captureInput = screen.getByLabelText("Chụp ảnh mới");
     const libraryInput = screen.getByLabelText("Chọn ảnh từ thư viện");
-    const deleteButton = screen.getByRole("button", { name: "Xóa ảnh" });
+    const deleteButton = screen.getByRole("button", {
+      name: "Xóa ảnh minh chứng 1",
+    });
 
     expect(captureInput.getAttribute("capture")).toBe("environment");
     expect((captureInput as HTMLInputElement).multiple).toBe(false);
@@ -131,7 +135,7 @@ describe("SampleImagesPanel", () => {
     expect((libraryInput as HTMLInputElement).multiple).toBe(true);
     expect(screen.getByRole("button", { name: /Chụp ảnh/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Thư viện/ })).toBeTruthy();
-    expect(deleteButton.className).toContain("size-9");
+    expect(deleteButton.className).toContain("size-11");
   });
 
   test("renders viewer images without upload or delete controls", () => {
@@ -146,10 +150,12 @@ describe("SampleImagesPanel", () => {
     expect(
       screen.getByRole("heading", { name: "Ảnh minh chứng" })
     ).toBeTruthy();
-    expect(screen.getByText("image/png")).toBeTruthy();
+    expect(screen.getByText("PNG")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Chụp ảnh/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /Thư viện/ })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Xóa ảnh" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /Xóa ảnh minh chứng/ })
+    ).toBeNull();
   });
 
   test("uses compact spacing for dense viewer content", () => {
@@ -164,12 +170,12 @@ describe("SampleImagesPanel", () => {
     const panel = container.querySelector("#sample-result-images");
     expect(panel?.className).toContain("p-3");
     expect(panel?.className).not.toContain("p-4");
-    expect(container.innerHTML).toContain("justify-between gap-2");
+    expect(container.innerHTML).toContain("sm:justify-between");
     expect(container.innerHTML).toContain("mt-2");
-    expect(container.innerHTML).toContain("mt-3 grid gap-2");
+    expect(container.innerHTML).toContain("mt-3 grid grid-cols-3");
     expect(
       screen.getByRole("button", { name: /Chụp ảnh/ }).className
-    ).toContain("h-9");
+    ).toContain("size-11");
   });
 
   test("uploads selected library files sequentially without exceeding remaining slots", async () => {

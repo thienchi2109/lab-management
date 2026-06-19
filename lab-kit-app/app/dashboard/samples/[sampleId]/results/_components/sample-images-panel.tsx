@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
-import { Camera, ImagePlus, Trash2 } from "lucide-react";
-import Image from "next/image";
+import { Camera, ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -20,6 +19,7 @@ import {
   deleteSampleImageRequest,
   uploadSampleImageRequest,
 } from "./sample-image-requests";
+import { SampleImageGallery } from "./sample-image-gallery";
 
 type SampleImagesPanelProps = {
   canWrite: boolean;
@@ -105,18 +105,22 @@ export function SampleImagesPanel({
   return (
     <section
       id="sample-result-images"
-      className="rounded-lg border bg-background p-3"
+      className="rounded-lg border bg-background p-3 shadow-sm"
     >
-      <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
-        <div>
-          <h2 className="text-base font-semibold">Ảnh minh chứng</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Tối đa {MAX_IMAGES_PER_SAMPLE} ảnh JPEG, PNG hoặc WEBP, mỗi ảnh
-            không quá 5 MB.
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold">Ảnh minh chứng</h2>
+            <span className="rounded-full border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              {initialImages.length}/{MAX_IMAGES_PER_SAMPLE} ảnh
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            JPEG, PNG, WEBP · tối đa 5 MB/ảnh
           </p>
         </div>
         {canWrite ? (
-          <div className="grid gap-2 sm:grid-cols-2 md:flex">
+          <div className="flex gap-2 sm:justify-end">
             <Input
               aria-label="Chụp ảnh mới"
               accept="image/jpeg,image/png,image/webp"
@@ -129,13 +133,15 @@ export function SampleImagesPanel({
               type="file"
             />
             <Button
-              className="h-9 w-full justify-center px-3 md:w-auto"
+              className="size-11 justify-center px-0 sm:h-9 sm:w-auto sm:px-3"
               disabled={pending}
               onClick={() => cameraInputRef.current?.click()}
               type="button"
             >
               <Camera className="size-4" />
-              {pending ? "Đang tải ảnh" : "Chụp ảnh"}
+              <span className="sr-only sm:not-sr-only">
+                {pending ? "Đang tải ảnh" : "Chụp ảnh"}
+              </span>
             </Button>
             <Input
               aria-label="Chọn ảnh từ thư viện"
@@ -149,14 +155,14 @@ export function SampleImagesPanel({
               type="file"
             />
             <Button
-              className="h-9 w-full justify-center px-3 md:w-auto"
+              className="size-11 justify-center px-0 sm:h-9 sm:w-auto sm:px-3"
               disabled={pending}
               onClick={() => libraryInputRef.current?.click()}
               type="button"
               variant="outline"
             >
               <ImagePlus className="size-4" />
-              Thư viện
+              <span className="sr-only sm:not-sr-only">Thư viện</span>
             </Button>
           </div>
         ) : null}
@@ -171,40 +177,12 @@ export function SampleImagesPanel({
           Chưa có ảnh minh chứng.
         </p>
       ) : (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {initialImages.map((image, index) => (
-            <figure
-              key={image.id}
-              className="rounded-lg border bg-background p-1.5"
-            >
-              <Image
-                alt={`Ảnh minh chứng ${image.publicId}`}
-                className="aspect-video w-full rounded-md object-cover"
-                height={360}
-                loading={index === 0 ? "eager" : "lazy"}
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                src={image.secureUrl}
-                width={640}
-              />
-              <figcaption className="mt-1.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span>{image.contentType}</span>
-                {canWrite ? (
-                  <Button
-                    aria-label="Xóa ảnh"
-                    className="size-9"
-                    disabled={pending}
-                    onClick={() => handleDelete(image.id)}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                ) : null}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+        <SampleImageGallery
+          canDelete={canWrite}
+          images={initialImages}
+          pending={pending}
+          onDelete={handleDelete}
+        />
       )}
     </section>
   );
