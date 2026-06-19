@@ -75,6 +75,42 @@ describe("SampleFilterCombobox", () => {
     expect(hiddenId?.value).toBe("customer-1");
   });
 
+  test("debounces visible suggestions while allowing text-only options", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <SampleFilterCombobox
+        idName="customerId"
+        inputId="customer-filter"
+        label="Khách hàng"
+        listId="customer-options"
+        options={[
+          { id: "", label: "Khách hàng Minh Phú" },
+          { id: "", label: "Khách hàng Cửu Long" },
+        ]}
+        placeholder="Tất cả khách hàng"
+        textName="customerName"
+      />
+    );
+    const input = screen.getByRole("combobox", { name: "Khách hàng" });
+    const optionValues = () =>
+      Array.from(container.querySelectorAll("datalist option")).map((option) =>
+        option.getAttribute("value")
+      );
+
+    fireEvent.change(input, { target: { value: "Minh" } });
+
+    expect(optionValues()).toEqual([
+      "Khách hàng Minh Phú",
+      "Khách hàng Cửu Long",
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(optionValues()).toEqual(["Khách hàng Minh Phú"]);
+  });
+
   test("does not infer an ID when duplicate option labels are ambiguous", () => {
     vi.useFakeTimers();
     const { container } = render(

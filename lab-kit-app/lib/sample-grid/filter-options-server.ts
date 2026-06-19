@@ -14,6 +14,15 @@ type SampleTypeUsageRow = {
   sample_type_id: string;
 };
 
+type SampleCustomerUsageRow = {
+  customer_id: string | null;
+  customer_name: string | null;
+};
+
+type SampleCompanyUsageRow = {
+  company_id: string | null;
+};
+
 type NamedOptionRow = {
   id: string;
   name: string;
@@ -26,8 +35,8 @@ export async function listSampleGridFilterOptions(
 ): Promise<SampleGridFilterOptions> {
   const [sampleTypes, customers, companies, resultGroups] = await Promise.all([
     loadUsedSampleTypes(supabase, input.organizationId),
-    loadNamedOptions(supabase, "customers", input.organizationId),
-    loadNamedOptions(supabase, "companies", input.organizationId),
+    loadUsedCustomers(supabase, input.organizationId),
+    loadUsedCompanies(supabase, input.organizationId),
     listSampleGridResultGroupOptions(supabase, input),
   ]);
 
@@ -70,20 +79,58 @@ async function loadUsedSampleTypes(
   return rows.map(toFilterOption);
 }
 
-function loadNamedOptions(
+async function loadUsedCustomers(
   supabase: SupabaseLike,
-  table: "companies" | "customers",
   organizationId: string
 ): Promise<SampleGridFilterOption[]> {
-  return readRows<NamedOptionRow>(
+  const rows = await readRows<SampleCustomerUsageRow>(
     supabase
-      .from<NamedOptionRow>(table)
+      .from<SampleCustomerUsageRow>("samples")
+      .select("customer_id, customer_name")
+      .eq("organization_id", organizationId)
+      .order("customer_name", { ascending: true }),
+    "Không thể tải option khách hàng đang dùng."
+  );
+
+  return uniqueTextOptions(
+    rows.map((row) => ({
+      id: row.customer_id ?? "",
+      label: row.customer_name?.trim() ?? "",
+    }))
+  );
+}
+
+async function loadUsedCompanies(
+  supabase: SupabaseLike,
+  organizationId: string
+): Promise<SampleGridFilterOption[]> {
+  const usageRows = await readRows<SampleCompanyUsageRow>(
+    supabase
+      .from<SampleCompanyUsageRow>("samples")
+      .select("company_id")
+      .eq("organization_id", organizationId),
+    "Không thể tải công ty đang dùng."
+  );
+  const companyIds = unique(
+    usageRows.flatMap((row) => (row.company_id ? [row.company_id] : []))
+  );
+
+  if (companyIds.length === 0) {
+    return [];
+  }
+
+  const rows = await readRows<NamedOptionRow>(
+    supabase
+      .from<NamedOptionRow>("companies")
       .select("id, name")
       .eq("organization_id", organizationId)
       .eq("is_active", true)
+      .in("id", companyIds)
       .order("name", { ascending: true }),
-    `Không thể tải option ${table === "companies" ? "công ty" : "khách hàng"}.`
-  ).then((rows) => rows.map(toFilterOption));
+    "Không thể tải option công ty đang dùng."
+  );
+
+  return rows.map(toFilterOption);
 }
 
 async function readRows<T>(
@@ -105,6 +152,25 @@ function toFilterOption(row: NamedOptionRow): SampleGridFilterOption {
     id: row.id,
     label: row.name,
   };
+}
+
+function uniqueTextOptions(
+  options: SampleGridFilterOption[]
+): SampleGridFilterOption[] {
+  const seen = new Set<string>();
+  const uniqueOptions: SampleGridFilterOption[] = [];
+
+  for (const option of options) {
+    if (!option.label) continue;
+
+    const key = `${option.id}\u0000${option.label}`;
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    uniqueOptions.push(option);
+  }
+
+  return uniqueOptions.sort((a, b) => a.label.localeCompare(b.label, "vi-VN"));
 }
 
 function unique(values: string[]) {

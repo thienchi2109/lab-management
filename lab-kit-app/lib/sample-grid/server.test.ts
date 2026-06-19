@@ -256,8 +256,22 @@ describe("sample grid server contract", () => {
         },
       ],
       samples: [
-        { id: "sample-1", organization_id: "org-1", sample_type_id: "type-1" },
-        { id: "sample-2", organization_id: "org-1", sample_type_id: "type-1" },
+        {
+          company_id: "company-1",
+          customer_id: "customer-1",
+          customer_name: "Khách hàng A",
+          id: "sample-1",
+          organization_id: "org-1",
+          sample_type_id: "type-1",
+        },
+        {
+          company_id: "company-1",
+          customer_id: "customer-1",
+          customer_name: "Khách hàng A",
+          id: "sample-2",
+          organization_id: "org-1",
+          sample_type_id: "type-1",
+        },
       ],
     });
     vi.mocked(getSupabaseAdminClient).mockReturnValue(

@@ -103,7 +103,7 @@ export function ComboboxField({
           <option
             aria-label={option.label}
             data-option-id={option.id}
-            key={option.id}
+            key={`${option.id}:${option.label}`}
             label={option.label}
             value={option.label}
           />
