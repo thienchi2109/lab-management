@@ -1,17 +1,46 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BottomNav } from "./bottom-nav";
 
+const { pathnameState } = vi.hoisted(() => ({
+  pathnameState: { value: "/dashboard/analytics" },
+}));
+
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/dashboard/analytics",
+  usePathname: () => pathnameState.value,
+}));
+
+type MockLinkProps = Omit<ComponentPropsWithoutRef<"button">, "onClick"> & {
+  href: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+};
+
+vi.mock("next/link", () => ({
+  default: ({ href, onClick, children, ...props }: MockLinkProps) => (
+    <button
+      type="button"
+      role="link"
+      data-href={href}
+      onClick={(event) => {
+        onClick?.(event as unknown as MouseEvent<HTMLAnchorElement>);
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  ),
 }));
 
 describe("BottomNav", () => {
-  beforeEach(cleanup);
+  beforeEach(() => {
+    cleanup();
+    pathnameState.value = "/dashboard/analytics";
+  });
 
   test("uses moderately larger mobile tap targets after removing the floating action", () => {
     render(<BottomNav />);
@@ -46,5 +75,17 @@ describe("BottomNav", () => {
     expect(screen.getByRole("link", { name: /Chỉ tiêu/ })).toBeTruthy();
     expect(screen.getByRole("link", { name: /Người dùng/ })).toBeTruthy();
     expect(screen.getByRole("link", { name: /Cài đặt/ })).toBeTruthy();
+  });
+
+  test("marks the tapped mobile tab as pending before the route changes", () => {
+    render(<BottomNav />);
+
+    const samplesLink = screen.getByRole("link", { name: /Mẫu/ });
+    expect(samplesLink.getAttribute("aria-busy")).not.toBe("true");
+
+    fireEvent.click(samplesLink);
+
+    expect(samplesLink.getAttribute("aria-busy")).toBe("true");
+    expect(samplesLink.textContent).toContain("Đang mở Mẫu");
   });
 });

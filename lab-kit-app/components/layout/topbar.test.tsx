@@ -1,17 +1,52 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { getPageTitle } from "./page-title";
 import { Topbar } from "./topbar";
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/dashboard/samples",
+const { pathnameState } = vi.hoisted(() => ({
+  pathnameState: { value: "/dashboard/samples" },
 }));
 
-afterEach(cleanup);
+vi.mock("next/navigation", () => ({
+  usePathname: () => pathnameState.value,
+}));
+
+type MockLinkProps = Omit<ComponentPropsWithoutRef<"button">, "onClick"> & {
+  href: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+};
+
+vi.mock("next/link", () => ({
+  default: ({ href, onClick, children, ...props }: MockLinkProps) => (
+    <button
+      type="button"
+      role="link"
+      data-href={href}
+      onClick={(event) => {
+        onClick?.(event as unknown as MouseEvent<HTMLAnchorElement>);
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  ),
+}));
+
+afterEach(() => {
+  cleanup();
+  pathnameState.value = "/dashboard/samples";
+});
 
 describe("getPageTitle", () => {
   test("uses the US-004 result-configuration title", () => {
@@ -33,6 +68,20 @@ describe("Topbar responsive layout", () => {
       screen.getByPlaceholderText("Tìm kiếm mẫu, kit...").parentElement
         ?.className
     ).toContain("relative hidden w-60 2xl:block");
+  });
+});
+
+describe("Topbar navigation feedback", () => {
+  test("marks the clicked dashboard destination as pending before the route changes", () => {
+    render(<Topbar displayName="Điều phối viên" username="editor" />);
+
+    const analyticsLink = screen.getByRole("link", { name: /Báo cáo/ });
+    expect(analyticsLink.getAttribute("aria-busy")).not.toBe("true");
+
+    fireEvent.click(analyticsLink);
+
+    expect(analyticsLink.getAttribute("aria-busy")).toBe("true");
+    expect(analyticsLink.textContent).toContain("Đang mở Báo cáo");
   });
 });
 

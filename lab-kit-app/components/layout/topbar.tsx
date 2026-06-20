@@ -3,12 +3,10 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, Plus, Search, Sun } from "lucide-react";
+import { Bell, LoaderCircle, LogOut, Plus, Search, Sun } from "lucide-react";
 
-import {
-  desktopNavItems,
-  isNavItemActive,
-} from "@/components/layout/navigation-items";
+import { desktopNavItems } from "@/components/layout/navigation-items";
+import { useDashboardNavigationPending } from "@/components/layout/navigation-pending";
 import { getPageTitle } from "@/components/layout/page-title";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -32,6 +30,8 @@ export function Topbar({
   const accountLabel = username ?? displayName;
   const signOutFormId = useId();
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
+  const { getItemState, getNavigateHandler } =
+    useDashboardNavigationPending(pathname);
 
   return (
     <>
@@ -47,19 +47,28 @@ export function Topbar({
           aria-label="Điều hướng chính"
         >
           {desktopNavItems.map((item) => {
-            const isActive = isNavItemActive(pathname, item.url);
+            const { isHighlighted, isPending } = getItemState(item.url);
 
             return (
               <Link
                 key={item.title}
                 href={item.url}
+                aria-busy={isPending ? true : undefined}
+                onClick={getNavigateHandler(item.url)}
                 className={cn(
                   "inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-                  isActive && "bg-accent text-foreground"
+                  isHighlighted && "bg-accent text-foreground"
                 )}
               >
-                <item.icon className="size-4" />
+                {isPending ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <item.icon className="size-4" />
+                )}
                 <span>{item.title}</span>
+                {isPending ? (
+                  <span className="sr-only">Đang mở {item.title}</span>
+                ) : null}
               </Link>
             );
           })}
