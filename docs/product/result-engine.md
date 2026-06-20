@@ -11,6 +11,11 @@ result_groups → result_metrics → result_templates → result_template_metric
                                               sample_results + sample_group_conclusions
 ```
 
+Sample result entry reads use the server-only
+`get_sample_result_entry_payload` RPC. The payload includes sample metadata,
+the active template, selected result groups, active metrics, stored values, and
+stored group conclusions in one tenant-scoped read.
+
 ## Result Groups (8 groups in MVP)
 
 1. PCR

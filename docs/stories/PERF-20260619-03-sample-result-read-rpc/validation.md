@@ -35,4 +35,28 @@ cd lab-kit-app && bun run react-doctor:diff
 
 ## Acceptance Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+Implemented ngày 2026-06-20.
+
+- RED proof: `read-rpc-port.test.ts` và `schema-contract.test.ts` fail đúng vì
+  port còn gọi REST table queries, migration chưa có RPC đọc và malformed RPC
+  payload chưa bị chặn ở boundary.
+- Focused proof: `cd lab-kit-app && bun run test --run lib/sample-results app/api/samples/[sampleId]/results/route.test.ts app/dashboard/samples/[sampleId]/results/_components`
+  pass 14 files / 60 tests.
+- Platform proof: `bun run typecheck`, `bun run react-doctor:diff`,
+  `bun run format:check`, `bun run docstring:check`, `bun run lint:strict` pass.
+- Schema proof: `node scripts/validate-supabase-schema.mjs` pass.
+- Live DB proof: migration `20260620032912 sample_result_entry_payload_rpc`
+  applied qua `mcp__supabase_lab_management`, expected project-ref
+  `tuuqgpzgollcerqqszjr`.
+- Post-apply proof: function `get_sample_result_entry_payload` exists as
+  `SECURITY DEFINER`, `search_path=public`, returns `jsonb`, grants only
+  `postgres` and `service_role`; smoke sample returned payload with one group.
+- Performance proof: port regression asserts one RPC call
+  `get_sample_result_entry_payload` and no REST `from()` query for read payload.
+- E2E/browser proof: agent-browser login admin / 123456@, mở
+  `/dashboard/samples`, mở result page mẫu `T6_77881`, tab `Kết quả` render
+  `PCR Realtime Ct` = `Dương tính`, CT `22`, `Kết Quả Chung: NHIỄM` và nút
+  `Lưu kết quả`; screenshot:
+  `/tmp/perf-20260619-03-admin-result-page.png`. Không bấm lưu để tránh ghi
+  thêm audit/live data. Viewer/editor browser proof không chạy trong pass này;
+  role behavior vẫn được API route tests cover.

@@ -27,6 +27,16 @@ function readLatestSampleResultsRpcDefinition() {
   return matches.at(-1)?.[0] ?? "";
 }
 
+function readLatestSampleResultEntryPayloadRpcDefinition() {
+  const matches = [
+    ...readMigrations().matchAll(
+      /create\s+or\s+replace\s+function\s+public\.get_sample_result_entry_payload[\s\S]+?\$\$;/gi
+    ),
+  ];
+
+  return matches.at(-1)?.[0] ?? "";
+}
+
 describe("sample results schema contract", () => {
   test("saves result rows and group conclusions through set-based RPC statements", () => {
     const definition = readLatestSampleResultsRpcDefinition();
@@ -84,6 +94,33 @@ describe("sample results schema contract", () => {
     );
     expect(migrations).toMatch(
       /grant\s+execute\s+on\s+function\s+public\.save_sample_results_with_audit\s*\(\s*uuid\s*,\s*uuid\s*,\s*uuid\s*,\s*jsonb\s*,\s*jsonb\s*,\s*jsonb\s*\)\s+to\s+service_role/i
+    );
+  });
+
+  test("keeps the read payload RPC tenant-scoped and service-role only", () => {
+    const definition = readLatestSampleResultEntryPayloadRpcDefinition();
+    const migrations = readMigrations();
+
+    expect(definition).toMatch(
+      /create\s+or\s+replace\s+function\s+public\.get_sample_result_entry_payload\s*\(\s*p_organization_id\s+uuid\s*,\s*p_sample_id\s+uuid\s*\)/i
+    );
+    expect(definition).toMatch(/security\s+definer/i);
+    expect(definition).toMatch(/set\s+search_path\s*=\s*public/i);
+    expect(definition).toMatch(
+      /from\s+public\.samples\s+s[\s\S]+?where[\s\S]+?s\.id\s*=\s*p_sample_id[\s\S]+?s\.organization_id\s*=\s*p_organization_id/i
+    );
+    expect(definition).toMatch(/jsonb_build_object/i);
+    expect(migrations).toMatch(
+      /revoke\s+all\s+on\s+function\s+public\.get_sample_result_entry_payload\s*\(\s*uuid\s*,\s*uuid\s*\)\s+from\s+public/i
+    );
+    expect(migrations).toMatch(
+      /revoke\s+all\s+on\s+function\s+public\.get_sample_result_entry_payload\s*\(\s*uuid\s*,\s*uuid\s*\)\s+from\s+anon/i
+    );
+    expect(migrations).toMatch(
+      /revoke\s+all\s+on\s+function\s+public\.get_sample_result_entry_payload\s*\(\s*uuid\s*,\s*uuid\s*\)\s+from\s+authenticated/i
+    );
+    expect(migrations).toMatch(
+      /grant\s+execute\s+on\s+function\s+public\.get_sample_result_entry_payload\s*\(\s*uuid\s*,\s*uuid\s*\)\s+to\s+service_role/i
     );
   });
 });

@@ -19,6 +19,11 @@ GET /api/samples/:id/results
 PUT /api/samples/:id/results
 ```
 
+GET read model: server resolves session role and organization, then loads the
+entry payload through `get_sample_result_entry_payload`. The RPC is read-only,
+tenant-scoped by `organization_id` + `sample_id`, and executable only by the
+server `service_role`.
+
 PUT transaction: validate permission → validate sample → validate metrics →
 upsert results → update group conclusions → audit log.
 

@@ -31,6 +31,7 @@
 - `result_templates` — preset metric selections per sample/kit type
 - `result_template_metrics` — template ↔ metric mapping
 - `metric_settings` — units, thresholds, rules per metric (time-effective)
+- `sample_result_groups` — selected result groups enabled for each sample
 - `sample_results` — actual test values per sample per metric
 - `sample_group_conclusions` — Kết Quả Chung per sample per group
 
@@ -52,6 +53,7 @@ result_templates ── result_template_metrics          │
 metric_settings                                     │
                     ┌───────────────────────────────┘
                     ↓
+              sample_result_groups
               sample_results
               sample_group_conclusions
               sample_images

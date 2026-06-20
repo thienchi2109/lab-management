@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,6 +19,16 @@ waterfall qua Supabase REST/RLS.
 Trang kết quả mẫu dùng một read RPC tenant-scoped để trả payload đọc kết quả
 cần thiết cho UI, giảm waterfall mà không hạ RLS hoặc bỏ kiểm tra quyền ở app
 layer.
+
+## Implementation
+
+- Thêm RPC `public.get_sample_result_entry_payload(p_organization_id uuid, p_sample_id uuid)`.
+- RPC trả metadata mẫu, template đang active, nhóm/chỉ tiêu được chọn, kết quả
+  đã lưu và `sample_group_conclusions`.
+- Server port `createSupabaseSampleResultsPort` đọc payload qua một RPC thay vì
+  nhiều query REST riêng lẻ.
+- RPC là `SECURITY DEFINER`, `search_path=public`, tenant-scoped theo
+  `organization_id` và chỉ grant execute cho `service_role`.
 
 ## Affected Users
 
