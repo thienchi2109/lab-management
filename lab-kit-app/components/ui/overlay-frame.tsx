@@ -45,10 +45,12 @@ export function DialogFrame({
     if (!frame) return;
     const dialogElement = frame;
     const previousBodyOverflow = document.body.style.overflow;
+    const previousDocumentOverflow = document.documentElement.style.overflow;
     const previousScrollbarGutter =
       document.documentElement.style.scrollbarGutter;
 
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     document.documentElement.style.scrollbarGutter = "stable";
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -90,6 +92,7 @@ export function DialogFrame({
     return () => {
       dialogElement.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousDocumentOverflow;
       document.documentElement.style.scrollbarGutter = previousScrollbarGutter;
     };
   }, [onClose]);
@@ -115,7 +118,7 @@ export function DialogFrame({
           isSheet
             ? "right-0 top-0 h-dvh w-full max-w-xl border border-y-0 border-r-0 border-border"
             : isCompactMobileModal
-              ? "inset-x-4 top-1/2 max-h-[calc(100dvh-2rem)] w-auto max-w-none -translate-y-1/2 rounded-lg border border-border sm:inset-auto sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
+              ? "inset-x-4 top-1/2 max-h-[calc(100dvh-2rem)] w-auto max-w-none -translate-y-1/2 rounded-lg border border-border sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
               : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
         )}
       >
@@ -136,14 +139,21 @@ export function DialogFrame({
         </div>
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-contain p-4",
+            isCompactMobileModal
+              ? "p-4"
+              : "min-h-0 flex-1 overflow-y-auto overscroll-contain p-4",
             isSheet ? "max-h-[calc(100dvh-4rem)]" : undefined
           )}
         >
           {children}
         </div>
         {footer ? (
-          <div className="sticky bottom-0 shrink-0 border-t bg-background px-4 py-3">
+          <div
+            className={cn(
+              "shrink-0 border-t bg-background px-4 py-3",
+              !isCompactMobileModal && "sticky bottom-0"
+            )}
+          >
             {footer}
           </div>
         ) : null}

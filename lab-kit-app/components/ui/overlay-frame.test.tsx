@@ -86,6 +86,44 @@ describe("Overlay frame primitive", () => {
     expect(html).toContain("Đang xử lý...");
   });
 
+  test("centers compact modals at desktop breakpoints", () => {
+    const html = renderToStaticMarkup(
+      <DialogFrame
+        title="Xác nhận đăng xuất"
+        closeLabel="Hủy"
+        mobileLayout="compact"
+        footer={<button type="button">Đăng xuất</button>}
+        onClose={vi.fn()}
+      >
+        <p>Bạn có chắc muốn đăng xuất khỏi hệ thống?</p>
+      </DialogFrame>
+    );
+
+    expect(html).toContain("top-1/2");
+    expect(html).toContain("sm:top-1/2");
+    expect(html).toContain("sm:left-1/2");
+    expect(html).toContain("-translate-y-1/2");
+    expect(html).not.toContain("sm:inset-auto");
+  });
+
+  test("keeps compact confirm content static instead of adding scroll chrome", () => {
+    const html = renderToStaticMarkup(
+      <DialogFrame
+        title="Xác nhận đăng xuất"
+        closeLabel="Hủy"
+        mobileLayout="compact"
+        footer={<button type="button">Đăng xuất</button>}
+        onClose={vi.fn()}
+      >
+        <p>Bạn có chắc muốn đăng xuất khỏi hệ thống?</p>
+      </DialogFrame>
+    );
+
+    expect(html).toContain("px-4 py-3");
+    expect(html).not.toContain("overflow-y-auto");
+    expect(html).not.toContain("sticky bottom-0");
+  });
+
   test("renders modal frames as fullscreen on mobile and centered from sm", () => {
     const html = renderToStaticMarkup(
       <DialogFrame title="Thêm mẫu" closeLabel="Đóng" onClose={vi.fn()}>
@@ -110,5 +148,17 @@ describe("Overlay frame primitive", () => {
     expect(source).toContain("@/components/ui/overlay-frame");
     expect(source).not.toContain("useEffect");
     expect(source).not.toContain("document.body.style.overflow");
+  });
+
+  test("locks both document and body scroll while overlays are mounted", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/ui/overlay-frame.tsx"),
+      "utf8"
+    );
+
+    expect(source).toContain('document.body.style.overflow = "hidden"');
+    expect(source).toContain(
+      'document.documentElement.style.overflow = "hidden"'
+    );
   });
 });
