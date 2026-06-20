@@ -72,19 +72,19 @@ export function SampleImageGallery({
                 {formatContentType(image.contentType)}
               </span>
             </figcaption>
-              {canDelete ? (
-                <Button
-                  aria-label={`Xóa ảnh minh chứng ${index + 1}`}
-                  className="absolute right-1 top-1 size-11 border border-white/80 bg-white/90 text-destructive shadow-sm hover:bg-white"
-                  disabled={pending}
-                  onClick={() => onDelete(image.id)}
-                  size="icon"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              ) : null}
+            {canDelete ? (
+              <Button
+                aria-label={`Xóa ảnh minh chứng ${index + 1}`}
+                className="absolute right-1 top-1 size-11 border border-white/80 bg-white/90 text-destructive shadow-sm hover:bg-white"
+                disabled={pending}
+                onClick={() => onDelete(image.id)}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            ) : null}
           </figure>
         ))}
       </div>

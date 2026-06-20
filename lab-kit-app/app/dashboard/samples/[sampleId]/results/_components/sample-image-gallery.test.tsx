@@ -56,12 +56,10 @@ describe("Sample image gallery preview", () => {
     );
 
     expect(screen.getByText("3/20 ảnh")).toBeTruthy();
+    expect(screen.getByText("JPEG, PNG, WEBP · tối đa 5 MB/ảnh")).toBeTruthy();
     expect(
-      screen.getByText("JPEG, PNG, WEBP · tối đa 5 MB/ảnh")
-    ).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Chụp ảnh" }).className).toContain(
-      "size-11"
-    );
+      screen.getByRole("button", { name: "Chụp ảnh" }).className
+    ).toContain("size-11");
     expect(
       screen.getByRole("button", { name: "Thư viện" }).className
     ).toContain("size-11");
@@ -101,7 +99,9 @@ describe("Sample image gallery preview", () => {
       screen.getByRole("button", { name: "Mở ảnh minh chứng 2" })
     );
 
-    expect(screen.getByRole("heading", { name: "Ảnh minh chứng 2/3" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Ảnh minh chứng 2/3" })
+    ).toBeTruthy();
     expect(
       screen.getByRole("img", { name: "Xem ảnh minh chứng evidence-2" })
     ).toBeTruthy();
@@ -110,8 +110,12 @@ describe("Sample image gallery preview", () => {
       screen.getAllByRole("button", { name: "Đóng preview" })[1]
     );
 
-    expect(screen.queryByRole("heading", { name: "Ảnh minh chứng 2/3" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Mở ảnh minh chứng 2" })).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "Ảnh minh chứng 2/3" })
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Mở ảnh minh chứng 2" })
+    ).toBeTruthy();
   });
 
   test("moves within the preview and disables navigation at list boundaries", async () => {
@@ -131,11 +135,19 @@ describe("Sample image gallery preview", () => {
       (screen.getByRole("button", { name: "Ảnh trước" }) as HTMLButtonElement)
         .disabled
     ).toBe(true);
-    await userEvent.click(screen.getByRole("button", { name: "Ảnh tiếp theo" }));
-    expect(screen.getByRole("heading", { name: "Ảnh minh chứng 2/3" })).toBeTruthy();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ảnh tiếp theo" })
+    );
+    expect(
+      screen.getByRole("heading", { name: "Ảnh minh chứng 2/3" })
+    ).toBeTruthy();
 
-    await userEvent.click(screen.getByRole("button", { name: "Ảnh tiếp theo" }));
-    expect(screen.getByRole("heading", { name: "Ảnh minh chứng 3/3" })).toBeTruthy();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ảnh tiếp theo" })
+    );
+    expect(
+      screen.getByRole("heading", { name: "Ảnh minh chứng 3/3" })
+    ).toBeTruthy();
     expect(
       (
         screen.getByRole("button", {
@@ -145,7 +157,9 @@ describe("Sample image gallery preview", () => {
     ).toBe(true);
 
     await userEvent.click(screen.getByRole("button", { name: "Ảnh trước" }));
-    expect(screen.getByRole("heading", { name: "Ảnh minh chứng 2/3" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Ảnh minh chứng 2/3" })
+    ).toBeTruthy();
   });
 
   test("keeps viewer preview read-only while editors can delete the selected image", async () => {
@@ -166,7 +180,9 @@ describe("Sample image gallery preview", () => {
       screen.getByRole("button", { name: "Mở ảnh minh chứng 1" })
     );
 
-    expect(screen.queryByRole("button", { name: "Xóa ảnh minh chứng 1" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Xóa ảnh minh chứng 1" })
+    ).toBeNull();
     await userEvent.click(
       screen.getAllByRole("button", { name: "Đóng preview" })[1]
     );
@@ -187,7 +203,10 @@ describe("Sample image gallery preview", () => {
     );
 
     await waitFor(() =>
-      expect(deleteSampleImageRequest).toHaveBeenCalledWith("sample-1", "image-2")
+      expect(deleteSampleImageRequest).toHaveBeenCalledWith(
+        "sample-1",
+        "image-2"
+      )
     );
     expect(refresh).toHaveBeenCalledTimes(1);
   });
@@ -207,9 +226,9 @@ describe("Sample image gallery preview", () => {
 
     expect(container.innerHTML).toContain("bg-[#101828]");
     expect(screen.getByText("WEBP · evidence-2")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ảnh trước" }).className).toContain(
-      "size-11"
-    );
+    expect(
+      screen.getByRole("button", { name: "Ảnh trước" }).className
+    ).toContain("size-11");
     expect(
       screen.getByRole("button", { name: "Ảnh tiếp theo" }).className
     ).toContain("size-11");
