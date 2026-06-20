@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
 
-import { SelectField } from "@/components/dashboard/select-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { SampleGridPage } from "@/lib/sample-grid/operations";
 
 import { SampleExportControls } from "./sample-export-controls";
-import { SampleFilterCombobox } from "./sample-filter-combobox";
+import { SampleGridFilterForm } from "./sample-grid-filter-form";
+import { appendSampleGridFilterParams } from "./sample-grid-filter-params";
+import { SampleGridMobileFilterSheet } from "./sample-grid-mobile-filter-sheet";
 import { SampleGridTableSection } from "./sample-grid-table-section";
 import { SampleResultViewer } from "./sample-result-viewer";
 
@@ -23,10 +22,6 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
     page.query.offset + page.rows.length,
     page.pageInfo.totalCount
   );
-  const resultGroupLabelById = new Map(
-    page.resultGroupOptions.map((option) => [option.id, option.label])
-  );
-  const selectedResultGroupIds = page.query.filters.resultGroupIds ?? [];
   const activeFilterCount = getActiveSampleFilterCount(page);
   const filterSummary =
     activeFilterCount > 0
@@ -56,8 +51,13 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
         </div>
       </div>
 
+      <SampleGridMobileFilterSheet
+        activeFilterCount={activeFilterCount}
+        page={page}
+      />
+
       <details
-        className="rounded-lg border bg-background"
+        className="hidden rounded-lg border bg-background md:block"
         open={activeFilterCount > 0}
       >
         <summary className="cursor-pointer list-none px-4 py-3 [&::-webkit-details-marker]:hidden">
@@ -70,132 +70,11 @@ export function SampleGridPageContent({ page }: SampleGridPageContentProps) {
             </div>
           </div>
         </summary>
-        <form action="/dashboard/samples" className="border-t p-4" method="get">
-          <input name="page" type="hidden" value="1" />
-          {page.selectedResultColumnKeys.map((key) => (
-            <input key={key} name="resultColumns" type="hidden" value={key} />
-          ))}
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_150px_150px_170px_190px_190px_auto] xl:items-end">
-            <label
-              className="space-y-1.5 text-sm font-medium"
-              htmlFor="sample-grid-search"
-            >
-              <span>Tìm kiếm</span>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                <Input
-                  className="pl-8"
-                  defaultValue={page.query.search ?? ""}
-                  id="sample-grid-search"
-                  name="search"
-                  placeholder="Mã mẫu hoặc khách hàng"
-                />
-              </div>
-            </label>
-            <label
-              className="space-y-1.5 text-sm font-medium"
-              htmlFor="sample-grid-received-from"
-            >
-              <span>Từ ngày nhận</span>
-              <Input
-                defaultValue={page.query.filters.receivedFrom ?? ""}
-                id="sample-grid-received-from"
-                name="receivedFrom"
-                type="date"
-              />
-            </label>
-            <label
-              className="space-y-1.5 text-sm font-medium"
-              htmlFor="sample-grid-received-to"
-            >
-              <span>Đến ngày nhận</span>
-              <Input
-                defaultValue={page.query.filters.receivedTo ?? ""}
-                id="sample-grid-received-to"
-                name="receivedTo"
-                type="date"
-              />
-            </label>
-            <SelectField
-              defaultValue={page.query.filters.sampleTypeId ?? ""}
-              label="Loại mẫu"
-              name="sampleTypeId"
-              options={[
-                ["", "Tất cả"],
-                ...page.filterOptions.sampleTypes.map(
-                  (option) => [option.id, option.label] as [string, string]
-                ),
-              ]}
-            />
-            <SampleFilterCombobox
-              defaultIdValue={page.query.filters.customerId}
-              defaultTextValue={page.query.filters.customerName}
-              idName="customerId"
-              inputId="sample-grid-customer"
-              label="Khách hàng"
-              listId="sample-grid-customer-options"
-              options={page.filterOptions.customers}
-              placeholder="Tất cả khách hàng"
-              textName="customerName"
-            />
-            <SampleFilterCombobox
-              defaultIdValue={page.query.filters.companyId}
-              defaultTextValue={page.query.filters.companyName}
-              idName="companyId"
-              inputId="sample-grid-company"
-              label="Công ty"
-              listId="sample-grid-company-options"
-              options={page.filterOptions.companies}
-              placeholder="Tất cả công ty"
-              textName="companyName"
-            />
-            <Button type="submit">Áp dụng</Button>
-          </div>
-          {page.resultGroupOptions.length > 0 ? (
-            <fieldset className="mt-4 space-y-2">
-              <legend className="text-xs font-semibold text-foreground">
-                Nhóm chỉ tiêu
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {page.resultGroupOptions.map((option) => (
-                  <label
-                    key={option.id}
-                    className="flex min-h-9 items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm"
-                  >
-                    <input
-                      className="size-4 accent-primary"
-                      defaultChecked={selectedResultGroupIds.includes(
-                        option.id
-                      )}
-                      name="resultGroupIds"
-                      type="checkbox"
-                      value={option.id}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </div>
-              {selectedResultGroupIds.length > 0 ? (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {selectedResultGroupIds.map((groupId) => {
-                    const label = resultGroupLabelById.get(groupId) ?? groupId;
-
-                    return (
-                      <Link
-                        key={groupId}
-                        aria-label={`Xóa ${label}`}
-                        className="rounded-md border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
-                        href={buildResultGroupRemovalHref(page, groupId)}
-                      >
-                        Đang lọc: {label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </fieldset>
-          ) : null}
-        </form>
+        <SampleGridFilterForm
+          idPrefix="sample-grid"
+          page={page}
+          variant="inline"
+        />
       </details>
 
       <SampleGridTableSection page={page} />
@@ -265,7 +144,7 @@ function PaginationButton({
 function buildPageHref(page: SampleGridPage, nextPage: number) {
   const params = new URLSearchParams();
 
-  appendFilterParams(params, page);
+  appendSampleGridFilterParams(params, page);
 
   params.set("page", String(nextPage));
   params.set("pageSize", String(page.query.pageSize));
@@ -274,50 +153,4 @@ function buildPageHref(page: SampleGridPage, nextPage: number) {
   }
 
   return `/dashboard/samples?${params.toString()}`;
-}
-
-function buildResultGroupRemovalHref(
-  page: SampleGridPage,
-  removedGroupId: string
-) {
-  const params = new URLSearchParams();
-
-  appendFilterParams(params, page, removedGroupId);
-  params.set("page", "1");
-  params.set("pageSize", String(page.query.pageSize));
-  for (const key of page.selectedResultColumnKeys) {
-    params.append("resultColumns", key);
-  }
-
-  return `/dashboard/samples?${params.toString()}`;
-}
-
-function appendFilterParams(
-  params: URLSearchParams,
-  page: SampleGridPage,
-  removedGroupId?: string
-) {
-  if (page.query.search) params.set("search", page.query.search);
-  appendOptionalParam(params, "receivedFrom", page.query.filters.receivedFrom);
-  appendOptionalParam(params, "receivedTo", page.query.filters.receivedTo);
-  appendOptionalParam(params, "sampleTypeId", page.query.filters.sampleTypeId);
-  appendOptionalParam(params, "customerId", page.query.filters.customerId);
-  appendOptionalParam(params, "customerName", page.query.filters.customerName);
-  appendOptionalParam(params, "companyId", page.query.filters.companyId);
-  appendOptionalParam(params, "companyName", page.query.filters.companyName);
-  for (const groupId of page.query.filters.resultGroupIds ?? []) {
-    if (groupId !== removedGroupId) {
-      params.append("resultGroupIds", groupId);
-    }
-  }
-}
-
-function appendOptionalParam(
-  params: URLSearchParams,
-  key: string,
-  value: string | undefined
-) {
-  if (value) {
-    params.set(key, value);
-  }
 }

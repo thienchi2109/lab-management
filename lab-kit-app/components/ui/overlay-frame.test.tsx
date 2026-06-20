@@ -4,12 +4,31 @@ import { join } from "node:path";
 import { describe, expect, test, vi } from "vitest";
 
 import {
+  BottomSheetFrame,
   DialogActions,
   DialogFrame,
   SideSheetFrame,
 } from "@/components/ui/overlay-frame";
 
 describe("Overlay frame primitive", () => {
+  test("renders bottom sheet frames above the mobile bottom navigation", () => {
+    const html = renderToStaticMarkup(
+      <BottomSheetFrame
+        title="Tìm kiếm và lọc"
+        closeLabel="Đóng"
+        footer={<button type="button">Áp dụng</button>}
+        onClose={vi.fn()}
+      >
+        <p>Nội dung</p>
+      </BottomSheetFrame>
+    );
+
+    expect(html).toContain("bottom-[calc(4.5rem+env(safe-area-inset-bottom))]");
+    expect(html).toContain("rounded-t-2xl");
+    expect(html).toContain("w-10 rounded-full");
+    expect(html).toContain("Áp dụng");
+  });
+
   test("renders side sheet frames from the global UI primitive", () => {
     const html = renderToStaticMarkup(
       <SideSheetFrame

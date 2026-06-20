@@ -12,11 +12,12 @@ type DialogFrameProps = {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  mode?: "modal" | "sheet";
+  mode?: "bottom-sheet" | "modal" | "sheet";
   mobileLayout?: "fullscreen" | "compact";
 };
 
 type SideSheetFrameProps = Omit<DialogFrameProps, "mode">;
+type BottomSheetFrameProps = Omit<DialogFrameProps, "mode">;
 
 type DialogActionsProps = {
   pending: boolean;
@@ -98,6 +99,7 @@ export function DialogFrame({
   }, [onClose]);
 
   const isSheet = mode === "sheet";
+  const isBottomSheet = mode === "bottom-sheet";
   const isCompactMobileModal = !isSheet && mobileLayout === "compact";
 
   return (
@@ -115,13 +117,20 @@ export function DialogFrame({
         aria-labelledby={titleId}
         className={cn(
           "absolute m-0 flex flex-col overflow-hidden bg-background p-0 text-left text-foreground shadow-xl outline-none",
-          isSheet
-            ? "right-0 top-0 h-dvh w-full max-w-xl border border-y-0 border-r-0 border-border"
-            : isCompactMobileModal
-              ? "inset-x-4 top-1/2 max-h-[calc(100dvh-2rem)] w-auto max-w-none -translate-y-1/2 rounded-lg border border-border sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
-              : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
+          isBottomSheet
+            ? "inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] w-full rounded-t-2xl border border-b-0 border-border sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
+            : isSheet
+              ? "right-0 top-0 h-dvh w-full max-w-xl border border-y-0 border-r-0 border-border"
+              : isCompactMobileModal
+                ? "inset-x-4 top-1/2 max-h-[calc(100dvh-2rem)] w-auto max-w-none -translate-y-1/2 rounded-lg border border-border sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
+                : "inset-0 h-dvh w-full max-w-none border-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:border-border"
         )}
       >
+        {isBottomSheet ? (
+          <div className="flex justify-center pt-2">
+            <span className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+          </div>
+        ) : null}
         <div className="flex items-start justify-between gap-3 border-b px-4 py-3">
           <h2 id={titleId} className="text-base font-semibold text-foreground">
             {title}
@@ -160,6 +169,11 @@ export function DialogFrame({
       </dialog>
     </div>
   );
+}
+
+/** Render bottom sheet global từ cạnh dưới viewport cho mobile. */
+export function BottomSheetFrame(props: BottomSheetFrameProps) {
+  return <DialogFrame {...props} mode="bottom-sheet" />;
 }
 
 /** Render side sheet global từ cạnh phải của viewport. */

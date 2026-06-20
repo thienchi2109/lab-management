@@ -269,13 +269,9 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain('data-sample-column-key="kit"');
     expect(html).toContain("hidden xl:table-cell");
     expect(html).not.toContain('data-mobile-card-column-key="sample"');
-    expect(html).toContain('data-mobile-card-column-key="receivedAt"');
-    expect(html).toContain('data-mobile-card-column-key="sampleType"');
-    expect(html).toContain('data-mobile-card-column-key="company"');
-    expect(html).not.toContain(
-      'hidden sm:flex" data-mobile-card-column-key="company"'
-    );
-    expect(html).toContain('data-mobile-card-column-key="resultDetail"');
+    expect(html).toContain('data-mobile-sample-card="clinical-grid"');
+    expect(html).toContain('data-mobile-sample-result-band="true"');
+    expect(html).toContain("KQ chung");
     expect(html).toContain("min-h-11");
   });
 
@@ -330,6 +326,7 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain('data-sample-column-key="group:group-1"');
     expect(html).toContain("Dương tính");
     expect(html).toContain("hidden lg:table-cell");
-    expect(html).toContain("hidden md:flex");
+    expect(html).not.toContain('data-mobile-card-column-key="metric:metric-1"');
+    expect(html).not.toContain('data-mobile-card-column-key="group:group-1"');
   });
 });

@@ -211,4 +211,25 @@ describe("DashboardDataTable", () => {
     expect(rowHtml).toContain("md:hidden");
     expect(rowHtml).toContain("Mở kết quả");
   });
+
+  test("uses a custom mobile card when a row provides one", () => {
+    const rows = [
+      {
+        id: "sample-1",
+        mobileCard: <section data-mobile-card="clinical">Card mẫu</section>,
+        cells: [{ columnKey: "customer", header: "Khách", content: "An Phú" }],
+      },
+    ];
+    const html = renderToStaticMarkup(
+      <DashboardDataTable
+        caption="Danh sách mẫu"
+        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+        emptyTitle="Không có mẫu phù hợp"
+        rows={rows}
+      />
+    );
+
+    expect(html).toContain('data-mobile-card="clinical"');
+    expect(html).not.toContain('data-mobile-card-column-key="customer"');
+  });
 });

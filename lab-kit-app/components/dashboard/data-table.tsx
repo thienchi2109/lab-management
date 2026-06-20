@@ -19,6 +19,7 @@ export type DashboardDataTableRow = {
   id: string;
   cells: DashboardDataTableCell[];
   actions?: ReactNode;
+  mobileCard?: ReactNode;
   mobilePrimaryAction?: ReactNode;
   rowTone?: "default" | "highlight";
 };
@@ -132,37 +133,41 @@ export function DashboardDataTable({
       <div className="divide-y md:hidden">
         {mobileRows.map((row) => (
           <div key={row.id} className={tableStyles.mobileRow(row.rowTone)}>
-            {row.cells.map((cell) => (
-              <div
-                key={cell.columnKey ?? cell.header}
-                className={cn(
-                  "grid grid-cols-[minmax(4.75rem,auto)_minmax(0,1fr)] items-start gap-3",
-                  cell.mobileClassName
-                )}
-                data-mobile-card-column-key={cell.columnKey}
-              >
-                <span className="text-xs font-medium text-muted-foreground">
-                  {cell.mobileHeader ?? cell.header}
-                </span>
-                <span
-                  className={cn(
-                    "min-w-0 text-right text-sm",
-                    cell.primary ? "font-medium" : "text-muted-foreground"
-                  )}
-                >
-                  {cell.mobileContent ?? cell.content}
-                </span>
-              </div>
-            ))}
-            {row.mobilePrimaryAction ? (
-              <div className="pt-1 [&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
-                {row.mobilePrimaryAction}
-              </div>
-            ) : row.actions ? (
-              <div className="pt-1 [&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
-                {row.actions}
-              </div>
-            ) : null}
+            {row.mobileCard ?? (
+              <>
+                {row.cells.map((cell) => (
+                  <div
+                    key={cell.columnKey ?? cell.header}
+                    className={cn(
+                      "grid grid-cols-[minmax(4.75rem,auto)_minmax(0,1fr)] items-start gap-3",
+                      cell.mobileClassName
+                    )}
+                    data-mobile-card-column-key={cell.columnKey}
+                  >
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {cell.mobileHeader ?? cell.header}
+                    </span>
+                    <span
+                      className={cn(
+                        "min-w-0 text-right text-sm",
+                        cell.primary ? "font-medium" : "text-muted-foreground"
+                      )}
+                    >
+                      {cell.mobileContent ?? cell.content}
+                    </span>
+                  </div>
+                ))}
+                {row.mobilePrimaryAction ? (
+                  <div className="pt-1 [&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
+                    {row.mobilePrimaryAction}
+                  </div>
+                ) : row.actions ? (
+                  <div className="pt-1 [&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
+                    {row.actions}
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         ))}
       </div>

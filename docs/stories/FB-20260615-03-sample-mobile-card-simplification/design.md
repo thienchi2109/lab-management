@@ -15,8 +15,15 @@ không hỗ trợ mật độ card mới, mở rộng bằng prop hẹp có defa
 ## Component Scope
 
 - `lab-kit-app/components/dashboard/data-table.tsx`
+- `lab-kit-app/components/ui/overlay-frame.tsx`
+- `lab-kit-app/app/dashboard/samples/_components/sample-grid-filter-form.tsx`
+- `lab-kit-app/app/dashboard/samples/_components/sample-grid-filter-params.ts`
+- `lab-kit-app/app/dashboard/samples/_components/sample-grid-mobile-filter-sheet.tsx`
 - `lab-kit-app/app/dashboard/samples/_components/sample-grid-table-section.tsx`
+- `lab-kit-app/app/dashboard/samples/_components/sample-grid-mobile-card.tsx`
+- `lab-kit-app/app/dashboard/samples/_components/sample-grid-status-badge.tsx`
 - Tests `data-table` và `sample-grid-page-content`.
+- Tests `overlay-frame` và `sample-grid-mobile-filter-sheet` cho bottom sheet.
 
 ## Error Handling
 
@@ -28,3 +35,9 @@ gọn như `Chưa có`, không tạo khoảng trống lớn.
 Trước khi thêm UI primitive mới, dùng workflow code-deduplication để kiểm tra
 shared card/list patterns hiện có.
 
+## Mobile Filter Follow-up
+
+- Chọn Stitch MCP phương án 2: search-first toolbar, filter badge và bottom
+  sheet khi cần lọc.
+- Desktop/tablet giữ filter inline hiện tại.
+- Mobile không render filter form mở sẵn trên trang chính.

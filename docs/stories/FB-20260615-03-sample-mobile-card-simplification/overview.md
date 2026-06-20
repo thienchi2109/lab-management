@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -35,6 +35,9 @@ field và còn render `Tùy chọn cột`, `Cột kết quả desktop`.
 - Card ưu tiên: ngày, loại mẫu, tên khách, tên công ty, trạng thái, nhóm chỉ
   tiêu, kết quả chung.
 - Bỏ `Tùy chọn cột` và `Cột kết quả desktop` khỏi trang Mẫu.
+- Trên mobile, filter/search không chiếm viewport mặc định; chỉ mở khi người
+  dùng cần tìm kiếm hoặc lọc.
+- Mobile dùng bottom sheet filter, chừa vùng cho bottom navigation.
 
 ## Acceptance Criteria
 
@@ -43,10 +46,28 @@ field và còn render `Tùy chọn cột`, `Cột kết quả desktop`.
 - `Xem chi tiết` vẫn hiển thị mã mẫu.
 - Không còn 2 khối tùy chọn cột/result desktop trên trang Mẫu.
 - Action `Mở kết quả` vẫn dễ chạm trên mobile.
+- Mobile hiển thị toolbar search-first trước danh sách card.
+- Bottom sheet mobile có search, ngày nhận, loại mẫu, khách hàng, công ty,
+  nhóm chỉ tiêu, `Áp dụng` và `Xóa lọc`.
+
+## Implementation Notes
+
+- Mobile list dùng slot `mobileCard` hẹp trên `DashboardDataTable`; default
+  fallback của shared table giữ nguyên cho các caller khác.
+- Samples render `SampleGridMobileCard` theo hướng Stitch Clinical Grid:
+  khách hàng làm tiêu đề, trạng thái ở góc phải, ngày/loại mẫu dạng metadata,
+  công ty muted, Nhóm chỉ tiêu/KQ chung nằm trong result band riêng.
+- `Mã mẫu` vẫn nằm ở desktop table và result viewer, nhưng không render trong
+  mobile list card.
+- Follow-up ngày 2026-06-20 chọn Stitch MCP phương án 2: mobile toolbar gồm
+  search button và filter badge; desktop giữ filter inline.
+- `SampleGridFilterForm` dùng chung field/query contract cho desktop inline và
+  mobile bottom sheet để tránh lệch filter.
+- `BottomSheetFrame` mở rộng từ overlay primitive hiện có, dùng lại scroll lock
+  và focus handling, đồng thời đặt sheet phía trên bottom navigation.
 
 ## Non-Goals
 
 - Không đổi query/filter.
 - Không đổi result engine.
 - Không đổi mã mẫu hoặc generation logic.
-

@@ -10,7 +10,6 @@ import {
   requestSampleMetadataEdit,
   requestSampleMetadataView,
 } from "@/components/layout/sample-create-action";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GROUP_CONCLUSION_DISPLAY_LABEL } from "@/lib/result-labels";
 import type {
@@ -20,11 +19,10 @@ import type {
   SampleGridRow,
 } from "@/lib/sample-grid/operations";
 
-import {
-  billingStatusLabels,
-  sampleStatusLabels,
-} from "./sample-metadata-labels";
+import { billingStatusLabels } from "./sample-metadata-labels";
+import { SampleGridMobileCard } from "./sample-grid-mobile-card";
 import { toMetadataRequestSample } from "./sample-grid-metadata-request";
+import { SampleGridStatusBadge } from "./sample-grid-status-badge";
 import { SampleResultViewerLink } from "./sample-result-viewer-link";
 
 type SampleGridTableSectionProps = {
@@ -41,8 +39,6 @@ const sampleDateFormatter = new Intl.DateTimeFormat("vi-VN", {
   timeZone: "Asia/Ho_Chi_Minh",
   timeStyle: "short",
 });
-
-const mobileHiddenColumnKeys = ["sample", "kit", "billing"] as const;
 
 export function SampleGridTableSection({ page }: SampleGridTableSectionProps) {
   const resultColumnLabelByKey = new Map(
@@ -63,7 +59,6 @@ export function SampleGridTableSection({ page }: SampleGridTableSectionProps) {
       }
       emptyDescription="Thử đổi từ khóa, bộ lọc hoặc quay lại trang đầu."
       emptyTitle="Không có mẫu phù hợp"
-      mobileHiddenColumnKeys={mobileHiddenColumnKeys}
       rows={page.rows.map((sample) =>
         toTableRow(sample, page, resultColumnLabelByKey)
       )}
@@ -80,15 +75,22 @@ function toTableRow(
   const resultSummaryIndex = buildResultSummaryIndex(
     sample.resultSummary?.groups ?? []
   );
+  const receivedAtLabel = sampleDateFormatter.format(
+    new Date(sample.receivedAt)
+  );
 
   return {
     id: sample.id,
-    mobilePrimaryAction: (
-      <Button asChild size="sm">
-        <SampleResultViewerLink sampleId={sample.id}>
-          Mở kết quả
-        </SampleResultViewerLink>
-      </Button>
+    mobileCard: (
+      <SampleGridMobileCard
+        companyName={sample.companyName}
+        customerName={sample.customerName}
+        receivedAtLabel={receivedAtLabel}
+        resultSummary={sample.resultSummary}
+        sampleId={sample.id}
+        sampleTypeName={sample.sampleTypeName}
+        status={sample.status}
+      />
     ),
     cells: [
       {
@@ -100,7 +102,6 @@ function toTableRow(
       {
         columnKey: "customer",
         header: "Khách hàng",
-        mobileHeader: "Khách",
         content: sample.customerName ?? "Không có",
       },
       {
@@ -113,41 +114,35 @@ function toTableRow(
         columnKey: "sampleType",
         desktopClassName: "hidden lg:table-cell",
         header: "Loại mẫu",
-        mobileHeader: "Loại",
         content: sample.sampleTypeName,
       },
       {
         columnKey: "kit",
         desktopClassName: "hidden xl:table-cell",
         header: "KIT",
-        mobileClassName: "hidden sm:flex",
         content: sample.kitSummary,
       },
       {
         columnKey: "receivedAt",
         desktopClassName: "hidden lg:table-cell",
         header: "Ngày nhận",
-        mobileHeader: "Ngày",
-        content: sampleDateFormatter.format(new Date(sample.receivedAt)),
+        content: receivedAtLabel,
       },
       {
         columnKey: "status",
         header: "Trạng thái",
-        content: <StatusBadge status={sample.status} />,
+        content: <SampleGridStatusBadge status={sample.status} />,
       },
       {
         columnKey: "billing",
         desktopClassName: "hidden lg:table-cell",
         header: "Thanh toán",
-        mobileClassName: "hidden sm:flex",
         content: formatBillingStatus(sample.billingStatus),
       },
       {
         columnKey: "resultDetail",
         desktopClassName: "hidden lg:table-cell",
         header: "Nhóm kết quả",
-        mobileContent: <MobileResultSummary summary={sample.resultSummary} />,
-        mobileHeader: "Nhóm",
         content: (
           <ResultGroupDetail
             canWrite={page.capabilities.canEnterResults}
@@ -239,28 +234,6 @@ function ResultGroupDetail({
   );
 }
 
-function MobileResultSummary({
-  summary,
-}: {
-  summary: SampleGridRow["resultSummary"];
-}) {
-  const group = summary?.groups[0];
-
-  if (!group) {
-    return <span>Chưa có</span>;
-  }
-
-  const extraGroupCount = Math.max(summary.groups.length - 1, 0);
-  const suffix = extraGroupCount > 0 ? ` +${extraGroupCount}` : "";
-
-  return (
-    <span>
-      {group.name}
-      {suffix} · KQ chung: {group.kqChung ?? "Chưa có"}
-    </span>
-  );
-}
-
 function toResultColumnCell(
   key: string,
   resultColumnLabelByKey: Map<string, string>,
@@ -270,7 +243,6 @@ function toResultColumnCell(
     columnKey: key,
     desktopClassName: "hidden lg:table-cell",
     header: resultColumnLabelByKey.get(key) ?? "Kết quả",
-    mobileClassName: "hidden md:flex",
     content: formatSelectedResultValue(key, resultSummaryIndex),
   };
 }
@@ -329,14 +301,4 @@ function formatBillingStatus(status: string) {
   const labels: Record<string, string> = billingStatusLabels;
 
   return labels[status] ?? status;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const destructive = status === "archived";
-
-  return (
-    <Badge variant={destructive ? "destructive" : "secondary"}>
-      {sampleStatusLabels[status as keyof typeof sampleStatusLabels] ?? status}
-    </Badge>
-  );
 }
