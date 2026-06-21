@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -67,4 +67,13 @@ Thêm story packet mới cho phản hồi khách ngày 2026-06-21.
 
 ## Evidence
 
-Chưa có.
+- RED: `cd lab-kit-app && bun run test app/dashboard/kits/_components/kit-inventory-page-content.test.tsx`
+  thất bại đúng test mới vì thiếu `Số lượng kit tồn kho`.
+- GREEN: `cd lab-kit-app && bun run test app/dashboard/kits/_components/kit-inventory-page-content.test.tsx`
+  passed, 1 file / 8 tests.
+- `cd lab-kit-app && bun run typecheck` passed.
+- `cd lab-kit-app && bun run docstring:check` passed.
+- `cd lab-kit-app && bun run react-doctor:diff` passed, no issues found.
+- Browser check bằng `agent-browser` với tài khoản admin xác nhận
+  `/dashboard/kits` có ba phần đúng thứ tự và phần 3 có đủ `Tạo loại KIT`,
+  `Tạo lô KIT`, `Thêm KIT`.

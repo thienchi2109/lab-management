@@ -67,6 +67,41 @@ describe("KitInventoryClient", () => {
     expect(html).toContain("Thêm KIT");
   });
 
+  test("renders the customer-requested three sections in order", () => {
+    const html = renderToStaticMarkup(
+      <KitInventoryClient
+        inventory={{
+          summary: {
+            totalKits: 0,
+            inStockKits: 0,
+            nearExpiryKits: 0,
+            lowStockTypes: 0,
+          },
+          kitTypes: [],
+          batches: [],
+          kits: [],
+        }}
+        actions={{
+          createKitType: action,
+          createKitBatch: action,
+          createKitUnits: action,
+          updateKitStatus: action,
+        }}
+      />
+    );
+
+    const stockSectionIndex = html.indexOf("Số lượng kit tồn kho");
+    const costSectionIndex = html.indexOf("Chi phí hiện tại");
+    const actionsSectionIndex = html.indexOf("Tạo loại KIT, lô KIT và thêm KIT");
+
+    expect(stockSectionIndex).toBeGreaterThan(-1);
+    expect(costSectionIndex).toBeGreaterThan(stockSectionIndex);
+    expect(actionsSectionIndex).toBeGreaterThan(costSectionIndex);
+    expect(html).toContain("Tạo loại KIT");
+    expect(html).toContain("Tạo lô KIT");
+    expect(html).toContain("Thêm KIT");
+  });
+
   test("associates the search label with its input", () => {
     const html = renderToStaticMarkup(
       <KitInventoryClient

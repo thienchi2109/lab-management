@@ -19,6 +19,7 @@ import {
   UpdateKitStatusDialog,
 } from "./kit-inventory-dialogs";
 import type { KitInventoryDialogAction } from "./kit-inventory-dialog-state";
+import { KitInventorySummaryStrip } from "./kit-inventory-summary-strip";
 
 type KitInventoryClientProps = {
   inventory: KitInventory;
@@ -88,7 +89,7 @@ export function KitInventoryClient({
 
   return (
     <PageContainer className="gap-5">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      <div>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
             Kho KIT
@@ -98,112 +99,146 @@ export function KitInventoryClient({
             hành xét nghiệm.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => dispatch({ type: "openType" })}
-          >
-            <PackagePlus className="size-4" />
-            Tạo loại KIT
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              dispatch({
-                type: "openBatch",
-                receivedAt: todayDateInputValueRef.current,
-              })
-            }
-          >
-            Tạo lô KIT
-          </Button>
-          <Button type="button" onClick={() => dispatch({ type: "openUnits" })}>
-            Thêm KIT
-          </Button>
-        </div>
       </div>
 
-      <SummaryStrip inventory={inventory} />
-
-      <section className="rounded-lg border bg-background p-3 md:p-4">
-        <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_180px] lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)] lg:items-end">
-          <div className="flex h-9 min-w-0 items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-1 text-sm font-medium">
-            <label
-              className="shrink-0 text-xs text-muted-foreground"
-              htmlFor="kit-inventory-search"
-            >
-              Tìm kiếm
-            </label>
-            <div className="relative min-w-0 flex-1">
-              <Search className="pointer-events-none absolute left-0 top-1.5 size-4 text-muted-foreground" />
-              <Input
-                id="kit-inventory-search"
-                value={state.search}
-                onChange={(event) =>
-                  dispatch({ type: "setSearch", value: event.target.value })
-                }
-                className="h-7 border-0 bg-transparent px-0 pl-6 shadow-none focus-visible:ring-0"
-                placeholder="Mã KIT, lô hoặc loại KIT"
-              />
-            </div>
-          </div>
-          <FilterSelect
-            label="Trạng thái"
-            value={state.status}
-            onChange={(value) =>
-              dispatch({ type: "setStatus", value: value as State["status"] })
-            }
-            options={[["all", "Tất cả"], ...Object.entries(statusLabels)]}
-          />
-          <FilterSelect
-            label="Loại KIT"
-            value={state.kitTypeId}
-            onChange={(value) => dispatch({ type: "setKitType", value })}
-            options={[
-              ["all", "Tất cả"],
-              ...inventory.kitTypes.map(
-                (type) => [type.id, type.name] as [string, string]
-              ),
-            ]}
-          />
+      <section className="space-y-3 rounded-lg border bg-background p-4">
+        <div>
+          <h2 className="text-lg font-semibold">Số lượng kit tồn kho</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Chờ biểu đồ cột ngang theo loại KIT ở story tiếp theo.
+          </p>
         </div>
+        <KitInventorySummaryStrip inventory={inventory} />
       </section>
 
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <SlidersHorizontal className="size-4" />
-        Đang hiển thị {filteredKits.length}/{inventory.kits.length} KIT
-      </div>
+      <section className="rounded-lg border bg-background p-4">
+        <h2 className="text-lg font-semibold">Chi phí hiện tại</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Chờ hợp đồng dữ liệu chi phí mẫu trước khi hiển thị tổng hợp.
+        </p>
+      </section>
 
-      <DashboardDataTable
-        caption="Danh sách KIT trong kho"
-        emptyTitle="Không có KIT phù hợp"
-        emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
-        rows={filteredKits.map((kit) => ({
-          id: kit.id,
-          cells: [
-            { header: "Mã KIT", content: kit.kitCode, primary: true },
-            { header: "Loại KIT", content: kit.kitTypeName },
-            { header: "Lô", content: kit.lotNumber },
-            { header: "Hạn dùng", content: kit.expiresOn ?? "Chưa có" },
-            {
-              header: "Trạng thái",
-              content: <StatusBadge status={kit.status} />,
-            },
-          ],
-          actions: (
+      <section className="space-y-4">
+        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+          <div>
+            <h2 className="text-lg font-semibold">
+              Tạo loại KIT, lô KIT và thêm KIT
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Các thao tác quản trị KIT hiện có.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              onClick={() => dispatch({ type: "openStatus", kit })}
+              onClick={() => dispatch({ type: "openType" })}
             >
-              Cập nhật
+              <PackagePlus className="size-4" />
+              Tạo loại KIT
             </Button>
-          ),
-        }))}
-      />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                dispatch({
+                  type: "openBatch",
+                  receivedAt: todayDateInputValueRef.current,
+                })
+              }
+            >
+              Tạo lô KIT
+            </Button>
+            <Button
+              type="button"
+              onClick={() => dispatch({ type: "openUnits" })}
+            >
+              Thêm KIT
+            </Button>
+          </div>
+        </div>
+
+        <section className="rounded-lg border bg-background p-3 md:p-4">
+          <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_180px] lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)] lg:items-end">
+            <div className="flex h-9 min-w-0 items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-1 text-sm font-medium">
+              <label
+                className="shrink-0 text-xs text-muted-foreground"
+                htmlFor="kit-inventory-search"
+              >
+                Tìm kiếm
+              </label>
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-0 top-1.5 size-4 text-muted-foreground" />
+                <Input
+                  id="kit-inventory-search"
+                  value={state.search}
+                  onChange={(event) =>
+                    dispatch({ type: "setSearch", value: event.target.value })
+                  }
+                  className="h-7 border-0 bg-transparent px-0 pl-6 shadow-none focus-visible:ring-0"
+                  placeholder="Mã KIT, lô hoặc loại KIT"
+                />
+              </div>
+            </div>
+            <FilterSelect
+              label="Trạng thái"
+              value={state.status}
+              onChange={(value) =>
+                dispatch({
+                  type: "setStatus",
+                  value: value as State["status"],
+                })
+              }
+              options={[["all", "Tất cả"], ...Object.entries(statusLabels)]}
+            />
+            <FilterSelect
+              label="Loại KIT"
+              value={state.kitTypeId}
+              onChange={(value) => dispatch({ type: "setKitType", value })}
+              options={[
+                ["all", "Tất cả"],
+                ...inventory.kitTypes.map(
+                  (type) => [type.id, type.name] as [string, string]
+                ),
+              ]}
+            />
+          </div>
+        </section>
+
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <SlidersHorizontal className="size-4" />
+          Đang hiển thị {filteredKits.length}/{inventory.kits.length} KIT
+        </div>
+
+        <DashboardDataTable
+          caption="Danh sách KIT trong kho"
+          emptyTitle="Không có KIT phù hợp"
+          emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
+          rows={filteredKits.map((kit) => ({
+            id: kit.id,
+            cells: [
+              { header: "Mã KIT", content: kit.kitCode, primary: true },
+              { header: "Loại KIT", content: kit.kitTypeName },
+              { header: "Lô", content: kit.lotNumber },
+              { header: "Hạn dùng", content: kit.expiresOn ?? "Chưa có" },
+              {
+                header: "Trạng thái",
+                content: <StatusBadge status={kit.status} />,
+              },
+            ],
+            actions: (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => dispatch({ type: "openStatus", kit })}
+              >
+                Cập nhật
+              </Button>
+            ),
+          }))}
+        />
+      </section>
 
       <CreateKitTypeDialog
         open={state.creatingType}
@@ -229,26 +264,6 @@ export function KitInventoryClient({
         onClose={() => dispatch({ type: "closeDialog" })}
       />
     </PageContainer>
-  );
-}
-
-function SummaryStrip({ inventory }: { inventory: KitInventory }) {
-  const items = [
-    ["Tổng KIT", inventory.summary.totalKits],
-    ["Còn tồn", inventory.summary.inStockKits],
-    ["Gần hết hạn", inventory.summary.nearExpiryKits],
-    ["Loại sắp thiếu", inventory.summary.lowStockTypes],
-  ];
-
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {items.map(([label, value]) => (
-        <div key={label} className="rounded-lg border bg-background p-4">
-          <div className="text-sm text-muted-foreground">{label}</div>
-          <div className="mt-1 text-2xl font-semibold">{value}</div>
-        </div>
-      ))}
-    </div>
   );
 }
 
