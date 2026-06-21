@@ -20,6 +20,7 @@ import {
 } from "./kit-inventory-dialogs";
 import type { KitInventoryDialogAction } from "./kit-inventory-dialog-state";
 import { KitInventorySummaryStrip } from "./kit-inventory-summary-strip";
+import { KitStockByTypeChart } from "./kit-stock-by-type-chart";
 
 type KitInventoryClientProps = {
   inventory: KitInventory;
@@ -105,9 +106,10 @@ export function KitInventoryClient({
         <div>
           <h2 className="text-lg font-semibold">Số lượng kit tồn kho</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Chờ biểu đồ cột ngang theo loại KIT ở story tiếp theo.
+            Tổng hợp theo loại KIT từ số KIT đang còn tồn.
           </p>
         </div>
+        <KitStockByTypeChart inventory={inventory} />
         <KitInventorySummaryStrip inventory={inventory} />
       </section>
 

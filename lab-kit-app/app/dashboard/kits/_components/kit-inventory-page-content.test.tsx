@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 
+import { mapKitInventoryRows } from "@/lib/kit-inventory/inventory";
+
 import { KitInventoryClient } from "./kit-inventory-client";
 import { CreateBatchDialog } from "./kit-inventory-dialogs";
 
@@ -102,6 +104,104 @@ describe("KitInventoryClient", () => {
     expect(html).toContain("Tạo loại KIT");
     expect(html).toContain("Tạo lô KIT");
     expect(html).toContain("Thêm KIT");
+  });
+
+  test("renders stock by kit type from mapped in-stock kit counts", () => {
+    const inventory = mapKitInventoryRows({
+      kitTypes: [
+        {
+          id: "type-1",
+          code: "PCR",
+          name: "PCR Realtime",
+          manufacturer: null,
+          is_active: true,
+        },
+        {
+          id: "type-2",
+          code: "AG",
+          name: "Kháng nguyên",
+          manufacturer: null,
+          is_active: true,
+        },
+      ],
+      batches: [
+        {
+          id: "batch-1",
+          kit_type_id: "type-1",
+          lot_number: "LOT-PCR-A",
+          received_quantity: 10,
+          remaining_quantity: 10,
+          expires_on: "2026-12-31",
+          received_at: "2026-06-01",
+        },
+        {
+          id: "batch-2",
+          kit_type_id: "type-1",
+          lot_number: "LOT-PCR-B",
+          received_quantity: 10,
+          remaining_quantity: 10,
+          expires_on: "2026-12-31",
+          received_at: "2026-06-02",
+        },
+        {
+          id: "batch-3",
+          kit_type_id: "type-2",
+          lot_number: "LOT-AG",
+          received_quantity: 5,
+          remaining_quantity: 5,
+          expires_on: "2026-12-31",
+          received_at: "2026-06-03",
+        },
+      ],
+      kits: [
+        {
+          id: "kit-1",
+          kit_batch_id: "batch-1",
+          kit_code: "KIT-PCR-001",
+          status: "in_stock",
+          updated_at: "2026-06-05T00:00:00.000Z",
+        },
+        {
+          id: "kit-2",
+          kit_batch_id: "batch-1",
+          kit_code: "KIT-PCR-002",
+          status: "used",
+          updated_at: "2026-06-05T00:00:00.000Z",
+        },
+        {
+          id: "kit-3",
+          kit_batch_id: "batch-2",
+          kit_code: "KIT-PCR-003",
+          status: "in_stock",
+          updated_at: "2026-06-05T00:00:00.000Z",
+        },
+        {
+          id: "kit-4",
+          kit_batch_id: "batch-3",
+          kit_code: "KIT-AG-001",
+          status: "in_stock",
+          updated_at: "2026-06-05T00:00:00.000Z",
+        },
+      ],
+    });
+    const html = renderToStaticMarkup(
+      <KitInventoryClient
+        inventory={inventory}
+        actions={{
+          createKitType: action,
+          createKitBatch: action,
+          createKitUnits: action,
+          updateKitStatus: action,
+        }}
+      />
+    );
+
+    expect(html).toContain('aria-label="Biểu đồ tồn kho KIT theo loại"');
+    expect(html).toContain("PCR Realtime");
+    expect(html).toContain("2 KIT còn tồn");
+    expect(html).toContain("Kháng nguyên");
+    expect(html).toContain("1 KIT còn tồn");
+    expect(html).not.toContain("20 KIT còn tồn");
   });
 
   test("associates the search label with its input", () => {
