@@ -92,7 +92,9 @@ describe("KitInventoryClient", () => {
 
     const stockSectionIndex = html.indexOf("Số lượng kit tồn kho");
     const costSectionIndex = html.indexOf("Chi phí hiện tại");
-    const actionsSectionIndex = html.indexOf("Tạo loại KIT, lô KIT và thêm KIT");
+    const actionsSectionIndex = html.indexOf(
+      "Tạo loại KIT, lô KIT và thêm KIT"
+    );
 
     expect(stockSectionIndex).toBeGreaterThan(-1);
     expect(costSectionIndex).toBeGreaterThan(stockSectionIndex);
