@@ -32,6 +32,7 @@ export function SampleExportControls({
   query,
 }: SampleExportControlsProps) {
   const [format, setFormat] = useState<ExportFormat>("csv");
+  const [isOpen, setIsOpen] = useState(false);
   const [state, setState] = useState<UiState>({
     status: "idle",
     message: "",
@@ -66,68 +67,82 @@ export function SampleExportControls({
   }
 
   return (
-    <section
-      aria-label="Export dữ liệu"
-      className="flex w-full flex-col gap-2 rounded-lg border bg-background p-3 text-sm md:w-auto md:min-w-80"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-medium">Export dữ liệu</span>
-        <fieldset className="flex rounded-lg border bg-muted/30 p-0.5">
-          <legend className="sr-only">Định dạng export</legend>
-          {formatOptions.map((option) => (
+    <section aria-label="Export dữ liệu" className="relative flex justify-end">
+      <Button
+        aria-expanded={canExport ? isOpen : undefined}
+        aria-label={
+          canExport ? "Mở export dữ liệu" : "Export dữ liệu chưa khả dụng"
+        }
+        disabled={!canExport}
+        onClick={() => setIsOpen((current) => !current)}
+        size="icon-sm"
+        title={
+          canExport
+            ? "Export dữ liệu"
+            : "Tài khoản này không có quyền export dữ liệu"
+        }
+        type="button"
+        variant="outline"
+      >
+        <Download />
+      </Button>
+      {isOpen && canExport ? (
+        <div className="absolute right-0 top-9 z-20 w-72 space-y-3 rounded-lg border bg-popover p-3 text-sm shadow-md">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-medium">Export dữ liệu</span>
+            <fieldset className="flex rounded-lg border bg-muted/30 p-0.5">
+              <legend className="sr-only">Định dạng export</legend>
+              {formatOptions.map((option) => (
+                <Button
+                  key={option}
+                  aria-pressed={format === option}
+                  onClick={() => setFormat(option)}
+                  size="sm"
+                  type="button"
+                  variant={format === option ? "default" : "ghost"}
+                >
+                  {option.toUpperCase()}
+                </Button>
+              ))}
+            </fieldset>
+          </div>
+          <div className="grid gap-2">
             <Button
-              key={option}
-              aria-pressed={format === option}
-              onClick={() => setFormat(option)}
+              disabled={disabled}
+              onClick={() => void handleExport("samples")}
               size="sm"
               type="button"
-              variant={format === option ? "default" : "ghost"}
+              variant="outline"
             >
-              {option.toUpperCase()}
+              <Download data-icon="inline-start" />
+              Export mẫu
             </Button>
-          ))}
-        </fieldset>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          disabled={disabled}
-          onClick={() => void handleExport("samples")}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          <Download data-icon="inline-start" />
-          Export mẫu
-        </Button>
-        <Button
-          disabled={disabled}
-          onClick={() => void handleExport("results-normalized")}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          <Download data-icon="inline-start" />
-          Export kết quả
-        </Button>
-      </div>
-      {!canExport ? (
-        <p className="text-sm font-medium text-destructive">
-          Bạn không có quyền export dữ liệu từ tài khoản này.
-        </p>
-      ) : null}
-      {state.status !== "idle" ? (
-        <p
-          aria-live="polite"
-          className={
-            state.status === "success"
-              ? "text-sm font-medium text-emerald-600"
-              : state.status === "pending"
-                ? "text-sm font-medium text-muted-foreground"
-                : "text-sm font-medium text-destructive"
-          }
-        >
-          {state.message}
-        </p>
+            <Button
+              disabled={disabled}
+              onClick={() => void handleExport("results-normalized")}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <Download data-icon="inline-start" />
+              Export kết quả
+            </Button>
+          </div>
+          {state.status !== "idle" ? (
+            <p
+              aria-live="polite"
+              className={
+                state.status === "success"
+                  ? "text-sm font-medium text-emerald-600"
+                  : state.status === "pending"
+                    ? "text-sm font-medium text-muted-foreground"
+                    : "text-sm font-medium text-destructive"
+              }
+            >
+              {state.message}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </section>
   );

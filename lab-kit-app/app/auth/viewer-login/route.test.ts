@@ -23,7 +23,7 @@ describe("POST /auth/viewer-login", () => {
     vi.resetAllMocks();
   });
 
-  test("keeps viewer session cookies on the analytics redirect", async () => {
+  test("keeps viewer session cookies on the samples redirect", async () => {
     const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
     vi.mocked(getViewerLoginEnv).mockReturnValue({
       username: "viewer",
@@ -57,7 +57,7 @@ describe("POST /auth/viewer-login", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe(
-      "http://localhost:3000/dashboard/analytics"
+      "http://localhost:3000/dashboard/samples"
     );
     expect(response.headers.getSetCookie()).toEqual(
       expect.arrayContaining([expect.stringContaining("sb-viewer-session=")])

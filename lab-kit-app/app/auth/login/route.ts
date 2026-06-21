@@ -27,7 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const dashboardResponse = NextResponse.redirect(
-      createRedirectUrl("/dashboard/analytics", request),
+      createRedirectUrl("/dashboard/samples", request),
       {
         status: 303,
       }

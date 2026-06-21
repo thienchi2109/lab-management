@@ -101,8 +101,9 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain("Kết quả &amp; ảnh");
     expect(html).toContain("Trang tiếp");
     expect(html).toContain("Export dữ liệu");
-    expect(html).toContain("Export mẫu");
-    expect(html).toContain("Export kết quả");
+    expect(html).toContain("Mở export dữ liệu");
+    expect(html).not.toContain("Export mẫu");
+    expect(html).not.toContain("Export kết quả");
   });
 
   test("renders the customer-requested filter controls without legacy filters", () => {
@@ -269,10 +270,13 @@ describe("SampleGridPageContent", () => {
     expect(html).toContain('data-sample-column-key="kit"');
     expect(html).toContain("hidden xl:table-cell");
     expect(html).not.toContain('data-mobile-card-column-key="sample"');
-    expect(html).toContain('data-mobile-sample-card="clinical-grid"');
+    expect(html).toContain(
+      'class="space-y-3 rounded-lg border border-border/70 bg-background p-3 shadow-sm" data-mobile-sample-card="clinical-grid"'
+    );
     expect(html).toContain('data-mobile-sample-result-band="true"');
     expect(html).toContain("KQ chung");
     expect(html).toContain("min-h-11");
+    expect(html).toContain("bg-primary text-primary-foreground");
   });
 
   test("renders result group detail and desktop selected result columns without mobile matrix cells", () => {

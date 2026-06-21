@@ -32,7 +32,10 @@ export function SampleGridMobileCard({
   const kqChung = group?.kqChung ?? "Chưa có";
 
   return (
-    <article className="space-y-2" data-mobile-sample-card="clinical-grid">
+    <article
+      className="space-y-3 rounded-lg border border-border/70 bg-background p-3 shadow-sm"
+      data-mobile-sample-card="clinical-grid"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground">
@@ -84,7 +87,7 @@ export function SampleGridMobileCard({
       </div>
 
       <div className="[&_[data-slot=button]]:min-h-11 [&_[data-slot=button]]:w-full">
-        <Button asChild size="sm" variant="outline">
+        <Button asChild size="sm" variant="default">
           <SampleResultViewerLink sampleId={sampleId}>
             Mở kết quả
           </SampleResultViewerLink>

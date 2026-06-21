@@ -40,7 +40,7 @@ describe("POST /auth/login", () => {
     );
   });
 
-  test("keeps session cookies on the analytics redirect after successful login", async () => {
+  test("keeps session cookies on the samples redirect after successful login", async () => {
     const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
     vi.mocked(resolveUsernameEmail).mockResolvedValue(
       "admin@lab-management.local"
@@ -73,7 +73,7 @@ describe("POST /auth/login", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe(
-      "http://localhost:3000/dashboard/analytics"
+      "http://localhost:3000/dashboard/samples"
     );
     expect(response.headers.getSetCookie()).toEqual(
       expect.arrayContaining([expect.stringContaining("sb-test-session=")])

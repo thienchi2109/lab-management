@@ -40,14 +40,22 @@ describe("SampleExportControls", () => {
     vi.clearAllMocks();
   });
 
-  test("renders compact CSV/XLSX format controls and exports samples", async () => {
+  test("renders a compact download trigger before showing export actions", async () => {
     vi.mocked(requestSampleGridExport).mockResolvedValue({
       state: { status: "success", message: "Đã tải file export." },
     });
 
     render(<SampleExportControls canExport={true} query={query} />);
 
-    expect(screen.getByText("Export dữ liệu")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Mở export dữ liệu" })
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Export mẫu" })).toBeNull();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Mở export dữ liệu" })
+    );
+
     expect(screen.getByText("CSV")).toBeTruthy();
     expect(screen.getByText("XLSX")).toBeTruthy();
 
@@ -78,6 +86,9 @@ describe("SampleExportControls", () => {
 
     render(<SampleExportControls canExport={true} query={query} />);
 
+    await userEvent.click(
+      screen.getByRole("button", { name: "Mở export dữ liệu" })
+    );
     await userEvent.click(
       screen.getByRole("button", { name: "Export kết quả" })
     );
@@ -113,6 +124,9 @@ describe("SampleExportControls", () => {
 
     render(<SampleExportControls canExport={true} query={query} />);
 
+    await userEvent.click(
+      screen.getByRole("button", { name: "Mở export dữ liệu" })
+    );
     await userEvent.click(screen.getByRole("button", { name: "Export mẫu" }));
 
     await waitFor(() => {
@@ -129,13 +143,12 @@ describe("SampleExportControls", () => {
   test("disables export actions when the current UI state has no export permission", () => {
     render(<SampleExportControls canExport={false} query={query} />);
 
-    expect(screen.getByRole("button", { name: "Export mẫu" })).toHaveProperty(
-      "disabled",
-      true
-    );
     expect(
-      screen.getByText("Bạn không có quyền export dữ liệu từ tài khoản này.")
-    ).toBeTruthy();
+      screen.getByRole("button", { name: "Export dữ liệu chưa khả dụng" })
+    ).toHaveProperty("disabled", true);
+    expect(
+      screen.queryByText("Bạn không có quyền export dữ liệu từ tài khoản này.")
+    ).toBeNull();
     expect(requestSampleGridExport).not.toHaveBeenCalled();
   });
 });
