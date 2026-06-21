@@ -103,7 +103,7 @@ export function DialogFrame({
   const isCompactMobileModal = !isSheet && mobileLayout === "compact";
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className={cn("fixed inset-0", isBottomSheet ? "z-[60]" : "z-50")}>
       <button
         type="button"
         className="absolute inset-0 bg-foreground/45"
@@ -118,7 +118,7 @@ export function DialogFrame({
         className={cn(
           "absolute m-0 flex flex-col overflow-hidden bg-background p-0 text-left text-foreground shadow-xl outline-none",
           isBottomSheet
-            ? "inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] w-full rounded-t-2xl border border-b-0 border-border sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
+            ? "inset-x-0 bottom-0 max-h-[calc(100dvh-1rem-env(safe-area-inset-bottom))] w-full rounded-t-2xl border border-b-0 border-border sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
             : isSheet
               ? "right-0 top-0 h-dvh w-full max-w-xl border border-y-0 border-r-0 border-border"
               : isCompactMobileModal
@@ -160,7 +160,8 @@ export function DialogFrame({
           <div
             className={cn(
               "shrink-0 border-t bg-background px-4 py-3",
-              !isCompactMobileModal && "sticky bottom-0"
+              !isCompactMobileModal && "sticky bottom-0",
+              isBottomSheet && "pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
             )}
           >
             {footer}

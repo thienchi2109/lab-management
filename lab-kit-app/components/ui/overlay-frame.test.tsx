@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/overlay-frame";
 
 describe("Overlay frame primitive", () => {
-  test("renders bottom sheet frames above the mobile bottom navigation", () => {
+  test("renders bottom sheet frames over the mobile bottom navigation", () => {
     const html = renderToStaticMarkup(
       <BottomSheetFrame
         title="Tìm kiếm và lọc"
@@ -23,7 +23,15 @@ describe("Overlay frame primitive", () => {
       </BottomSheetFrame>
     );
 
-    expect(html).toContain("bottom-[calc(4.5rem+env(safe-area-inset-bottom))]");
+    expect(html).toContain("z-[60]");
+    expect(html).toContain("bottom-0");
+    expect(html).toContain(
+      "max-h-[calc(100dvh-1rem-env(safe-area-inset-bottom))]"
+    );
+    expect(html).toContain("pb-[calc(0.75rem+env(safe-area-inset-bottom))]");
+    expect(html).not.toContain(
+      "bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
+    );
     expect(html).toContain("rounded-t-2xl");
     expect(html).toContain("w-10 rounded-full");
     expect(html).toContain("Áp dụng");
