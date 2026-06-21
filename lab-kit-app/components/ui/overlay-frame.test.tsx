@@ -29,7 +29,10 @@ describe("Overlay frame primitive", () => {
     expect(html).toContain("bottom-0");
     expect(html).toContain("--overlay-viewport-height:100dvh");
     expect(html).toContain(
-      "h-[calc(var(--overlay-viewport-height)-env(safe-area-inset-bottom))]"
+      "max-h-[calc(var(--overlay-viewport-height)-env(safe-area-inset-bottom))]"
+    );
+    expect(html).not.toContain(
+      "flex h-[calc(var(--overlay-viewport-height)-env(safe-area-inset-bottom))]"
     );
     expect(html).toContain("pb-[calc(0.75rem+env(safe-area-inset-bottom))]");
     expect(html).not.toContain(

@@ -210,7 +210,7 @@ export function DialogFrame({
           aria-modal="true"
           aria-labelledby={titleId}
           style={BOTTOM_SHEET_STYLE}
-          className="absolute inset-x-0 bottom-0 flex h-[calc(var(--overlay-viewport-height)-env(safe-area-inset-bottom))] w-full flex-col overflow-hidden rounded-t-2xl border border-b-0 border-border bg-background p-0 text-left text-foreground shadow-xl outline-none sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
+          className="absolute inset-x-0 bottom-0 flex max-h-[calc(var(--overlay-viewport-height)-env(safe-area-inset-bottom))] w-full flex-col overflow-hidden rounded-t-2xl border border-b-0 border-border bg-background p-0 text-left text-foreground shadow-xl outline-none sm:left-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:-translate-x-1/2"
         >
           {frameContent}
         </div>
