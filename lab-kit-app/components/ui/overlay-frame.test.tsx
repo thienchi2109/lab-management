@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/overlay-frame";
 
 describe("Overlay frame primitive", () => {
-  test("renders bottom sheet frames over the mobile bottom navigation", () => {
+  test("renders bottom sheet frames without native dialog viewport sizing", () => {
     const html = renderToStaticMarkup(
       <BottomSheetFrame
         title="Tìm kiếm và lọc"
@@ -23,10 +23,13 @@ describe("Overlay frame primitive", () => {
       </BottomSheetFrame>
     );
 
+    expect(html).not.toContain("<dialog");
+    expect(html).toContain('role="dialog"');
     expect(html).toContain("z-[60]");
     expect(html).toContain("bottom-0");
+    expect(html).toContain("--overlay-viewport-height:100dvh");
     expect(html).toContain(
-      "max-h-[calc(100dvh-1rem-env(safe-area-inset-bottom))]"
+      "h-[calc(var(--overlay-viewport-height)-env(safe-area-inset-bottom))]"
     );
     expect(html).toContain("pb-[calc(0.75rem+env(safe-area-inset-bottom))]");
     expect(html).not.toContain(
@@ -35,6 +38,18 @@ describe("Overlay frame primitive", () => {
     expect(html).toContain("rounded-t-2xl");
     expect(html).toContain("w-10 rounded-full");
     expect(html).toContain("Áp dụng");
+  });
+
+  test("updates bottom sheet height from visualViewport on mobile Safari", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/ui/overlay-frame.tsx"),
+      "utf8"
+    );
+
+    expect(source).toContain("window.visualViewport");
+    expect(source).toContain("--overlay-viewport-height");
+    expect(source).toContain('visualViewport.addEventListener("resize"');
+    expect(source).toContain('visualViewport.addEventListener("scroll"');
   });
 
   test("renders side sheet frames from the global UI primitive", () => {
