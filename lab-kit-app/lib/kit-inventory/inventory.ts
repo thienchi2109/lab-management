@@ -83,6 +83,7 @@ export function mapKitInventoryRows(input: {
     isActive: row.is_active,
   }));
   const typeById = new Map(kitTypes.map((type) => [type.id, type]));
+  const inStockCountByBatchId = countInStockKitsByBatch(input.kits);
   const batches = input.batches.map((row) => {
     const kitType = typeById.get(row.kit_type_id);
 
@@ -92,7 +93,7 @@ export function mapKitInventoryRows(input: {
       kitTypeName: kitType?.name ?? "Không rõ loại KIT",
       lotNumber: row.lot_number,
       receivedQuantity: row.received_quantity,
-      remainingQuantity: row.remaining_quantity,
+      remainingQuantity: inStockCountByBatchId.get(row.id) ?? 0,
       expiresOn: row.expires_on,
       receivedAt: row.received_at,
     };
@@ -119,6 +120,21 @@ export function mapKitInventoryRows(input: {
     batches,
     kits,
   };
+}
+
+function countInStockKitsByBatch(kits: KitRow[]) {
+  const countByBatchId = new Map<string, number>();
+
+  for (const kit of kits) {
+    if (kit.status !== "in_stock") continue;
+
+    countByBatchId.set(
+      kit.kit_batch_id,
+      (countByBatchId.get(kit.kit_batch_id) ?? 0) + 1
+    );
+  }
+
+  return countByBatchId;
 }
 
 function summarizeInventory(

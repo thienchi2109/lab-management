@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -70,4 +70,22 @@ Thêm story packet kỹ thuật để bảo vệ phần 1 của phản hồi kh�
 
 ## Evidence
 
-Chưa có.
+- Quyết định nguồn sự thật: read model tồn kho KIT hiển thị tính động từ
+  `kits.status === "in_stock"`; `kit_batches.remaining_quantity` chỉ còn là dữ
+  liệu lưu/snapshot nhập lô và không được mapper dùng mù cho tồn hiển thị.
+- Code đã đối chiếu: `getKitInventory` đọc `kit_batches.remaining_quantity` và
+  `kits.status`; `updateKitStatus` chỉ cập nhật `kits`, nên tránh mở rộng sang
+  DB/RPC trong story này để không thêm write path không atomic.
+- Regression RED: `rtk npm exec vitest -- run lib/kit-inventory/inventory.test.ts`
+  fail đúng kỳ vọng `expected 2 to be 1` khi batch stale còn `remaining_quantity = 2`
+  nhưng một KIT đã `used`.
+- GREEN: `rtk npm exec vitest -- run lib/kit-inventory app/dashboard/kits/_components/kit-inventory-page-content.test.tsx`
+  pass 6 files / 21 tests, bao gồm mapper unit, server test `getKitInventory`
+  với Supabase double, và test page content đã được format lại.
+- Gates: `rtk bun run typecheck` pass; `rtk bun run docstring:check` pass;
+  `rtk bun run format:check` pass; `rtk bun run react-doctor:diff` pass.
+- Không có migration/RPC/live Supabase write; không cần chứng minh project-ref
+  write vì không thực hiện DB write.
+- GitNexus `detect_changes` báo impact vào flow `KitInventoryPage → DaysUntil`;
+  GitNexus không liệt kê file mới `server.test.ts`, nên file mới được đối chiếu
+  bằng `git diff --name-only`.
