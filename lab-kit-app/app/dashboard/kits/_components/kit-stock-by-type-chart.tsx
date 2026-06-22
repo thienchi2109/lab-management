@@ -33,16 +33,19 @@ export function KitStockByTypeChart({ inventory }: KitStockByTypeChartProps) {
   }
 
   return (
-    <div aria-label="Biểu đồ tồn kho KIT theo loại" className="space-y-3">
+    <div
+      aria-label="Biểu đồ tồn kho KIT theo loại"
+      className="flex h-full flex-col justify-center gap-3 rounded-lg border bg-background/60 p-3"
+    >
       {rows.map((row) => (
         <div
           key={row.kitTypeId}
-          className="grid gap-2 rounded-lg border bg-muted/10 p-3 md:grid-cols-[minmax(10rem,14rem)_1fr_auto] md:items-center"
+          className="grid gap-2 md:grid-cols-[minmax(10rem,14rem)_1fr_auto] md:items-center"
         >
           <div className="min-w-0 text-sm font-medium">{row.kitTypeName}</div>
-          <div className="h-3 overflow-hidden rounded-full bg-muted">
+          <div className="h-3 overflow-hidden rounded-full bg-primary/10">
             <div
-              className="h-full rounded-full bg-chart-1"
+              className="h-full rounded-full bg-primary"
               style={{
                 width:
                   row.quantity === 0
@@ -51,7 +54,7 @@ export function KitStockByTypeChart({ inventory }: KitStockByTypeChartProps) {
               }}
             />
           </div>
-          <div className="text-sm font-semibold tabular-nums text-foreground">
+          <div className="font-mono text-sm font-semibold tabular-nums text-foreground">
             {row.quantity} KIT còn tồn
           </div>
         </div>

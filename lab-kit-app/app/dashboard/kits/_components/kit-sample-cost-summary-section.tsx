@@ -7,8 +7,10 @@ import type {
   SampleCostGroup,
   SampleCostSummary,
 } from "@/lib/sample-metadata/sample-cost-summary";
+import { cn } from "@/lib/utils";
 
 type KitSampleCostSummarySectionProps = {
+  className?: string;
   summary: SampleCostSummary;
 };
 
@@ -20,6 +22,7 @@ const moneyFormatter = new Intl.NumberFormat("vi-VN", {
 
 /** Hiển thị tổng chi phí mẫu hiện tại theo contract dữ liệu đã chốt. */
 export function KitSampleCostSummarySection({
+  className,
   summary,
 }: KitSampleCostSummarySectionProps) {
   const [selectedGroup, setSelectedGroup] = useState("all");
@@ -34,7 +37,10 @@ export function KitSampleCostSummarySection({
   const hasCost = groups.some((group) => group.totalAmountVnd > 0);
 
   return (
-    <section className="space-y-3 rounded-lg border bg-background p-4">
+    <section
+      data-kit-cost-summary="true"
+      className={cn("space-y-3 rounded-xl border bg-card/80 p-4", className)}
+    >
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
         <div>
           <h2 className="text-lg font-semibold">Chi phí hiện tại</h2>
@@ -60,10 +66,10 @@ export function KitSampleCostSummarySection({
           {visibleGroups.map((group) => (
             <div
               key={group.group}
-              className="rounded-lg border bg-background p-4"
+              className="rounded-lg border bg-background/70 p-4"
             >
               <div className="text-sm text-muted-foreground">{group.label}</div>
-              <div className="mt-1 text-2xl font-semibold">
+              <div className="mt-1 font-mono text-2xl font-semibold tabular-nums">
                 {formatMoney(group.totalAmountVnd)}
               </div>
             </div>

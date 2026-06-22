@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-planned
+implemented
 
 ## Lane
 
@@ -44,7 +44,13 @@ hierarchy, filter/action states, dialog ergonomics và mobile scan.
 
 - `lab-kit-app/app/dashboard/kits/page.tsx`
 - `lab-kit-app/app/dashboard/kits/_components/kit-inventory-client.tsx`
+- `lab-kit-app/app/dashboard/kits/_components/kit-inventory-command-band.tsx`
 - `lab-kit-app/app/dashboard/kits/_components/kit-inventory-dialogs.tsx`
+- `lab-kit-app/app/dashboard/kits/_components/kit-inventory-overview-panel.tsx`
+- `lab-kit-app/app/dashboard/kits/_components/kit-inventory-polish.test.tsx`
+- `lab-kit-app/app/dashboard/kits/_components/kit-inventory-summary-strip.tsx`
+- `lab-kit-app/app/dashboard/kits/_components/kit-sample-cost-summary-section.tsx`
+- `lab-kit-app/app/dashboard/kits/_components/kit-stock-by-type-chart.tsx`
 - `lab-kit-app/lib/kit-inventory/*`
 - `docs/stories/US-005-kit-inventory-module/*`
 - `docs/stories/US-016-ui-polish-roadmap/*`

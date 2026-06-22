@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useReducer, useRef } from "react";
-import { PackagePlus, Search, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 import { DashboardDataTable } from "@/components/dashboard/data-table";
-import { FilterSelect } from "@/components/dashboard/filter-select";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { KitInventory, KitUnit } from "@/lib/kit-inventory/inventory";
 import type { KitStatus } from "@/lib/kit-inventory/schemas";
 import type { SampleCostSummary } from "@/lib/sample-metadata/sample-cost-summary";
 
+import { KitInventoryCommandBand } from "./kit-inventory-command-band";
 import {
   CreateBatchDialog,
   CreateKitTypeDialog,
@@ -20,9 +19,8 @@ import {
   UpdateKitStatusDialog,
 } from "./kit-inventory-dialogs";
 import type { KitInventoryDialogAction } from "./kit-inventory-dialog-state";
-import { KitInventorySummaryStrip } from "./kit-inventory-summary-strip";
+import { KitInventoryOverviewPanel } from "./kit-inventory-overview-panel";
 import { KitSampleCostSummarySection } from "./kit-sample-cost-summary-section";
-import { KitStockByTypeChart } from "./kit-stock-by-type-chart";
 
 type KitInventoryClientProps = {
   inventory: KitInventory;
@@ -43,6 +41,13 @@ const statusLabels: Record<KitStatus, string> = {
   expired: "Hết hạn",
   lost: "Thất lạc",
 };
+
+const statusOptions: Array<[string, string]> = [
+  ["all", "Tất cả"],
+  ...Object.entries(statusLabels),
+];
+
+const backgroundMarkOpacityProperty = "--app-background-mark-opacity";
 
 export function KitInventoryClient({
   inventory,
@@ -92,6 +97,32 @@ export function KitInventoryClient({
     todayDateInputValueRef.current = getLocalDateInputValue(new Date());
   }, []);
 
+  useEffect(() => {
+    const previousBackgroundMarkOpacity = document.body.style.getPropertyValue(
+      backgroundMarkOpacityProperty
+    );
+
+    document.body.style.setProperty(backgroundMarkOpacityProperty, "0.08");
+
+    return () => {
+      if (previousBackgroundMarkOpacity) {
+        document.body.style.setProperty(
+          backgroundMarkOpacityProperty,
+          previousBackgroundMarkOpacity
+        );
+      } else {
+        document.body.style.removeProperty(backgroundMarkOpacityProperty);
+      }
+    };
+  }, []);
+
+  const kitTypeOptions: Array<[string, string]> = [
+    ["all", "Tất cả"],
+    ...inventory.kitTypes.map(
+      (type) => [type.id, type.name] as [string, string]
+    ),
+  ];
+
   return (
     <PageContainer className="gap-5">
       <div>
@@ -106,105 +137,37 @@ export function KitInventoryClient({
         </div>
       </div>
 
-      <section className="space-y-3 rounded-lg border bg-background p-4">
-        <div>
-          <h2 className="text-lg font-semibold">Số lượng kit tồn kho</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Tổng hợp theo loại KIT từ số KIT đang còn tồn.
-          </p>
-        </div>
-        <KitStockByTypeChart inventory={inventory} />
-        <KitInventorySummaryStrip inventory={inventory} />
-      </section>
+      <KitInventoryOverviewPanel inventory={inventory} />
 
-      <KitSampleCostSummarySection summary={sampleCostSummary} />
+      <KitSampleCostSummarySection
+        className="order-3 md:order-2"
+        summary={sampleCostSummary}
+      />
 
-      <section className="space-y-4">
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-          <div>
-            <h2 className="text-lg font-semibold">
-              Tạo loại KIT, lô KIT và thêm KIT
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Các thao tác quản trị KIT hiện có.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => dispatch({ type: "openType" })}
-            >
-              <PackagePlus className="size-4" />
-              Tạo loại KIT
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                dispatch({
-                  type: "openBatch",
-                  receivedAt: todayDateInputValueRef.current,
-                })
-              }
-            >
-              Tạo lô KIT
-            </Button>
-            <Button
-              type="button"
-              onClick={() => dispatch({ type: "openUnits" })}
-            >
-              Thêm KIT
-            </Button>
-          </div>
-        </div>
-
-        <section className="rounded-lg border bg-background p-3 md:p-4">
-          <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_180px] lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)] lg:items-end">
-            <div className="flex h-9 min-w-0 items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-1 text-sm font-medium">
-              <label
-                className="shrink-0 text-xs text-muted-foreground"
-                htmlFor="kit-inventory-search"
-              >
-                Tìm kiếm
-              </label>
-              <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-0 top-1.5 size-4 text-muted-foreground" />
-                <Input
-                  id="kit-inventory-search"
-                  value={state.search}
-                  onChange={(event) =>
-                    dispatch({ type: "setSearch", value: event.target.value })
-                  }
-                  className="h-7 border-0 bg-transparent px-0 pl-6 shadow-none focus-visible:ring-0"
-                  placeholder="Mã KIT, lô hoặc loại KIT"
-                />
-              </div>
-            </div>
-            <FilterSelect
-              label="Trạng thái"
-              value={state.status}
-              onChange={(value) =>
-                dispatch({
-                  type: "setStatus",
-                  value: value as State["status"],
-                })
-              }
-              options={[["all", "Tất cả"], ...Object.entries(statusLabels)]}
-            />
-            <FilterSelect
-              label="Loại KIT"
-              value={state.kitTypeId}
-              onChange={(value) => dispatch({ type: "setKitType", value })}
-              options={[
-                ["all", "Tất cả"],
-                ...inventory.kitTypes.map(
-                  (type) => [type.id, type.name] as [string, string]
-                ),
-              ]}
-            />
-          </div>
-        </section>
+      <section className="order-2 md:order-3 space-y-4">
+        <KitInventoryCommandBand
+          kitTypeId={state.kitTypeId}
+          kitTypeOptions={kitTypeOptions}
+          onCreateBatch={() =>
+            dispatch({
+              type: "openBatch",
+              receivedAt: todayDateInputValueRef.current,
+            })
+          }
+          onCreateKitType={() => dispatch({ type: "openType" })}
+          onCreateUnits={() => dispatch({ type: "openUnits" })}
+          onKitTypeChange={(value) => dispatch({ type: "setKitType", value })}
+          onSearchChange={(value) => dispatch({ type: "setSearch", value })}
+          onStatusChange={(value) =>
+            dispatch({
+              type: "setStatus",
+              value,
+            })
+          }
+          search={state.search}
+          status={state.status}
+          statusOptions={statusOptions}
+        />
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <SlidersHorizontal className="size-4" />
@@ -213,15 +176,36 @@ export function KitInventoryClient({
 
         <DashboardDataTable
           caption="Danh sách KIT trong kho"
+          density="compact"
           emptyTitle="Không có KIT phù hợp"
           emptyDescription="Thử đổi bộ lọc hoặc từ khóa tìm kiếm."
           rows={filteredKits.map((kit) => ({
             id: kit.id,
             cells: [
-              { header: "Mã KIT", content: kit.kitCode, primary: true },
+              {
+                header: "Mã KIT",
+                content: kit.kitCode,
+                desktopClassName: "font-mono tabular-nums text-foreground",
+                mobileClassName: "items-center",
+                mobileContent: (
+                  <span className="font-mono font-semibold tabular-nums text-foreground">
+                    {kit.kitCode}
+                  </span>
+                ),
+                primary: true,
+              },
               { header: "Loại KIT", content: kit.kitTypeName },
               { header: "Lô", content: kit.lotNumber },
-              { header: "Hạn dùng", content: kit.expiresOn ?? "Chưa có" },
+              {
+                header: "Hạn dùng",
+                content: kit.expiresOn ?? "Chưa có",
+                desktopClassName: "font-mono tabular-nums",
+                mobileContent: (
+                  <span className="font-mono tabular-nums">
+                    {kit.expiresOn ?? "Chưa có"}
+                  </span>
+                ),
+              },
               {
                 header: "Trạng thái",
                 content: <StatusBadge status={kit.status} />,
@@ -232,12 +216,14 @@ export function KitInventoryClient({
                 type="button"
                 variant="outline"
                 size="sm"
+                className="font-medium"
                 onClick={() => dispatch({ type: "openStatus", kit })}
               >
                 Cập nhật
               </Button>
             ),
           }))}
+          tone="workspace"
         />
       </section>
 
@@ -272,7 +258,14 @@ function StatusBadge({ status }: { status: KitStatus }) {
   const destructive = ["void", "expired", "lost"].includes(status);
 
   return (
-    <Badge variant={destructive ? "destructive" : "secondary"}>
+    <Badge
+      className={
+        destructive
+          ? undefined
+          : "bg-primary/10 text-primary hover:bg-primary/10"
+      }
+      variant={destructive ? "destructive" : "secondary"}
+    >
       {statusLabels[status]}
     </Badge>
   );
