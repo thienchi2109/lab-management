@@ -56,6 +56,8 @@ type SampleRow = {
   received_at: string;
   status: SampleStatus;
   billing_status: SampleBillingStatus;
+  sample_cost_amount_vnd: number | string | null;
+  sample_cost_payment_method: string | null;
   metadata: Record<string, unknown>;
   sample_result_groups?: SampleResultGroupRow[];
   updated_at: string;
@@ -128,7 +130,7 @@ export async function getSampleMetadata(): Promise<SampleMetadata> {
       supabase
         .from("samples")
         .select(
-          "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, collected_at, received_at, status, billing_status, metadata, updated_at, sample_result_groups(result_group_id)"
+          "id, sample_type_id, customer_id, company_id, kit_batch_id, sample_code, customer_name, collected_at, received_at, status, billing_status, sample_cost_amount_vnd, sample_cost_payment_method, metadata, updated_at, sample_result_groups(result_group_id)"
         )
         .eq("organization_id", actor.organizationId)
         .order("received_at", { ascending: false })
@@ -253,7 +255,8 @@ export function createSupabaseSampleMetadataPort(): SampleMetadataPort {
   };
 }
 
-async function requireSampleMetadataActor(roles: AppRole[]) {
+/** Require an active sample metadata actor for tenant-scoped server reads. */
+export async function requireSampleMetadataActor(roles: AppRole[]) {
   const session = await getCurrentSession();
 
   if (!session || !hasAnyRole(session.memberships, roles)) {

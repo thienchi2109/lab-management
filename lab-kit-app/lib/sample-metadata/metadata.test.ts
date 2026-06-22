@@ -2,6 +2,13 @@ import { describe, expect, test } from "vitest";
 
 import { mapSampleMetadataRows } from "./metadata";
 
+const EMPTY_SAMPLE_COST_GROUPS = [
+  { group: "cash", label: "Tiền mặt thu được", totalAmountVnd: 0 },
+  { group: "bank_transfer", label: "Nhận chuyển khoản", totalAmountVnd: 0 },
+  { group: "invoice", label: "Ghi hóa đơn", totalAmountVnd: 0 },
+  { group: "other", label: "Khác", totalAmountVnd: 0 },
+];
+
 describe("sample metadata mapping", () => {
   test("maps tenant rows into summary, options, and table-ready samples", () => {
     const metadata = mapSampleMetadataRows({
@@ -74,6 +81,7 @@ describe("sample metadata mapping", () => {
       receivedSamples: 1,
       inProgressSamples: 0,
       unpaidSamples: 1,
+      sampleCostGroups: EMPTY_SAMPLE_COST_GROUPS,
     });
     expect(metadata.samples[0]).toEqual(
       expect.objectContaining({
@@ -140,8 +148,101 @@ describe("sample metadata mapping", () => {
       receivedSamples: 1,
       inProgressSamples: 1,
       unpaidSamples: 1,
+      sampleCostGroups: EMPTY_SAMPLE_COST_GROUPS,
     });
     expect(metadata.samples).toHaveLength(2);
+  });
+
+  test("summarizes sample costs into the contracted payment groups", () => {
+    const metadata = mapSampleMetadataRows({
+      companies: [],
+      customers: [],
+      sampleTypes: [
+        { id: "type-1", code: "PCR", name: "Mẫu PCR", is_active: true },
+      ],
+      kitBatches: [],
+      samples: [
+        {
+          id: "sample-cash",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00014",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T09:30:00.000Z",
+          status: "completed",
+          billing_status: "paid",
+          sample_cost_amount_vnd: 150000,
+          sample_cost_payment_method: "cash",
+          metadata: {},
+          updated_at: "2026-06-06T10:00:00.000Z",
+        },
+        {
+          id: "sample-transfer",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00015",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T09:35:00.000Z",
+          status: "completed",
+          billing_status: "paid",
+          sample_cost_amount_vnd: 250000,
+          sample_cost_payment_method: "bank_transfer",
+          metadata: {},
+          updated_at: "2026-06-06T10:05:00.000Z",
+        },
+        {
+          id: "sample-invoice",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00016",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T09:40:00.000Z",
+          status: "completed",
+          billing_status: "invoiced",
+          sample_cost_amount_vnd: 300000,
+          sample_cost_payment_method: "cash",
+          metadata: {},
+          updated_at: "2026-06-06T10:10:00.000Z",
+        },
+        {
+          id: "sample-other",
+          sample_type_id: "type-1",
+          customer_id: null,
+          company_id: null,
+          kit_batch_id: null,
+          sample_code: "T6_00017",
+          customer_name: null,
+          collected_at: null,
+          received_at: "2026-06-06T09:45:00.000Z",
+          status: "received",
+          billing_status: "eom_credit",
+          sample_cost_amount_vnd: 120000,
+          sample_cost_payment_method: "cash",
+          metadata: {},
+          updated_at: "2026-06-06T10:15:00.000Z",
+        },
+      ],
+    });
+
+    expect(metadata.summary).toHaveProperty("sampleCostGroups", [
+      { group: "cash", label: "Tiền mặt thu được", totalAmountVnd: 150000 },
+      {
+        group: "bank_transfer",
+        label: "Nhận chuyển khoản",
+        totalAmountVnd: 250000,
+      },
+      { group: "invoice", label: "Ghi hóa đơn", totalAmountVnd: 300000 },
+      { group: "other", label: "Khác", totalAmountVnd: 120000 },
+    ]);
   });
 
   test("normalizes malformed metadata JSON without leaking unknown fields", () => {
