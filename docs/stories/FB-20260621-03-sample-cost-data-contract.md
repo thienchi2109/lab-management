@@ -46,9 +46,9 @@ làm UI tổng hợp chi phí.
 ## Data Contract Decision
 
 - Field lưu số tiền chi phí mẫu là
-  `samples.sample_cost_amount_vnd`, dạng `numeric` không âm theo VND. Giá trị
-  thiếu, sai kiểu, `NaN`, hoặc âm không được tính vào tổng ở mapper và bị chặn
-  bằng database check constraint khi ghi vào cột.
+  `samples.sample_cost_amount_vnd`, dạng `numeric(15, 0)` không âm theo VND.
+  Giá trị thiếu, sai kiểu, `NaN`, hoặc âm không được tính vào tổng ở mapper và
+  bị chặn bằng database check constraint khi ghi vào cột.
 - Field phân biệt cách thu tiền cho mẫu đã thanh toán là
   `samples.sample_cost_payment_method`, enum text có check constraint gồm
   `cash`, `bank_transfer`, hoặc `other`.
@@ -71,6 +71,9 @@ làm UI tổng hợp chi phí.
   `tuuqgpzgollcerqqszjr`.
 - Migration tạo index `samples_org_cost_status_idx` cho thống kê/filter theo tổ
   chức, trạng thái thanh toán, và phương thức thu tiền khi amount không null.
+- Review follow-up migration
+  `supabase/migrations/20260622025943_sample_cost_amount_precision.sql` đổi
+  amount từ bare `numeric` sang `numeric(15, 0)` bằng forward-only migration.
 
 ## Frontend, Reuse, And Caching Constraints
 
@@ -106,8 +109,9 @@ Thêm story packet nền dữ liệu cho phần 2 của phản hồi khách ngà
 - Live apply: `mcp__supabase_lab_management.apply_migration` trả
   `success: true`; `list_migrations` xác nhận migration mới nhất là
   `20260622023141 sample_cost_columns`.
-- Live schema proof: `public.samples` có `sample_cost_amount_vnd numeric`,
-  `sample_cost_payment_method text`, hai check constraints
+- Live schema proof: `public.samples` có
+  `sample_cost_amount_vnd numeric(15, 0)`, `sample_cost_payment_method text`,
+  hai check constraints
   `samples_sample_cost_amount_vnd_nonnegative`,
   `samples_sample_cost_payment_method_check`, và index
   `samples_org_cost_status_idx`.
@@ -116,3 +120,9 @@ Thêm story packet nền dữ liệu cho phần 2 của phản hồi khách ngà
 - Supabase advisors sau DDL: security còn warning nền
   `auth_leaked_password_protection`; performance báo index mới
   `samples_org_cost_status_idx` là unused vì vừa tạo, chưa có usage stats.
+- Review follow-up: schema-contract test đỏ với bare `numeric`; migration
+  `20260622025943_sample_cost_amount_precision.sql` thêm guard và alter cột sang
+  `numeric(15, 0)`.
+- Live apply follow-up: `mcp__supabase_lab_management.apply_migration` trả
+  `success: true`; `list_migrations` xác nhận migration mới nhất là
+  `20260622025943 sample_cost_amount_precision`.

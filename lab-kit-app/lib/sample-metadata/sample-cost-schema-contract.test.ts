@@ -22,7 +22,7 @@ describe("sample cost schema contract", () => {
     const migrations = readMigrations();
 
     expect(migrations).toMatch(
-      /alter\s+table\s+public\.samples[\s\S]+add\s+column\s+if\s+not\s+exists\s+sample_cost_amount_vnd\s+numeric/i
+      /sample_cost_amount_vnd\s+(numeric\s*\(\s*15\s*,\s*0\s*\)|type\s+numeric\s*\(\s*15\s*,\s*0\s*\))/i
     );
     expect(migrations).toMatch(
       /alter\s+table\s+public\.samples[\s\S]+add\s+column\s+if\s+not\s+exists\s+sample_cost_payment_method\s+text/i
