@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -71,4 +71,22 @@ Thêm story packet mới cho phần 1 của phản hồi khách ngày 2026-06-21
 
 ## Evidence
 
-Chưa có.
+- RED: `cd lab-kit-app && rtk bun run test -- app/dashboard/kits/_components/kit-inventory-page-content.test.tsx`
+  thất bại đúng assertion vì chưa có
+  `aria-label="Biểu đồ tồn kho KIT theo loại"`.
+- GREEN: `cd lab-kit-app && rtk bun run test -- app/dashboard/kits/_components/kit-inventory-page-content.test.tsx`
+  passed, 1 file / 9 tests. Regression fixture dùng nhiều `kit_batches`
+  có `received_quantity`, snapshot `remaining_quantity` lệch, KIT `used`, và
+  KIT `in_stock`; chart hiển thị theo `batches[].remainingQuantity` đã được
+  `mapKitInventoryRows` tính từ `kits.status === "in_stock"`.
+- Verification passed:
+  `cd lab-kit-app && rtk bun run test -- app/dashboard/kits/_components/kit-inventory-page-content.test.tsx && rtk bun run typecheck && rtk bun run format:check && rtk bun run docstring:check && rtk bun run react-doctor:diff`.
+- Browser proof bằng `agent-browser` với admin demo:
+  `/dashboard/kits` render chart `PCR Demo Kit / 1 KIT còn tồn`, không có
+  Next.js error overlay. Screenshot desktop:
+  `/tmp/fb-20260621-02-kit-chart-desktop.png`.
+- Browser proof mobile viewport `390x844`: chart render `PCR Demo Kit / 1 KIT
+  còn tồn`, `bodyScrollWidth=375`, không có horizontal overflow. Screenshot:
+  `/tmp/fb-20260621-02-kit-chart-mobile.png`.
+- Không apply migration, không thực hiện Supabase MCP write; story chỉ đổi
+  UI/client code và test.
