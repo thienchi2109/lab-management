@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import DashboardLayout from "./layout";
 
 import { getCurrentSession } from "@/lib/auth/session";
+import type { SampleMetadata } from "@/lib/sample-metadata/metadata";
 import { getSampleMetadata } from "@/lib/sample-metadata/server";
 import { getSampleCreateMetadataAction } from "./samples/actions";
 
@@ -83,7 +84,7 @@ const viewerSession = {
   ],
 };
 
-const metadata = {
+const metadata: SampleMetadata = {
   companies: [],
   customers: [],
   filterOptions: {
@@ -98,6 +99,12 @@ const metadata = {
   summary: {
     inProgressSamples: 0,
     receivedSamples: 0,
+    sampleCostGroups: [
+      { group: "cash", label: "Tiền mặt thu được", totalAmountVnd: 0 },
+      { group: "bank_transfer", label: "Nhận chuyển khoản", totalAmountVnd: 0 },
+      { group: "invoice", label: "Ghi hóa đơn", totalAmountVnd: 0 },
+      { group: "other", label: "Khác", totalAmountVnd: 0 },
+    ],
     totalSamples: 0,
     unpaidSamples: 0,
   },

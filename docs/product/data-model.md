@@ -67,5 +67,8 @@ metric_settings                                     │
 - Kit assignment must be atomic (prevent duplicate assign)
 - Sample status workflow: draft → done → approved
 - Billing status: unpaid → invoiced → paid / eom_credit
+- Sample cost contract stores the VND amount at
+  `samples.sample_cost_amount_vnd` and the paid-method discriminator at
+  `samples.sample_cost_payment_method` (`cash`, `bank_transfer`, or `other`).
 - RLS enabled on all main tables
 - Check constraints on status/role/input_type enum text fields

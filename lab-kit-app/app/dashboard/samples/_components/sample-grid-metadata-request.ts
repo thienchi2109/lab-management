@@ -24,6 +24,8 @@ export function toMetadataRequestSample(
     note: null,
     receivedAt: sample.receivedAt,
     resultGroupIds: sample.resultSummary?.groups.map((group) => group.id) ?? [],
+    sampleCostAmountVnd: null,
+    sampleCostPaymentMethod: null,
     sampleCode: sample.sampleCode,
     sampleTypeId: sample.sampleTypeId,
     sampleTypeName: sample.sampleTypeName,

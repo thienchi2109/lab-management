@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 import type { SampleBillingStatus, SampleStatus } from "./schemas";
+import {
+  mapSampleCostSummaryRows,
+  normalizeSampleCostColumns,
+  type SampleCostGroup,
+  type SampleCostPaymentMethod,
+} from "./sample-cost-summary";
 
 /** Công ty khách hàng dùng trong bộ lọc và biểu mẫu mẫu xét nghiệm. */
 export type CompanyOption = {
@@ -58,6 +64,8 @@ export type SampleMetadataRow = {
   receivedAt: string;
   status: SampleStatus;
   billingStatus: SampleBillingStatus;
+  sampleCostAmountVnd: number | null;
+  sampleCostPaymentMethod: SampleCostPaymentMethod | null;
   note: string | null;
   resultGroupIds: string[];
   updatedAt: string;
@@ -70,6 +78,7 @@ export type SampleMetadata = {
     receivedSamples: number;
     inProgressSamples: number;
     unpaidSamples: number;
+    sampleCostGroups: SampleCostGroup[];
   };
   samples: SampleMetadataRow[];
   companies: CompanyOption[];
@@ -135,6 +144,8 @@ type SampleRow = {
   received_at: string;
   status: SampleStatus;
   billing_status: SampleBillingStatus;
+  sample_cost_amount_vnd?: number | string | null;
+  sample_cost_payment_method?: string | null;
   metadata: unknown;
   sample_result_groups?: SampleResultGroupRow[];
   updated_at: string;
@@ -204,6 +215,7 @@ export function mapSampleMetadataRows(input: {
       ? kitBatchById.get(row.kit_batch_id)
       : null;
     const metadata = sampleMetadataJsonSchema.safeParse(row.metadata);
+    const sampleCost = normalizeSampleCostColumns(row);
     const note = metadata.success ? (metadata.data.note ?? null) : null;
 
     return {
@@ -224,6 +236,8 @@ export function mapSampleMetadataRows(input: {
       receivedAt: row.received_at,
       status: row.status,
       billingStatus: row.billing_status,
+      sampleCostAmountVnd: sampleCost.amountVnd,
+      sampleCostPaymentMethod: sampleCost.paymentMethod,
       note,
       resultGroupIds: (row.sample_result_groups ?? []).map(
         (group) => group.result_group_id
@@ -233,7 +247,10 @@ export function mapSampleMetadataRows(input: {
   });
 
   return {
-    summary: summarizeSamples(samples),
+    summary: summarizeSamples(
+      samples,
+      mapSampleCostSummaryRows(input.samples).groups
+    ),
     samples,
     companies,
     customers,
@@ -253,12 +270,16 @@ export function mapSampleMetadataRows(input: {
   };
 }
 
-function summarizeSamples(samples: SampleMetadataRow[]) {
+function summarizeSamples(
+  samples: SampleMetadataRow[],
+  sampleCostGroups: SampleCostGroup[]
+) {
   const summary = {
     totalSamples: 0,
     receivedSamples: 0,
     inProgressSamples: 0,
     unpaidSamples: 0,
+    sampleCostGroups,
   };
 
   for (const sample of samples) {
