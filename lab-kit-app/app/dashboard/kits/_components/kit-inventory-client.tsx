@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { KitInventory, KitUnit } from "@/lib/kit-inventory/inventory";
 import type { KitStatus } from "@/lib/kit-inventory/schemas";
+import type { SampleCostSummary } from "@/lib/sample-metadata/sample-cost-summary";
 
 import {
   CreateBatchDialog,
@@ -20,10 +21,12 @@ import {
 } from "./kit-inventory-dialogs";
 import type { KitInventoryDialogAction } from "./kit-inventory-dialog-state";
 import { KitInventorySummaryStrip } from "./kit-inventory-summary-strip";
+import { KitSampleCostSummarySection } from "./kit-sample-cost-summary-section";
 import { KitStockByTypeChart } from "./kit-stock-by-type-chart";
 
 type KitInventoryClientProps = {
   inventory: KitInventory;
+  sampleCostSummary?: SampleCostSummary;
   actions: {
     createKitType: KitInventoryDialogAction;
     createKitBatch: KitInventoryDialogAction;
@@ -43,6 +46,7 @@ const statusLabels: Record<KitStatus, string> = {
 
 export function KitInventoryClient({
   inventory,
+  sampleCostSummary = { groups: [] },
   actions,
 }: KitInventoryClientProps) {
   const todayDateInputValueRef = useRef("");
@@ -113,12 +117,7 @@ export function KitInventoryClient({
         <KitInventorySummaryStrip inventory={inventory} />
       </section>
 
-      <section className="rounded-lg border bg-background p-4">
-        <h2 className="text-lg font-semibold">Chi phí hiện tại</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Chờ hợp đồng dữ liệu chi phí mẫu trước khi hiển thị tổng hợp.
-        </p>
-      </section>
+      <KitSampleCostSummarySection summary={sampleCostSummary} />
 
       <section className="space-y-4">
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">

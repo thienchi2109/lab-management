@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -68,4 +68,22 @@ Thêm story packet UI cho phần 2 của phản hồi khách ngày 2026-06-21.
 
 ## Evidence
 
-Chưa có.
+- Red: `cd lab-kit-app && bun run test ./app/dashboard/kits/_components/kit-sample-cost-summary-ui.test.tsx`
+  fail vì phần `Chi phí hiện tại` còn placeholder, chưa render bốn nhãn
+  contract, filter tình trạng chi phí, và empty state.
+- Green focused tests:
+  `cd lab-kit-app && bun run test ./app/dashboard/kits/_components/kit-inventory-page-content.test.tsx ./app/dashboard/kits/_components/kit-sample-cost-summary-ui.test.tsx ./lib/sample-metadata/sample-cost-summary-server.test.ts ./lib/sample-metadata/sample-cost-schema-contract.test.ts`
+  pass 4 files, 13 tests.
+- Quality gates: `cd lab-kit-app && bun run typecheck`, `bun run lint:strict`,
+  `bun run format:check`, `bun run docstring:check`,
+  `bun run react-doctor:diff`, và `bun run build` đều pass.
+- Live seed proof: qua namespace `mcp__supabase_lab_management`, project-ref
+  `tuuqgpzgollcerqqszjr`, đã seed idempotent 4 mẫu `FB04_COST_*` vào
+  `public.samples` cho bốn nhóm `cash`, `bank_transfer`, `invoice`, `other`;
+  aggregate live trả `120000`, `340000`, `560000`, `78000`.
+- E2E browser proof: `agent-browser` đăng nhập bằng admin credential do user
+  cung cấp, mở `http://127.0.0.1:3000/dashboard/kits`, xác nhận không có
+  framework overlay, page có content, bốn tổng tiền hiển thị, chọn filter
+  `Ghi hóa đơn` thì phần chi phí chỉ còn `Ghi hóa đơn` và `560.000 ₫`.
+- Release screenshot: `/tmp/fb-20260621-04-kits-cost-filtered.png`.
+- Harness trace closeout: #215.

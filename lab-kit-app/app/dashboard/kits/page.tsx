@@ -1,12 +1,18 @@
 import { getKitInventory } from "@/lib/kit-inventory/server";
+import { getSampleCostSummary } from "@/lib/sample-metadata/sample-cost-summary-server";
 
 import { KitInventoryPageContent } from "./_components/kit-inventory-page-content";
 
 export default async function KitInventoryPage() {
-  const inventory = await loadInventoryOrNull();
+  const pageData = await loadPageDataOrNull();
 
-  if (inventory) {
-    return <KitInventoryPageContent inventory={inventory} />;
+  if (pageData) {
+    return (
+      <KitInventoryPageContent
+        inventory={pageData.inventory}
+        sampleCostSummary={pageData.sampleCostSummary}
+      />
+    );
   }
 
   return (
@@ -25,9 +31,14 @@ export default async function KitInventoryPage() {
   );
 }
 
-async function loadInventoryOrNull() {
+async function loadPageDataOrNull() {
   try {
-    return await getKitInventory();
+    const [inventory, sampleCostSummary] = await Promise.all([
+      getKitInventory(),
+      getSampleCostSummary(),
+    ]);
+
+    return { inventory, sampleCostSummary };
   } catch {
     return null;
   }
