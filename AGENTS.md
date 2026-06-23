@@ -20,6 +20,10 @@
   ...`. Do not use global Vercel auth, do not run `vercel login` or
   `vercel logout`, and do not switch the global account because other repos on
   this machine depend on that credential.
+- Khi cần kiểm thử E2E trên trình duyệt, bắt buộc dùng `agent-browser`. Không
+  dùng Playwright, Playwright CLI, Playwright test runner, Cypress hoặc browser
+  automation khác làm fallback. Nếu `agent-browser` không khả dụng, dừng lại và
+  báo rõ tình trạng thay vì tự chuyển sang công cụ khác.
 - Before modifying code, read Code Review Graph first for a compact map of
   relevant files, symbols, flows, and impact. Use GitNexus/`rg` only after the
   graph narrows the blast radius.

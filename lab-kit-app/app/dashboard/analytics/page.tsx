@@ -66,9 +66,7 @@ export default async function AnalyticsPage() {
 function getDefaultAnalyticsFilters(now: Date) {
   const receivedTo = toIsoDate(now);
   const receivedFrom = toIsoDate(
-    new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6)
-    )
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
   );
 
   return { receivedFrom, receivedTo };

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import AnalyticsPage from "./page";
 
@@ -51,6 +51,11 @@ vi.mock("./_components/analytics-page-client", () => ({
 }));
 
 describe("AnalyticsPage", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
   test("renders dashboard overview before the analytics pivot", async () => {
     vi.mocked(getCurrentSession).mockResolvedValue({
       profile: { id: "profile-1" },
@@ -100,5 +105,70 @@ describe("AnalyticsPage", () => {
         .compareDocumentPosition(screen.getByText("Pivot báo cáo")) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+  });
+
+  test("uses the first day of the current month through today as default filters", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    vi.mocked(getCurrentSession).mockResolvedValue({
+      profile: { id: "profile-1" },
+    } as never);
+    vi.mocked(getAnalyticsActor).mockReturnValue({
+      organizationId: "org-1",
+      profileId: "profile-1",
+      role: "admin",
+    });
+    vi.mocked(listAnalyticsDataset).mockResolvedValue({
+      filterSummary: ["Từ 01/06/2026 đến 15/06/2026"],
+      query: {
+        dimensions: ["receivedDate"],
+        filters: {
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-15",
+        },
+        filterSummary: ["Từ 01/06/2026 đến 15/06/2026"],
+        measures: ["sampleCount"],
+        limit: 50,
+        offset: 0,
+        page: 1,
+        pageSize: 50,
+      },
+      rows: [],
+      totals: {},
+      warnings: [],
+    });
+    vi.mocked(getDashboardOverviewData).mockResolvedValue({
+      pcrMetrics: [],
+      recentSamples: [],
+      stats: {
+        activeKits: { detail: "", title: "", value: "" },
+        cleanSamples: { detail: "", title: "", value: "" },
+        positiveSamples: { detail: "", title: "", value: "" },
+        totalSamples: { detail: "", title: "", value: "" },
+      },
+      trend: { bars: [], dateRangeLabel: "" },
+    });
+
+    render(await AnalyticsPage());
+
+    expect(listAnalyticsDataset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: {
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-15",
+        },
+      }),
+      expect.anything(),
+      expect.anything()
+    );
+    expect(analyticsPageClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialFilters: {
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-15",
+        },
+      }),
+      undefined
+    );
   });
 });
