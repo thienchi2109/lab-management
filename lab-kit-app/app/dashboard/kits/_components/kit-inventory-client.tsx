@@ -157,6 +157,7 @@ export function KitInventoryClient({
           onCreateKitType={() => dispatch({ type: "openType" })}
           onCreateUnits={() => dispatch({ type: "openUnits" })}
           onKitTypeChange={(value) => dispatch({ type: "setKitType", value })}
+          onResetFilters={() => dispatch({ type: "resetFilters" })}
           onSearchChange={(value) => dispatch({ type: "setSearch", value })}
           onStatusChange={(value) =>
             dispatch({
@@ -286,6 +287,7 @@ type Action =
   | { type: "setSearch"; value: string }
   | { type: "setStatus"; value: State["status"] }
   | { type: "setKitType"; value: string }
+  | { type: "resetFilters" }
   | { type: "openType" }
   | { type: "openBatch"; receivedAt: string }
   | { type: "openUnits" }
@@ -300,6 +302,8 @@ function kitInventoryReducer(state: State, action: Action): State {
       return { ...state, status: action.value };
     case "setKitType":
       return { ...state, kitTypeId: action.value };
+    case "resetFilters":
+      return { ...state, search: "", status: "all", kitTypeId: "all" };
     case "openType":
       return { ...state, creatingType: true };
     case "openBatch":

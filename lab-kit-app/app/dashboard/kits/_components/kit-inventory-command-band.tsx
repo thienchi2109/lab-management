@@ -1,6 +1,7 @@
 import { PackagePlus, Search } from "lucide-react";
 
 import { FilterSelect } from "@/components/dashboard/filter-select";
+import { DashboardMobileFilterSheet } from "@/components/dashboard/mobile-filter-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { KitStatus } from "@/lib/kit-inventory/schemas";
@@ -12,6 +13,7 @@ type KitInventoryCommandBandProps = {
   onCreateKitType: () => void;
   onCreateUnits: () => void;
   onKitTypeChange: (value: string) => void;
+  onResetFilters: () => void;
   onSearchChange: (value: string) => void;
   onStatusChange: (value: "all" | KitStatus) => void;
   search: string;
@@ -27,12 +29,20 @@ export function KitInventoryCommandBand({
   onCreateKitType,
   onCreateUnits,
   onKitTypeChange,
+  onResetFilters,
   onSearchChange,
   onStatusChange,
   search,
   status,
   statusOptions,
 }: KitInventoryCommandBandProps) {
+  const activeFilterCount = getActiveKitFilterCount({
+    kitTypeId,
+    search,
+    status,
+  });
+  const searchLabel = search.trim() || "Tìm mã KIT, lô hoặc loại KIT";
+
   return (
     <section
       data-kit-inventory-command-band="true"
@@ -61,38 +71,138 @@ export function KitInventoryCommandBand({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-[minmax(240px,1fr)_180px] lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)] lg:items-end">
-        <div className="flex h-10 min-w-0 items-center gap-2 rounded-lg border bg-muted/20 px-2.5 py-1 text-sm font-medium focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10">
-          <label
-            className="shrink-0 text-xs text-muted-foreground"
-            htmlFor="kit-inventory-search"
-          >
-            Tìm kiếm
-          </label>
-          <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-0 top-1.5 size-4 text-muted-foreground" />
-            <Input
-              id="kit-inventory-search"
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-              className="h-7 border-0 bg-transparent px-0 pl-6 shadow-none focus-visible:ring-0"
-              placeholder="Mã KIT, lô hoặc loại KIT"
+      <div className="mt-4">
+        <DashboardMobileFilterSheet
+          activeFilterCount={activeFilterCount}
+          dataAttributes={{ "data-mobile-kit-filter-toolbar": "true" }}
+          searchLabel={searchLabel}
+          title="Tìm kiếm và lọc KIT"
+          triggerAriaLabel="Tìm kiếm và lọc KIT"
+          renderFooter={(close) => (
+            <div className="flex items-center justify-between gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  onResetFilters();
+                  close();
+                }}
+              >
+                Xóa lọc
+              </Button>
+              <Button type="button" onClick={close}>
+                Áp dụng
+              </Button>
+            </div>
+          )}
+        >
+          <div className="grid gap-3">
+            <KitInventoryFilterControls
+              idPrefix="kit-inventory-mobile"
+              kitTypeId={kitTypeId}
+              kitTypeOptions={kitTypeOptions}
+              onKitTypeChange={onKitTypeChange}
+              onSearchChange={onSearchChange}
+              onStatusChange={onStatusChange}
+              search={search}
+              status={status}
+              statusOptions={statusOptions}
             />
           </div>
+        </DashboardMobileFilterSheet>
+
+        <div
+          data-kit-inventory-desktop-filters="true"
+          className="hidden gap-3 md:grid md:grid-cols-[minmax(240px,1fr)_180px] lg:grid-cols-[minmax(280px,1fr)_180px_minmax(220px,260px)] lg:items-end"
+        >
+          <KitInventoryFilterControls
+            idPrefix="kit-inventory"
+            kitTypeId={kitTypeId}
+            kitTypeOptions={kitTypeOptions}
+            onKitTypeChange={onKitTypeChange}
+            onSearchChange={onSearchChange}
+            onStatusChange={onStatusChange}
+            search={search}
+            status={status}
+            statusOptions={statusOptions}
+          />
         </div>
-        <FilterSelect
-          label="Trạng thái"
-          value={status}
-          onChange={(value) => onStatusChange(value as "all" | KitStatus)}
-          options={statusOptions}
-        />
-        <FilterSelect
-          label="Loại KIT"
-          value={kitTypeId}
-          onChange={onKitTypeChange}
-          options={kitTypeOptions}
-        />
       </div>
     </section>
   );
+}
+
+type KitInventoryFilterControlsProps = {
+  idPrefix: string;
+  kitTypeId: string;
+  kitTypeOptions: Array<[string, string]>;
+  onKitTypeChange: (value: string) => void;
+  onSearchChange: (value: string) => void;
+  onStatusChange: (value: "all" | KitStatus) => void;
+  search: string;
+  status: "all" | KitStatus;
+  statusOptions: Array<[string, string]>;
+};
+
+function KitInventoryFilterControls({
+  idPrefix,
+  kitTypeId,
+  kitTypeOptions,
+  onKitTypeChange,
+  onSearchChange,
+  onStatusChange,
+  search,
+  status,
+  statusOptions,
+}: KitInventoryFilterControlsProps) {
+  return (
+    <>
+      <div className="flex h-10 min-w-0 items-center gap-2 rounded-lg border bg-muted/20 px-2.5 py-1 text-sm font-medium focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10">
+        <label
+          className="shrink-0 text-xs text-muted-foreground"
+          htmlFor={`${idPrefix}-search`}
+        >
+          Tìm kiếm
+        </label>
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-0 top-1.5 size-4 text-muted-foreground" />
+          <Input
+            id={`${idPrefix}-search`}
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            className="h-7 border-0 bg-transparent px-0 pl-6 shadow-none focus-visible:ring-0"
+            placeholder="Mã KIT, lô hoặc loại KIT"
+          />
+        </div>
+      </div>
+      <FilterSelect
+        label="Trạng thái"
+        value={status}
+        onChange={(value) => onStatusChange(value as "all" | KitStatus)}
+        options={statusOptions}
+      />
+      <FilterSelect
+        label="Loại KIT"
+        value={kitTypeId}
+        onChange={onKitTypeChange}
+        options={kitTypeOptions}
+      />
+    </>
+  );
+}
+
+function getActiveKitFilterCount({
+  kitTypeId,
+  search,
+  status,
+}: {
+  kitTypeId: string;
+  search: string;
+  status: "all" | KitStatus;
+}) {
+  return [
+    search.trim().length > 0,
+    status !== "all",
+    kitTypeId !== "all",
+  ].filter(Boolean).length;
 }
