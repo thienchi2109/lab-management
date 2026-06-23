@@ -21,6 +21,34 @@ type KitInventoryCommandBandProps = {
   statusOptions: Array<[string, string]>;
 };
 
+type KitInventoryMobileFilterFooterProps = {
+  close: () => void;
+  onResetFilters: () => void;
+};
+
+function KitInventoryMobileFilterFooter({
+  close,
+  onResetFilters,
+}: KitInventoryMobileFilterFooterProps) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => {
+          onResetFilters();
+          close();
+        }}
+      >
+        Xóa lọc
+      </Button>
+      <Button type="button" onClick={close}>
+        Áp dụng
+      </Button>
+    </div>
+  );
+}
+
 /** Gom thao tác quản trị, tìm kiếm và bộ lọc vào cùng một command band. */
 export function KitInventoryCommandBand({
   kitTypeId,
@@ -78,23 +106,8 @@ export function KitInventoryCommandBand({
           searchLabel={searchLabel}
           title="Tìm kiếm và lọc KIT"
           triggerAriaLabel="Tìm kiếm và lọc KIT"
-          renderFooter={(close) => (
-            <div className="flex items-center justify-between gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  onResetFilters();
-                  close();
-                }}
-              >
-                Xóa lọc
-              </Button>
-              <Button type="button" onClick={close}>
-                Áp dụng
-              </Button>
-            </div>
-          )}
+          FooterComponent={KitInventoryMobileFilterFooter}
+          footerProps={{ onResetFilters }}
         >
           <div className="grid gap-3">
             <KitInventoryFilterControls

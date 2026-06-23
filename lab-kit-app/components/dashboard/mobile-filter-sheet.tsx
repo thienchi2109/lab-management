@@ -1,32 +1,40 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BottomSheetFrame } from "@/components/ui/overlay-frame";
 
-type DashboardMobileFilterSheetProps = {
+type DashboardMobileFilterFooterProps = {
+  close: () => void;
+};
+
+type DashboardMobileFilterSheetProps<TFooterProps extends object> = {
   activeFilterCount: number;
   children: ReactNode;
   dataAttributes?: Record<`data-${string}`, string>;
-  renderFooter: (close: () => void) => ReactNode;
+  FooterComponent: ComponentType<
+    TFooterProps & DashboardMobileFilterFooterProps
+  >;
+  footerProps: TFooterProps;
   searchLabel: string;
   title: string;
   triggerAriaLabel: string;
 };
 
 /** Render toolbar mobile và bottom sheet filter dùng chung cho dashboard. */
-export function DashboardMobileFilterSheet({
+export function DashboardMobileFilterSheet<TFooterProps extends object>({
   activeFilterCount,
   children,
   dataAttributes,
-  renderFooter,
+  FooterComponent,
+  footerProps,
   searchLabel,
   title,
   triggerAriaLabel,
-}: DashboardMobileFilterSheetProps) {
+}: DashboardMobileFilterSheetProps<TFooterProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const close = () => setIsOpen(false);
   const open = () => setIsOpen(true);
@@ -64,7 +72,7 @@ export function DashboardMobileFilterSheet({
           title={title}
           closeLabel="Đóng"
           onClose={close}
-          footer={renderFooter(close)}
+          footer={<FooterComponent {...footerProps} close={close} />}
         >
           {children}
         </BottomSheetFrame>

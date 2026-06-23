@@ -55,3 +55,31 @@
 - Scope:
   no migration, Supabase write, async export job, cursor loop, audit/rate-limit
   change, or product behavior change.
+
+## 2026-06-23 Follow-up Evidence
+
+- Scope:
+  removed only the `no-cascading-set-state` warning in
+  `sample-create-overlay-bridge.tsx` and the `no-render-in-render` warning in
+  `mobile-filter-sheet.tsx`. The two `overlay-frame.tsx` bottom-sheet warnings
+  remain intentionally out of scope because existing tests lock the non-native
+  bottom-sheet viewport behavior.
+- RED:
+  `cd lab-kit-app && bun run test app/dashboard/samples/_components/sample-create-overlay-bridge.test.tsx components/dashboard/mobile-filter-sheet.test.tsx`
+  failed before production edits: 2 failed / 6 passed.
+- GREEN focused:
+  `cd lab-kit-app && bun run test app/dashboard/samples/_components/sample-create-overlay-bridge.test.tsx components/dashboard/mobile-filter-sheet.test.tsx app/dashboard/samples/_components/sample-grid-mobile-filter-sheet.test.tsx app/dashboard/kits/_components/kit-inventory-mobile-filter-sheet.test.tsx`
+  passed 4 files / 13 tests.
+- Static gates:
+  `cd lab-kit-app && bun run typecheck`, `cd lab-kit-app && bun run
+  lint:strict`, `cd lab-kit-app && bun run format:check`, `cd lab-kit-app &&
+  bun run docstring:check`, and `git diff --check` passed.
+- React Doctor:
+  `cd lab-kit-app && bun run react-doctor:diff` reported `No issues found!`.
+  `cd lab-kit-app && bun run react-doctor:verbose` now reports only the two
+  intentional `components/ui/overlay-frame.tsx:209` accessibility warnings.
+- Review context:
+  Code Review Graph reported high risk because shared mobile UI surfaces are in
+  the blast radius. GitNexus reported low risk and no affected processes, but
+  did not include the new untracked test file in its changed-file count, so
+  direct diff review plus focused caller tests are the primary proof.

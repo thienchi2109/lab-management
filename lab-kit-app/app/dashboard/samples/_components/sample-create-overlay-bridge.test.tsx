@@ -193,4 +193,19 @@ describe("SampleCreateOverlayBridge", () => {
     expect(source).toContain("updateAction");
     expect(source).toContain("formAction={updateAction}");
   });
+
+  test("keeps overlay metadata and load errors in one reducer state", () => {
+    const source = readFileSync(
+      join(
+        process.cwd(),
+        "app/dashboard/samples/_components/sample-create-overlay-bridge.tsx"
+      ),
+      "utf8"
+    );
+
+    expect(source).toContain("useReducer");
+    expect(source).toContain("sampleOverlayReducer");
+    expect(source).not.toContain("setLoadError");
+    expect(source).not.toContain("setMetadata");
+  });
 });

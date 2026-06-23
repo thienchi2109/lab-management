@@ -14,6 +14,26 @@ type SampleGridMobileFilterSheetProps = {
   page: SampleGridPage;
 };
 
+type SampleGridMobileFilterFooterProps = {
+  close: () => void;
+  formId: string;
+};
+
+function SampleGridMobileFilterFooter({
+  formId,
+}: SampleGridMobileFilterFooterProps) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <Button asChild type="button" variant="outline">
+        <Link href="/dashboard/samples">Xóa lọc</Link>
+      </Button>
+      <Button form={formId} type="submit">
+        Áp dụng
+      </Button>
+    </div>
+  );
+}
+
 /** Render toolbar tìm kiếm/lọc mobile và bottom sheet lọc mẫu. */
 export function SampleGridMobileFilterSheet({
   activeFilterCount,
@@ -29,16 +49,8 @@ export function SampleGridMobileFilterSheet({
       searchLabel={searchLabel}
       title="Tìm kiếm và lọc"
       triggerAriaLabel="Tìm kiếm và lọc mẫu"
-      renderFooter={() => (
-        <div className="flex items-center justify-between gap-2">
-          <Button asChild type="button" variant="outline">
-            <Link href="/dashboard/samples">Xóa lọc</Link>
-          </Button>
-          <Button form={formId} type="submit">
-            Áp dụng
-          </Button>
-        </div>
-      )}
+      FooterComponent={SampleGridMobileFilterFooter}
+      footerProps={{ formId }}
     >
       <SampleGridFilterForm
         formId={formId}
