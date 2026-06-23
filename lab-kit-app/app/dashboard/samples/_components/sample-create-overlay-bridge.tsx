@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
 import {
   sampleCreateRequestedEvent,
@@ -33,7 +33,49 @@ type OverlayState =
   | { mode: "view"; sampleId: string; sample: SampleMetadataRow | null }
   | { mode: "edit"; sampleId: string; sample: SampleMetadataRow | null };
 
+type RequestedSample = {
+  sampleId: string;
+  sample: SampleMetadataRow | null;
+};
+
+type SampleOverlayState = {
+  loadError: string | null;
+  metadata: SampleMetadata | null;
+  overlay: OverlayState;
+};
+
+type SampleOverlayAction =
+  | { type: "close" }
+  | { type: "metadataLoadFailed"; message: string }
+  | { type: "metadataLoaded"; metadata: SampleMetadata }
+  | { type: "metadataLoadStarted" }
+  | { type: "openCreate" }
+  | { type: "openEdit"; request: RequestedSample }
+  | { type: "openView"; request: RequestedSample };
+
 const closedState: OverlayState = { mode: "closed" };
+
+function sampleOverlayReducer(
+  state: SampleOverlayState,
+  action: SampleOverlayAction
+): SampleOverlayState {
+  switch (action.type) {
+    case "close":
+      return { ...state, overlay: closedState };
+    case "metadataLoadFailed":
+      return { ...state, loadError: action.message };
+    case "metadataLoaded":
+      return { ...state, loadError: null, metadata: action.metadata };
+    case "metadataLoadStarted":
+      return { ...state, loadError: null };
+    case "openCreate":
+      return { ...state, loadError: null, overlay: { mode: "create" } };
+    case "openEdit":
+      return { ...state, overlay: { mode: "edit", ...action.request } };
+    case "openView":
+      return { ...state, overlay: { mode: "view", ...action.request } };
+  }
+}
 
 /** Mount các overlay metadata mẫu toàn cục trên dashboard shell. */
 export function SampleCreateOverlayBridge({
@@ -42,36 +84,42 @@ export function SampleCreateOverlayBridge({
   loadMetadata,
   updateAction,
 }: SampleCreateOverlayBridgeProps) {
-  const [state, setState] = useState<OverlayState>(closedState);
-  const [metadata, setMetadata] = useState<SampleMetadata | null>(
-    initialMetadata
+  const [{ loadError, metadata, overlay }, dispatch] = useReducer(
+    sampleOverlayReducer,
+    {
+      loadError: null,
+      metadata: initialMetadata,
+      overlay: closedState,
+    }
   );
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCreateMetadata() {
       if (metadata) return;
       try {
-        setLoadError(null);
-        setMetadata(await loadMetadata());
+        dispatch({ type: "metadataLoadStarted" });
+        dispatch({ type: "metadataLoaded", metadata: await loadMetadata() });
       } catch {
-        setLoadError("Không thể tải dữ liệu tạo mẫu. Vui lòng thử lại.");
+        dispatch({
+          type: "metadataLoadFailed",
+          message: "Không thể tải dữ liệu tạo mẫu. Vui lòng thử lại.",
+        });
       }
     }
 
     function handleCreateRequest() {
       void loadCreateMetadata();
-      setState({ mode: "create" });
+      dispatch({ type: "openCreate" });
     }
 
     function handleViewRequest(event: Event) {
       const request = getRequestedSample(event);
-      if (request) setState({ mode: "view", ...request });
+      if (request) dispatch({ type: "openView", request });
     }
 
     function handleEditRequest(event: Event) {
       const request = getRequestedSample(event);
-      if (request) setState({ mode: "edit", ...request });
+      if (request) dispatch({ type: "openEdit", request });
     }
 
     window.addEventListener(sampleCreateRequestedEvent, handleCreateRequest);
@@ -100,35 +148,35 @@ export function SampleCreateOverlayBridge({
   }, [loadMetadata, metadata]);
 
   const selectedSample =
-    state.mode === "view" || state.mode === "edit"
-      ? (metadata?.samples.find((sample) => sample.id === state.sampleId) ??
-        state.sample)
+    overlay.mode === "view" || overlay.mode === "edit"
+      ? (metadata?.samples.find((sample) => sample.id === overlay.sampleId) ??
+        overlay.sample)
       : null;
 
   return (
     <>
       {metadata ? (
         <CreateSampleDialog
-          open={state.mode === "create"}
+          open={overlay.mode === "create"}
           formAction={formAction}
-          onClose={() => setState(closedState)}
+          onClose={() => dispatch({ type: "close" })}
           {...metadata}
         />
       ) : null}
-      {state.mode === "create" && loadError ? (
+      {overlay.mode === "create" && loadError ? (
         <p role="alert" className="sr-only">
           {loadError}
         </p>
       ) : null}
       <SampleMetadataViewSheet
-        sample={state.mode === "view" ? selectedSample : null}
-        onClose={() => setState(closedState)}
+        sample={overlay.mode === "view" ? selectedSample : null}
+        onClose={() => dispatch({ type: "close" })}
       />
       {metadata ? (
         <EditSampleDialog
-          sample={state.mode === "edit" ? selectedSample : null}
+          sample={overlay.mode === "edit" ? selectedSample : null}
           formAction={updateAction}
-          onClose={() => setState(closedState)}
+          onClose={() => dispatch({ type: "close" })}
           {...metadata}
         />
       ) : null}
@@ -136,7 +184,7 @@ export function SampleCreateOverlayBridge({
   );
 }
 
-function getRequestedSample(event: Event) {
+function getRequestedSample(event: Event): RequestedSample | null {
   if (!(event instanceof CustomEvent)) return null;
   const sampleId =
     typeof event.detail?.sampleId === "string" ? event.detail.sampleId : null;
