@@ -11,10 +11,14 @@ import type {
   AnalyticsPivotDataset,
 } from "./analytics-page-types";
 import { AnalyticsPivotSection } from "./analytics-pivot-section";
+import { AnalyticsReportKitCharts } from "./analytics-report-kit-charts";
+
+import type { ReportKitAnalyticsContract } from "@/lib/analytics/report-kit";
 
 type AnalyticsPageClientProps = {
   initialDataset: AnalyticsPivotDataset;
   initialFilters: AnalyticsPageFilters;
+  initialReportKitContract?: ReportKitAnalyticsContract;
 };
 
 const defaultMeasures: AnalyticsPageMeasure[] = [
@@ -32,6 +36,7 @@ const metricToneClasses = {
 export function AnalyticsPageClient({
   initialDataset,
   initialFilters,
+  initialReportKitContract,
 }: AnalyticsPageClientProps) {
   const activeRequestId = useRef(0);
   const [dataset, setDataset] = useState(initialDataset);
@@ -145,6 +150,10 @@ export function AnalyticsPageClient({
           </span>
         ))}
       </section>
+
+      {initialReportKitContract ? (
+        <AnalyticsReportKitCharts contract={initialReportKitContract} />
+      ) : null}
 
       <section
         aria-label="Tổng quan analytics"

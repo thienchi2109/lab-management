@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -79,4 +79,19 @@ Thêm story UI riêng để không gộp render chart với data contract.
 
 ## Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+- RED: focused tests fail đúng lý do vì chưa có report-kit chart UI và page
+  chưa gọi `listReportKitAnalyticsContract`.
+- GREEN: render 4 chart region từ contract `FB-20260623-02B`; page gọi
+  `listReportKitAnalyticsContract` bằng cùng default filters bounded; không thêm
+  filter riêng từng biểu đồ.
+- Verification:
+  - `cd lab-kit-app && bun run test app/dashboard/analytics/_components/analytics-report-kit-charts.test.tsx app/dashboard/analytics/page.test.tsx app/dashboard/analytics/_components/analytics-page-client.test.tsx`
+  - `cd lab-kit-app && bun run typecheck`
+  - `cd lab-kit-app && bun run lint:strict`
+  - `cd lab-kit-app && bun run format:check`
+  - `cd lab-kit-app && bun run docstring:check`
+  - `cd lab-kit-app && bun run react-doctor:diff`
+- E2E `agent-browser` desktop/mobile `/dashboard/analytics`: đăng nhập admin,
+  đủ 4 chart region, empty state riêng từng chart rỗng, không horizontal
+  overflow. Screenshot: `/tmp/lab-management-02c-desktop.png`,
+  `/tmp/lab-management-02c-mobile.png`.
