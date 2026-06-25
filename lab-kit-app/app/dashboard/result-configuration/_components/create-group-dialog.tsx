@@ -6,10 +6,8 @@ import { ActionMessage } from "@/components/dashboard/action-message";
 import { DialogActions, DialogFrame } from "@/components/ui/overlay-frame";
 import { Field, SelectField } from "@/components/dashboard/form-fields";
 
-import {
-  createGroupAction,
-  initialResultConfigurationActionState,
-} from "../actions";
+import { initialResultConfigurationActionState } from "../action-state";
+import { createGroupAction } from "../actions";
 import type { DialogProps } from "./result-configuration-dialog-types";
 
 export function CreateGroupDialog({ open, onClose }: DialogProps) {

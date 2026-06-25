@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { hasAnyRole } from "@/lib/auth/permissions";
@@ -8,11 +10,14 @@ import {
   getResultConfigurationActor,
 } from "@/lib/result-configuration/server";
 
-import {
-  createGroupAction,
-  initialResultConfigurationActionState,
-  updateMetricAction,
-} from "./actions";
+import { createGroupAction, updateMetricAction } from "./actions";
+import { initialResultConfigurationActionState } from "./action-state";
+
+test("keeps non-action state out of the server action module", () => {
+  const source = readFileSync(new URL("./actions.ts", import.meta.url), "utf8");
+
+  expect(source).not.toMatch(/export\s+const\s+\w+/);
+});
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),

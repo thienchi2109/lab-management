@@ -7,10 +7,8 @@ import { DialogActions, DialogFrame } from "@/components/ui/overlay-frame";
 import { Field, SelectField } from "@/components/dashboard/form-fields";
 import type { SampleType } from "@/lib/result-configuration/configuration";
 
-import {
-  createTemplateAction,
-  initialResultConfigurationActionState,
-} from "../actions";
+import { initialResultConfigurationActionState } from "../action-state";
+import { createTemplateAction } from "../actions";
 import type { DialogProps } from "./result-configuration-dialog-types";
 
 type CreateTemplateDialogProps = DialogProps & {

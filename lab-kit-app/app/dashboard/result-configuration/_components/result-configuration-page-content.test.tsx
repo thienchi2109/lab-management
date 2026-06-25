@@ -9,10 +9,6 @@ vi.mock("../actions", () => ({
   createGroupAction: vi.fn(),
   createMetricAction: vi.fn(),
   createTemplateAction: vi.fn(),
-  initialResultConfigurationActionState: {
-    status: "idle",
-    message: "",
-  },
 }));
 
 const config = mapResultConfigurationRows({

@@ -27,16 +27,7 @@ import {
   getResultConfigurationActor,
 } from "@/lib/result-configuration/server";
 
-export type ResultConfigurationActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-};
-
-export const initialResultConfigurationActionState: ResultConfigurationActionState =
-  {
-    status: "idle",
-    message: "",
-  };
+import type { ResultConfigurationActionState } from "./action-state";
 
 export async function createGroupAction(
   _previousState: ResultConfigurationActionState,

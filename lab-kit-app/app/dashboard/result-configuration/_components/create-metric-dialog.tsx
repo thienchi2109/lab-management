@@ -12,10 +12,8 @@ import {
 import type { ResultGroup } from "@/lib/result-configuration/configuration";
 import { RESULT_INPUT_TYPES } from "@/lib/result-configuration/configuration";
 
-import {
-  createMetricAction,
-  initialResultConfigurationActionState,
-} from "../actions";
+import { initialResultConfigurationActionState } from "../action-state";
+import { createMetricAction } from "../actions";
 import type { DialogProps } from "./result-configuration-dialog-types";
 
 type CreateMetricDialogProps = DialogProps & {
