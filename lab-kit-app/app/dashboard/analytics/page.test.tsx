@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import AnalyticsPage from "./page";
@@ -61,6 +61,7 @@ vi.mock("./_components/analytics-page-client", () => ({
 
 describe("AnalyticsPage", () => {
   afterEach(() => {
+    cleanup();
     vi.useRealTimers();
     vi.clearAllMocks();
   });
@@ -289,6 +290,58 @@ describe("AnalyticsPage", () => {
             "cleanShrimpPlByGeneralPcrConclusion",
           ],
         }),
+      }),
+      undefined
+    );
+  });
+
+  test("keeps overview and pivot rendering when report kit bootstrap fails", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue({
+      profile: { id: "profile-1" },
+    } as never);
+    vi.mocked(getAnalyticsActor).mockReturnValue({
+      organizationId: "org-1",
+      profileId: "profile-1",
+      role: "admin",
+    });
+    vi.mocked(listAnalyticsDataset).mockResolvedValue({
+      filterSummary: [],
+      query: {
+        dimensions: ["receivedDate"],
+        filters: {},
+        filterSummary: [],
+        measures: ["sampleCount"],
+        limit: 50,
+        offset: 0,
+        page: 1,
+        pageSize: 50,
+      },
+      rows: [],
+      totals: { sampleCount: 3 },
+      warnings: [],
+    });
+    vi.mocked(getDashboardOverviewData).mockResolvedValue({
+      pcrMetrics: [],
+      recentSamples: [],
+      stats: {
+        activeKits: { detail: "", title: "", value: "" },
+        cleanSamples: { detail: "", title: "", value: "" },
+        positiveSamples: { detail: "", title: "", value: "" },
+        totalSamples: { detail: "", title: "", value: "" },
+      },
+      trend: { bars: [], dateRangeLabel: "" },
+    });
+    vi.mocked(listReportKitAnalyticsContract).mockRejectedValue(
+      new Error("report kit unavailable")
+    );
+
+    render(await AnalyticsPage());
+
+    expect(screen.getByText("Overview dashboard")).toBeTruthy();
+    expect(screen.getByText("Pivot báo cáo")).toBeTruthy();
+    expect(analyticsPageClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialReportKitContract: undefined,
       }),
       undefined
     );
