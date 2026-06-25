@@ -6,7 +6,9 @@ import {
   listAnalyticsDataset,
 } from "@/lib/analytics/operations";
 import { getDashboardOverviewData } from "@/lib/analytics/overview";
+import { listReportKitAnalyticsContract } from "@/lib/analytics/report-kit";
 import { createSupabaseDashboardOverviewPort } from "@/lib/analytics/server";
+import { createSupabaseReportKitAnalyticsPort } from "@/lib/analytics/server-report-kit";
 import { getCurrentSession } from "@/lib/auth/session";
 
 import { DashboardPageContent } from "../_components/dashboard-page-content";
@@ -39,18 +41,25 @@ export default async function AnalyticsPage() {
 
   const initialFilters = getDefaultAnalyticsFilters(new Date());
   const overviewPort = createSupabaseDashboardOverviewPort();
-  const [overview, initialDataset] = await Promise.all([
-    getDashboardOverviewData(actor, overviewPort),
-    listAnalyticsDataset(
-      {
-        dimensions: ["receivedDate"],
-        filters: initialFilters,
-        measures: ["sampleCount", "positiveCount"],
-      },
-      actor,
-      overviewPort
-    ),
-  ]);
+  const reportKitPort = createSupabaseReportKitAnalyticsPort();
+  const [overview, initialDataset, initialReportKitContract] =
+    await Promise.all([
+      getDashboardOverviewData(actor, overviewPort),
+      listAnalyticsDataset(
+        {
+          dimensions: ["receivedDate"],
+          filters: initialFilters,
+          measures: ["sampleCount", "positiveCount"],
+        },
+        actor,
+        overviewPort
+      ),
+      listReportKitAnalyticsContract(
+        { filters: initialFilters },
+        actor,
+        reportKitPort
+      ),
+    ]);
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
@@ -58,6 +67,7 @@ export default async function AnalyticsPage() {
       <AnalyticsPageClient
         initialDataset={initialDataset}
         initialFilters={initialFilters}
+        initialReportKitContract={initialReportKitContract}
       />
     </div>
   );
