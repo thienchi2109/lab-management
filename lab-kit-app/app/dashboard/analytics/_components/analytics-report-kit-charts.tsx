@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef, useState } from "react";
+
 import {
   Card,
   CardContent,
@@ -7,9 +11,20 @@ import {
 import type {
   ReportKitAnalyticsChartId,
   ReportKitAnalyticsContract,
-  ReportKitAnalyticsDataset,
   ReportKitAnalyticsSegment,
 } from "@/lib/analytics/report-kit";
+import type { AnalyticsFilters } from "@/lib/analytics/query";
+
+import { fetchReportKitChartContract } from "./analytics-report-kit-chart-api";
+import { ReportKitChartFilterForm } from "./analytics-report-kit-chart-filter-form";
+import {
+  applyReportKitChartContract,
+  createReportKitChartState,
+  setReportKitChartError,
+  setReportKitChartLoading,
+  updateReportKitChartFilters,
+  type ReportKitChartDatasetState,
+} from "./analytics-report-kit-chart-state";
 
 type AnalyticsReportKitChartsProps = {
   contract: ReportKitAnalyticsContract;
@@ -56,6 +71,11 @@ const segmentColors = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed"];
 export function AnalyticsReportKitCharts({
   contract,
 }: AnalyticsReportKitChartsProps) {
+  const activeRequestIds = useRef<Record<string, number>>({});
+  const [chartState, setChartState] = useState(() =>
+    createReportKitChartState(contract)
+  );
+
   return (
     <section aria-label="Biểu đồ báo cáo kit và mẫu" className="space-y-3">
       <div>
@@ -65,22 +85,77 @@ export function AnalyticsReportKitCharts({
         </p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        {contract.charts.map((chartId) => (
+        {chartState.charts.map((chartId) => (
           <ReportKitChartCard
             key={chartId}
-            dataset={contract.datasets[chartId]}
+            chartState={chartState.datasets[chartId]}
+            onFilterChange={(filters) => updateChartFilters(chartId, filters)}
+            onSubmit={(event) => submitChartFilters(event, chartId)}
           />
         ))}
       </div>
     </section>
   );
+
+  function updateChartFilters(
+    chartId: ReportKitAnalyticsChartId,
+    filters: AnalyticsFilters
+  ) {
+    setChartState((current) =>
+      updateReportKitChartFilters(current, chartId, filters)
+    );
+  }
+
+  async function submitChartFilters(
+    event: React.FormEvent<HTMLFormElement>,
+    chartId: ReportKitAnalyticsChartId
+  ) {
+    event.preventDefault();
+    const requestId = (activeRequestIds.current[chartId] ?? 0) + 1;
+    activeRequestIds.current[chartId] = requestId;
+    const filters = chartState.datasets[chartId].filters;
+    setChartState((current) =>
+      setReportKitChartLoading(current, chartId, true)
+    );
+
+    try {
+      const contract = await fetchReportKitChartContract(chartId, filters);
+
+      applyCurrentChartRequest(chartId, requestId, () => {
+        setChartState((current) =>
+          applyReportKitChartContract(current, contract)
+        );
+      });
+    } catch (error) {
+      applyCurrentChartRequest(chartId, requestId, () => {
+        setChartState((current) =>
+          setReportKitChartError(current, chartId, getErrorMessage(error))
+        );
+      });
+    }
+  }
+
+  function applyCurrentChartRequest(
+    chartId: ReportKitAnalyticsChartId,
+    requestId: number,
+    update: () => void
+  ) {
+    if (activeRequestIds.current[chartId] === requestId) {
+      update();
+    }
+  }
 }
 
 function ReportKitChartCard({
-  dataset,
+  chartState,
+  onFilterChange,
+  onSubmit,
 }: {
-  dataset: ReportKitAnalyticsDataset;
+  chartState: ReportKitChartDatasetState;
+  onFilterChange: (filters: AnalyticsFilters) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }) {
+  const { dataset } = chartState;
   const config = chartConfigs[dataset.chartId];
   const segments = dataset.segments.map((segment, index) => ({
     color: segmentColors[index % segmentColors.length],
@@ -100,7 +175,16 @@ function ReportKitChartCard({
         <h3 className="text-sm font-semibold md:text-base">{config.title}</h3>
         <CardDescription>{config.description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <ReportKitChartFilterForm
+          error={chartState.error}
+          filterSummary={chartState.filterSummary}
+          filters={chartState.filters}
+          isLoading={chartState.isLoading}
+          title={config.title}
+          onFilterChange={onFilterChange}
+          onSubmit={onSubmit}
+        />
         {segments.length === 0 ? (
           <p className="rounded-lg border border-dashed bg-muted/30 px-3 py-6 text-center text-sm text-muted-foreground">
             Chưa có dữ liệu cho biểu đồ này.
@@ -173,4 +257,10 @@ function formatPercent(value: number, total: number) {
   if (total <= 0) return "0.0%";
 
   return `${((value / total) * 100).toFixed(1)}%`;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "Không thể tải dữ liệu biểu đồ báo cáo kit.";
 }
