@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   listSampleGridPage,
@@ -13,6 +13,15 @@ const actor: SampleGridActor = {
 };
 
 describe("sample grid result group filters", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-08T10:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   test("passes selected result group filters through the port and exposes filter options", async () => {
     const firstGroupId = "11111111-1111-4111-8111-111111111111";
     const secondGroupId = "22222222-2222-4222-8222-222222222222";
@@ -45,7 +54,9 @@ describe("sample grid result group filters", () => {
       {
         organizationId: "org-1",
         query: expect.objectContaining({
-          filters: { resultGroupIds: [firstGroupId, secondGroupId] },
+          filters: expect.objectContaining({
+            resultGroupIds: [firstGroupId, secondGroupId],
+          }),
         }),
       },
     ]);

@@ -106,7 +106,7 @@ describe("DialogFrame", () => {
       })
     );
 
-    expect(source).toContain("HTMLDialogElement");
+    expect(source).toContain("<dialog");
     expect(source).not.toContain(".showModal()");
     expect(source).not.toContain(".close()");
   });

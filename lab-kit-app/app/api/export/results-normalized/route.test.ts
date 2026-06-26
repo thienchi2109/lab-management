@@ -149,14 +149,18 @@ describe("POST /api/export/results-normalized", () => {
       expect(port.listSamples).toHaveBeenCalledWith({
         organizationId: "org-1",
         query: {
-          filters: { status: "received" },
+          filters: {
+            receivedFrom: "2026-05-30",
+            receivedTo: "2026-06-08",
+            status: "received",
+          },
           limit: 25,
           offset: 0,
           page: 1,
           pageSize: 25,
           resultColumnKeys: [],
           search: "T6_00012",
-          sort: { direction: "asc", key: "sampleCode" },
+          sort: { direction: "desc", key: "receivedAt" },
         },
       });
       expect(port.listSampleResultSummaries).toHaveBeenCalledWith({
@@ -172,9 +176,9 @@ describe("POST /api/export/results-normalized", () => {
           dataset: "results-normalized",
           fieldCount: 5,
           filterSummary: {
-            filterKeys: ["status"],
+            filterKeys: ["receivedFrom", "receivedTo", "status"],
             hasSearch: true,
-            sort: { direction: "asc", key: "sampleCode" },
+            sort: { direction: "desc", key: "receivedAt" },
           },
           format: "csv",
           result: "succeeded",

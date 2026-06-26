@@ -17,6 +17,8 @@ import {
   type SampleMetadataActionState,
 } from "./actions";
 
+vi.mock("server-only", () => ({}));
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
