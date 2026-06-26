@@ -68,18 +68,19 @@ describe("AnalyticsPage report kit preset bootstrap", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
     mockPageData();
-    vi.mocked(createSupabaseReportKitPresetPort).mockReturnValue({
-      readPreset: vi.fn(async () => ({
-        config: {
-          charts: {
-            kitQuantityBySampleType: {
-              filters: { receivedFrom: "2026-06-05", sampleTypeId: "pl" },
-            },
+    const readPreset = vi.fn(async () => ({
+      config: {
+        charts: {
+          kitQuantityBySampleType: {
+            filters: { receivedFrom: "2026-06-05", sampleTypeId: "pl" },
           },
         },
-        updatedAt: "2026-06-20T00:00:00.000Z",
-        updatedBy: "profile-admin",
-      })),
+      },
+      updatedAt: "2026-06-20T00:00:00.000Z",
+      updatedBy: "profile-admin",
+    }));
+    vi.mocked(createSupabaseReportKitPresetPort).mockReturnValue({
+      readPreset,
       savePreset: vi.fn(),
     });
     vi.mocked(listReportKitAnalyticsContract).mockImplementation(
@@ -88,6 +89,13 @@ describe("AnalyticsPage report kit preset bootstrap", () => {
 
     render(await AnalyticsPage());
 
+    expect(readPreset).toHaveBeenCalledWith({
+      actor: {
+        organizationId: "org-1",
+        profileId: "profile-1",
+        role: "admin",
+      },
+    });
     expect(listReportKitAnalyticsContract).toHaveBeenCalledTimes(4);
     expect(listReportKitAnalyticsContract).toHaveBeenCalledWith(
       {

@@ -151,6 +151,7 @@ export function AnalyticsReportKitCharts({
     chartId: ReportKitAnalyticsChartId,
     filters: AnalyticsFilters
   ) {
+    setPresetMessage(null);
     setChartState((current) =>
       updateReportKitChartFilters(current, chartId, filters)
     );

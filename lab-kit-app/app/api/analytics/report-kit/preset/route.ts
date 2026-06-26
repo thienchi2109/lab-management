@@ -12,9 +12,9 @@ import { getCurrentSession } from "@/lib/auth/session";
 export async function GET(): Promise<NextResponse> {
   try {
     const actor = await requireReportKitPresetActor();
-    const preset = await createSupabaseReportKitPresetPort().readPreset(
-      actor.organizationId
-    );
+    const preset = await createSupabaseReportKitPresetPort().readPreset({
+      actor,
+    });
 
     return NextResponse.json(preset ?? { config: null });
   } catch (error) {

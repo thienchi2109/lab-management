@@ -57,6 +57,18 @@ describe("report kit filter presets", () => {
     ).toThrow("Preset bộ lọc báo cáo không hợp lệ.");
   });
 
+  test("accepts an empty charts payload as no saved overrides", () => {
+    const config = parseReportKitFilterPresetConfig({ charts: {} });
+
+    expect(config).toEqual({ charts: {} });
+    expect(
+      mergeReportKitDefaultFilters(
+        { receivedFrom: "2026-06-01", receivedTo: "2026-06-30" },
+        config
+      ).kitQuantityBySampleType
+    ).toEqual({ receivedFrom: "2026-06-01", receivedTo: "2026-06-30" });
+  });
+
   test("allows only Admin to persist organization report presets", () => {
     expect(canSaveReportKitFilterPreset(adminActor)).toBe(true);
     expect(canSaveReportKitFilterPreset(editorActor)).toBe(false);

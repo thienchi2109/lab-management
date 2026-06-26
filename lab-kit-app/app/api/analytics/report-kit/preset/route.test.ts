@@ -80,7 +80,13 @@ describe("/api/analytics/report-kit/preset", () => {
     const response = await GET();
 
     expect(response.status).toBe(200);
-    expect(port.readPreset).toHaveBeenCalledWith("org-1");
+    expect(port.readPreset).toHaveBeenCalledWith({
+      actor: {
+        organizationId: "org-1",
+        profileId: "profile-viewer",
+        role: "viewer",
+      },
+    });
     expect(port.savePreset).not.toHaveBeenCalled();
   });
 

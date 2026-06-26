@@ -23,9 +23,16 @@ export type SaveReportKitFilterPresetInput = {
   config: ReportKitFilterPresetConfig;
 };
 
+/** Dữ liệu đầu vào để đọc preset báo cáo theo actor đã xác thực. */
+export type ReadReportKitFilterPresetInput = {
+  actor: AnalyticsActor;
+};
+
 /** Port lưu preset báo cáo với actor đã xác thực ở tầng ứng dụng. */
 export type ReportKitFilterPresetPort = {
-  readPreset(organizationId: string): Promise<ReportKitFilterPreset | null>;
+  readPreset(
+    input: ReadReportKitFilterPresetInput
+  ): Promise<ReportKitFilterPreset | null>;
   savePreset(
     input: SaveReportKitFilterPresetInput
   ): Promise<ReportKitFilterPreset>;
@@ -36,11 +43,11 @@ export function createSupabaseReportKitPresetPort(): ReportKitFilterPresetPort {
   const supabase = getSupabaseAdminClient();
 
   return {
-    async readPreset(organizationId) {
+    async readPreset(input) {
       const { data, error } = await supabase
         .from("report_filter_presets")
         .select("config, updated_at, updated_by")
-        .eq("organization_id", organizationId)
+        .eq("organization_id", input.actor.organizationId)
         .eq("scope", REPORT_KIT_FILTER_PRESET_SCOPE)
         .maybeSingle<ReportKitFilterPresetRow>();
 

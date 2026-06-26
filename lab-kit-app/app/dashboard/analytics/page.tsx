@@ -65,7 +65,7 @@ export default async function AnalyticsPage() {
       actor,
       overviewPort
     ),
-    presetPort.readPreset(actor.organizationId).catch(() => null),
+    presetPort.readPreset({ actor }).catch(() => null),
   ]);
   const initialReportKitFiltersByChart = mergeReportKitDefaultFilters(
     initialFilters,

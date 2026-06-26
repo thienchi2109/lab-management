@@ -58,10 +58,6 @@ export function parseReportKitFilterPresetConfig(
     }
   }
 
-  if (Object.keys(charts).length === 0) {
-    throw new Error(PRESET_ERROR_MESSAGE);
-  }
-
   return { charts };
 }
 

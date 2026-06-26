@@ -73,6 +73,34 @@ describe("AnalyticsReportKitCharts preset UI", () => {
     expect(message.className).toContain("text-primary");
   });
 
+  test("clears the saved preset message when filters become dirty again", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ config: { charts: {} } }))
+    );
+
+    render(
+      <AnalyticsReportKitCharts contract={createContract()} canSavePreset />
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Lưu preset mặc định" })
+    );
+    expect((await screen.findByRole("status")).textContent).toBe(
+      "Đã lưu preset mặc định."
+    );
+
+    const sampleTypeChart = within(
+      screen.getByRole("region", { name: "Tổng lượng KIT theo loại mẫu" })
+    );
+    fireEvent.change(sampleTypeChart.getByLabelText("Từ ngày"), {
+      target: { value: "2026-06-05" },
+    });
+
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
   test("announces preset save errors with error styling", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(

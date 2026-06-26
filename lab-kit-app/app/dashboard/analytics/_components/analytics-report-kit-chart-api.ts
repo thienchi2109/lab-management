@@ -21,7 +21,12 @@ export async function fetchReportKitChartContract(
   const payload: unknown = await response.json();
 
   if (!response.ok) {
-    throw new Error(getReportKitErrorMessage(payload));
+    throw new Error(
+      getReportKitErrorMessage(
+        payload,
+        "Không thể tải dữ liệu biểu đồ báo cáo kit."
+      )
+    );
   }
 
   if (!isReportKitAnalyticsContract(payload)) {
@@ -43,7 +48,9 @@ export async function saveReportKitFilterPreset(
   const payload: unknown = await response.json();
 
   if (!response.ok) {
-    throw new Error(getReportKitErrorMessage(payload));
+    throw new Error(
+      getReportKitErrorMessage(payload, "Không thể lưu preset bộ lọc báo cáo.")
+    );
   }
 }
 
@@ -53,7 +60,7 @@ function cleanFilters(filters: AnalyticsFilters) {
   );
 }
 
-function getReportKitErrorMessage(payload: unknown) {
+function getReportKitErrorMessage(payload: unknown, fallback: string) {
   if (
     typeof payload === "object" &&
     payload !== null &&
@@ -63,7 +70,7 @@ function getReportKitErrorMessage(payload: unknown) {
     return payload.message;
   }
 
-  return "Không thể tải dữ liệu biểu đồ báo cáo kit.";
+  return fallback;
 }
 
 function isReportKitAnalyticsContract(
