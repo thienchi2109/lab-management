@@ -32,6 +32,7 @@ type DashboardDataTableProps = {
   emptyDescription: string;
   hiddenColumnKeys?: readonly string[];
   mobileHiddenColumnKeys?: readonly string[];
+  mobileRowLimit?: number;
   rows: DashboardDataTableRow[];
   tone?: "default" | "workspace";
 };
@@ -47,6 +48,7 @@ export function DashboardDataTable({
   emptyDescription,
   hiddenColumnKeys = emptyHiddenColumnKeys,
   mobileHiddenColumnKeys = emptyHiddenColumnKeys,
+  mobileRowLimit,
   rows,
   tone = "default",
 }: DashboardDataTableProps) {
@@ -70,7 +72,11 @@ export function DashboardDataTable({
       isColumnVisible(cell, hiddenColumnKeySet)
     ),
   }));
-  const mobileRows = visibleRows.map((row) => ({
+  const mobileSourceRows =
+    typeof mobileRowLimit === "number"
+      ? visibleRows.slice(0, mobileRowLimit)
+      : visibleRows;
+  const mobileRows = mobileSourceRows.map((row) => ({
     ...row,
     cells: row.cells.filter((cell) =>
       isColumnVisible(cell, mobileHiddenColumnKeySet)

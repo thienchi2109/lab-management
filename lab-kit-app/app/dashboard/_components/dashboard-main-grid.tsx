@@ -6,16 +6,23 @@ import { DashboardTrendCard } from "./dashboard-trend-card";
 
 type DashboardMainGridProps = {
   overview: DashboardOverviewData;
+  recentSampleMobileLimit?: number;
 };
 
-function DashboardMainGrid({ overview }: DashboardMainGridProps) {
+function DashboardMainGrid({
+  overview,
+  recentSampleMobileLimit,
+}: DashboardMainGridProps) {
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-3">
         <DashboardTrendCard trend={overview.trend} />
         <DashboardMetricCard metrics={overview.pcrMetrics} />
       </div>
-      <DashboardRecentSamplesCard samples={overview.recentSamples} />
+      <DashboardRecentSamplesCard
+        mobileSampleLimit={recentSampleMobileLimit}
+        samples={overview.recentSamples}
+      />
     </>
   );
 }

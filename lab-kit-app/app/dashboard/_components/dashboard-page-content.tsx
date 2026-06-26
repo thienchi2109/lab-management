@@ -8,14 +8,21 @@ import { DashboardStatsGrid } from "./dashboard-stats-grid";
 
 type DashboardPageContentProps = {
   overview: DashboardOverviewData;
+  recentSampleMobileLimit?: number;
 };
 
-function DashboardPageContent({ overview }: DashboardPageContentProps) {
+function DashboardPageContent({
+  overview,
+  recentSampleMobileLimit,
+}: DashboardPageContentProps) {
   return (
     <PageContainer className="gap-6 md:gap-8">
       <DashboardHero dateRangeLabel={overview.trend.dateRangeLabel} />
       <DashboardStatsGrid stats={overview.stats} />
-      <DashboardMainGrid overview={overview} />
+      <DashboardMainGrid
+        overview={overview}
+        recentSampleMobileLimit={recentSampleMobileLimit}
+      />
     </PageContainer>
   );
 }

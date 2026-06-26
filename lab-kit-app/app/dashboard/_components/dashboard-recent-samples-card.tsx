@@ -17,10 +17,12 @@ import {
 import type { DashboardOverviewRecentSample } from "@/lib/analytics/overview";
 
 type DashboardRecentSamplesCardProps = {
+  mobileSampleLimit?: number;
   samples: DashboardOverviewRecentSample[];
 };
 
 function DashboardRecentSamplesCard({
+  mobileSampleLimit,
   samples,
 }: DashboardRecentSamplesCardProps) {
   const rows = samples.map(toRecentSampleRow);
@@ -52,6 +54,7 @@ function DashboardRecentSamplesCard({
           caption="Danh sách mẫu xét nghiệm nhận gần đây"
           emptyTitle="Chưa có mẫu gần đây"
           emptyDescription="Các mẫu nhận trong 7 ngày gần nhất sẽ xuất hiện tại đây."
+          mobileRowLimit={mobileSampleLimit}
           rows={rows}
         />
       </CardContent>

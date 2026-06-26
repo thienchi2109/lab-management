@@ -82,7 +82,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
-      <DashboardPageContent overview={overview} />
+      <DashboardPageContent overview={overview} recentSampleMobileLimit={2} />
       <AnalyticsPageClient
         canSaveReportKitPreset={canSaveReportKitFilterPreset(actor)}
         initialDataset={initialDataset}

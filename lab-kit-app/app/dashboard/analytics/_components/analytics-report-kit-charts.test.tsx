@@ -121,6 +121,29 @@ describe("AnalyticsPageClient report kit charts", () => {
     ).toBeTruthy();
   });
 
+  test("renders report kit charts as mobile-first accordion cards with one filter entry point", () => {
+    const { container } = render(
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+        initialReportKitContract={initialReportKitContract}
+      />
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Chỉnh bộ lọc biểu đồ" })
+    ).toBeTruthy();
+    expect(
+      container.querySelectorAll("details[data-report-kit-chart-card]")
+    ).toHaveLength(4);
+    expect(
+      container.querySelector("[data-report-kit-mobile-filter-toolbar]")
+    ).toBeTruthy();
+  });
+
   test("renders an empty state inside only the chart with an empty dataset", () => {
     render(
       <AnalyticsPageClient

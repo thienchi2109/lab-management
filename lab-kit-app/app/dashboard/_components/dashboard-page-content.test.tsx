@@ -114,4 +114,31 @@ describe("DashboardPageContent", () => {
     expect(html).not.toContain("LAB-2023");
     expect(html).not.toContain("AQ-2023");
   });
+
+  test("limits recent sample mobile cards without trimming desktop rows", () => {
+    const overviewWithManySamples: DashboardOverviewData = {
+      ...overview,
+      recentSamples: [
+        ...overview.recentSamples,
+        {
+          ...overview.recentSamples[0],
+          code: "T06_00002",
+        },
+        {
+          ...overview.recentSamples[0],
+          code: "T06_00003",
+        },
+      ],
+    };
+
+    const html = renderToStaticMarkup(
+      <DashboardPageContent
+        overview={overviewWithManySamples}
+        recentSampleMobileLimit={2}
+      />
+    );
+
+    expect(html.match(/data-mobile-card-column-key="code"/g)).toHaveLength(2);
+    expect(html.match(/data-sample-column-key="code"/g)).toHaveLength(4);
+  });
 });
