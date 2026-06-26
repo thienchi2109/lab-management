@@ -6,9 +6,20 @@ import {
   listAnalyticsDataset,
 } from "@/lib/analytics/operations";
 import { getDashboardOverviewData } from "@/lib/analytics/overview";
-import { listReportKitAnalyticsContract } from "@/lib/analytics/report-kit";
+import {
+  listReportKitAnalyticsContract,
+  REPORT_KIT_ANALYTICS_CHART_IDS,
+  type ReportKitAnalyticsContract,
+} from "@/lib/analytics/report-kit";
+import {
+  canSaveReportKitFilterPreset,
+  mergeReportKitDefaultFilters,
+  type ReportKitFilterPresetConfig,
+} from "@/lib/analytics/report-kit-presets";
+import type { AnalyticsFilters } from "@/lib/analytics/query";
 import { createSupabaseDashboardOverviewPort } from "@/lib/analytics/server";
 import { createSupabaseReportKitAnalyticsPort } from "@/lib/analytics/server-report-kit";
+import { createSupabaseReportKitPresetPort } from "@/lib/analytics/server-report-kit-presets";
 import { getCurrentSession } from "@/lib/auth/session";
 
 import { DashboardPageContent } from "../_components/dashboard-page-content";
@@ -42,41 +53,99 @@ export default async function AnalyticsPage() {
   const initialFilters = getDefaultAnalyticsFilters(new Date());
   const overviewPort = createSupabaseDashboardOverviewPort();
   const reportKitPort = createSupabaseReportKitAnalyticsPort();
-  const [overview, initialDataset, initialReportKitContract] =
-    await Promise.all([
-      getDashboardOverviewData(actor, overviewPort),
-      listAnalyticsDataset(
-        {
-          dimensions: ["receivedDate"],
-          filters: initialFilters,
-          measures: ["sampleCount", "positiveCount"],
-        },
-        actor,
-        overviewPort
-      ),
-      (async () => {
-        try {
-          return await listReportKitAnalyticsContract(
-            { filters: initialFilters },
-            actor,
-            reportKitPort
-          );
-        } catch {
-          return undefined;
-        }
-      })(),
-    ]);
+  const presetPort = createSupabaseReportKitPresetPort();
+  const [overview, initialDataset, savedPreset] = await Promise.all([
+    getDashboardOverviewData(actor, overviewPort),
+    listAnalyticsDataset(
+      {
+        dimensions: ["receivedDate"],
+        filters: initialFilters,
+        measures: ["sampleCount", "positiveCount"],
+      },
+      actor,
+      overviewPort
+    ),
+    presetPort.readPreset(actor.organizationId).catch(() => null),
+  ]);
+  const initialReportKitFiltersByChart = mergeReportKitDefaultFilters(
+    initialFilters,
+    savedPreset?.config
+  );
+  const initialReportKitContract = await loadInitialReportKitContract(
+    actor,
+    reportKitPort,
+    initialReportKitFiltersByChart
+  );
+  const initialReportKitPresetConfig = toPresetConfig(
+    initialReportKitFiltersByChart
+  );
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <DashboardPageContent overview={overview} />
       <AnalyticsPageClient
+        canSaveReportKitPreset={canSaveReportKitFilterPreset(actor)}
         initialDataset={initialDataset}
         initialFilters={initialFilters}
+        initialReportKitFiltersByChart={initialReportKitPresetConfig.charts}
         initialReportKitContract={initialReportKitContract}
       />
     </div>
   );
+}
+
+function toPresetConfig(
+  filtersByChart: Record<
+    (typeof REPORT_KIT_ANALYTICS_CHART_IDS)[number],
+    AnalyticsFilters
+  >
+): ReportKitFilterPresetConfig {
+  return {
+    charts: Object.fromEntries(
+      Object.entries(filtersByChart).map(([chartId, filters]) => [
+        chartId,
+        { filters },
+      ])
+    ),
+  };
+}
+
+async function loadInitialReportKitContract(
+  actor: NonNullable<ReturnType<typeof getAnalyticsActor>>,
+  reportKitPort: ReturnType<typeof createSupabaseReportKitAnalyticsPort>,
+  filtersByChart: Record<
+    (typeof REPORT_KIT_ANALYTICS_CHART_IDS)[number],
+    AnalyticsFilters
+  >
+): Promise<ReportKitAnalyticsContract | undefined> {
+  try {
+    const contracts = await Promise.all(
+      REPORT_KIT_ANALYTICS_CHART_IDS.map((chartId) =>
+        listReportKitAnalyticsContract(
+          { charts: [chartId], filters: filtersByChart[chartId] },
+          actor,
+          reportKitPort
+        )
+      )
+    );
+    const [firstContract] = contracts;
+
+    if (!firstContract) return undefined;
+
+    return {
+      ...firstContract,
+      charts: [...REPORT_KIT_ANALYTICS_CHART_IDS],
+      datasets: Object.fromEntries(
+        contracts.map((contract) => {
+          const [chartId] = contract.charts;
+
+          return [chartId, contract.datasets[chartId]];
+        })
+      ) as ReportKitAnalyticsContract["datasets"],
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 function getDefaultAnalyticsFilters(now: Date) {

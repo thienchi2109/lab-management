@@ -2,6 +2,7 @@ import type {
   ReportKitAnalyticsChartId,
   ReportKitAnalyticsContract,
 } from "@/lib/analytics/report-kit";
+import type { ReportKitFilterPresetConfig } from "@/lib/analytics/report-kit-presets";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
 /** Tải lại contract cho đúng một biểu đồ báo cáo kit theo filter hiện tại. */
@@ -28,6 +29,22 @@ export async function fetchReportKitChartContract(
   }
 
   return payload;
+}
+
+/** Lưu preset mặc định của tổ chức cho toàn bộ bộ lọc biểu đồ báo cáo. */
+export async function saveReportKitFilterPreset(
+  config: ReportKitFilterPresetConfig
+) {
+  const response = await fetch("/api/analytics/report-kit/preset", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(config),
+  });
+  const payload: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error(getReportKitErrorMessage(payload));
+  }
 }
 
 function cleanFilters(filters: AnalyticsFilters) {

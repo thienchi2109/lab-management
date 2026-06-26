@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Save } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,10 +17,14 @@ import type {
 } from "@/lib/analytics/report-kit";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
-import { fetchReportKitChartContract } from "./analytics-report-kit-chart-api";
+import {
+  fetchReportKitChartContract,
+  saveReportKitFilterPreset,
+} from "./analytics-report-kit-chart-api";
 import { ReportKitChartFilterForm } from "./analytics-report-kit-chart-filter-form";
 import {
   applyReportKitChartContract,
+  createReportKitFilterPresetConfig,
   createReportKitChartState,
   setReportKitChartError,
   setReportKitChartLoading,
@@ -27,7 +33,11 @@ import {
 } from "./analytics-report-kit-chart-state";
 
 type AnalyticsReportKitChartsProps = {
+  canSavePreset?: boolean;
   contract: ReportKitAnalyticsContract;
+  initialFiltersByChart?: Partial<
+    Record<ReportKitAnalyticsChartId, AnalyticsFilters>
+  >;
 };
 
 type ChartConfig = {
@@ -35,6 +45,11 @@ type ChartConfig = {
   metric: keyof ReportKitAnalyticsSegment["metrics"];
   title: string;
   unit: string;
+};
+
+type PresetMessage = {
+  kind: "error" | "success";
+  text: string;
 };
 
 const chartConfigs = {
@@ -69,21 +84,56 @@ const segmentColors = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed"];
 
 /** Render 4 biểu đồ tròn báo cáo kit/mẫu từ contract đã chuẩn hóa. */
 export function AnalyticsReportKitCharts({
+  canSavePreset = false,
   contract,
+  initialFiltersByChart,
 }: AnalyticsReportKitChartsProps) {
   const activeRequestIds = useRef<Record<string, number>>({});
   const [chartState, setChartState] = useState(() =>
-    createReportKitChartState(contract)
+    createReportKitChartState(contract, initialFiltersByChart)
   );
+  const [presetMessage, setPresetMessage] = useState<PresetMessage | null>(
+    null
+  );
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
 
   return (
     <section aria-label="Biểu đồ báo cáo kit và mẫu" className="space-y-3">
-      <div>
-        <h2 className="text-base font-semibold">Biểu đồ báo cáo kit và mẫu</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Dữ liệu lấy trực tiếp từ hợp đồng báo cáo kit/mẫu đã khóa.
-        </p>
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <h2 className="text-base font-semibold">
+            Biểu đồ báo cáo kit và mẫu
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Dữ liệu lấy trực tiếp từ hợp đồng báo cáo kit/mẫu đã khóa.
+          </p>
+        </div>
+        {canSavePreset ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSavingPreset}
+            className="w-fit gap-2"
+            onClick={() => void saveCurrentPreset()}
+          >
+            <Save className="size-4" />
+            {isSavingPreset ? "Đang lưu" : "Lưu preset mặc định"}
+          </Button>
+        ) : null}
       </div>
+      {presetMessage ? (
+        <p
+          aria-live={presetMessage.kind === "error" ? "assertive" : "polite"}
+          className={
+            presetMessage.kind === "error"
+              ? "rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+              : "rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-sm font-medium text-primary"
+          }
+          role={presetMessage.kind === "error" ? "alert" : "status"}
+        >
+          {presetMessage.text}
+        </p>
+      ) : null}
       <div className="grid gap-4 lg:grid-cols-2">
         {chartState.charts.map((chartId) => (
           <ReportKitChartCard
@@ -132,6 +182,22 @@ export function AnalyticsReportKitCharts({
           setReportKitChartError(current, chartId, getErrorMessage(error))
         );
       });
+    }
+  }
+
+  async function saveCurrentPreset() {
+    setPresetMessage(null);
+    setIsSavingPreset(true);
+
+    try {
+      await saveReportKitFilterPreset(
+        createReportKitFilterPresetConfig(chartState)
+      );
+      setPresetMessage({ kind: "success", text: "Đã lưu preset mặc định." });
+    } catch (error) {
+      setPresetMessage({ kind: "error", text: getErrorMessage(error) });
+    } finally {
+      setIsSavingPreset(false);
     }
   }
 

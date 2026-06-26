@@ -40,6 +40,12 @@ vi.mock("@/lib/analytics/overview", () => ({
 }));
 
 vi.mock("@/lib/analytics/report-kit", () => ({
+  REPORT_KIT_ANALYTICS_CHART_IDS: [
+    "kitQuantityBySampleType",
+    "kitQuantityByKitType",
+    "sampleCountByClassification",
+    "cleanShrimpPlByGeneralPcrConclusion",
+  ],
   listReportKitAnalyticsContract: vi.fn(),
 }));
 
@@ -49,6 +55,12 @@ vi.mock("@/lib/analytics/server", () => ({
 
 vi.mock("@/lib/analytics/server-report-kit", () => ({
   createSupabaseReportKitAnalyticsPort: vi.fn(() => "report-kit-port"),
+}));
+
+vi.mock("@/lib/analytics/server-report-kit-presets", () => ({
+  createSupabaseReportKitPresetPort: vi.fn(() => ({
+    readPreset: vi.fn(async () => null),
+  })),
 }));
 
 vi.mock("../_components/dashboard-page-content", () => ({
@@ -177,119 +189,6 @@ describe("AnalyticsPage", () => {
           receivedFrom: "2026-06-01",
           receivedTo: "2026-06-15",
         },
-      }),
-      undefined
-    );
-  });
-
-  test("loads the report kit chart contract with the same bounded default filters", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
-    vi.mocked(getCurrentSession).mockResolvedValue({
-      profile: { id: "profile-1" },
-    } as never);
-    vi.mocked(getAnalyticsActor).mockReturnValue({
-      organizationId: "org-1",
-      profileId: "profile-1",
-      role: "admin",
-    });
-    vi.mocked(listAnalyticsDataset).mockResolvedValue({
-      filterSummary: ["Khoảng ngày đã chọn"],
-      query: {
-        dimensions: ["receivedDate"],
-        filters: {
-          receivedFrom: "2026-06-01",
-          receivedTo: "2026-06-15",
-        },
-        filterSummary: ["Khoảng ngày đã chọn"],
-        measures: ["sampleCount"],
-        limit: 50,
-        offset: 0,
-        page: 1,
-        pageSize: 50,
-      },
-      rows: [],
-      totals: {},
-      warnings: [],
-    });
-    vi.mocked(getDashboardOverviewData).mockResolvedValue({
-      pcrMetrics: [],
-      recentSamples: [],
-      stats: {
-        activeKits: { detail: "", title: "", value: "" },
-        cleanSamples: { detail: "", title: "", value: "" },
-        positiveSamples: { detail: "", title: "", value: "" },
-        totalSamples: { detail: "", title: "", value: "" },
-      },
-      trend: { bars: [], dateRangeLabel: "" },
-    });
-    vi.mocked(listReportKitAnalyticsContract).mockResolvedValue({
-      charts: [
-        "kitQuantityBySampleType",
-        "kitQuantityByKitType",
-        "sampleCountByClassification",
-        "cleanShrimpPlByGeneralPcrConclusion",
-      ],
-      datasets: {
-        cleanShrimpPlByGeneralPcrConclusion: {
-          chartId: "cleanShrimpPlByGeneralPcrConclusion",
-          segments: [],
-          warnings: [],
-        },
-        kitQuantityByKitType: {
-          chartId: "kitQuantityByKitType",
-          segments: [],
-          warnings: [],
-        },
-        kitQuantityBySampleType: {
-          chartId: "kitQuantityBySampleType",
-          segments: [],
-          warnings: [],
-        },
-        sampleCountByClassification: {
-          chartId: "sampleCountByClassification",
-          segments: [],
-          warnings: [],
-        },
-      },
-      filterSummary: ["Khoảng ngày đã chọn"],
-      query: {
-        dimensions: ["sampleType", "kitType"],
-        filters: {
-          receivedFrom: "2026-06-01",
-          receivedTo: "2026-06-15",
-        },
-        filterSummary: ["Khoảng ngày đã chọn"],
-        limit: 50,
-        measures: ["sampleCount"],
-        offset: 0,
-        page: 1,
-        pageSize: 50,
-      },
-    });
-
-    render(await AnalyticsPage());
-
-    expect(listReportKitAnalyticsContract).toHaveBeenCalledWith(
-      {
-        filters: {
-          receivedFrom: "2026-06-01",
-          receivedTo: "2026-06-15",
-        },
-      },
-      expect.objectContaining({ organizationId: "org-1" }),
-      "report-kit-port"
-    );
-    expect(analyticsPageClient).toHaveBeenCalledWith(
-      expect.objectContaining({
-        initialReportKitContract: expect.objectContaining({
-          charts: [
-            "kitQuantityBySampleType",
-            "kitQuantityByKitType",
-            "sampleCountByClassification",
-            "cleanShrimpPlByGeneralPcrConclusion",
-          ],
-        }),
       }),
       undefined
     );

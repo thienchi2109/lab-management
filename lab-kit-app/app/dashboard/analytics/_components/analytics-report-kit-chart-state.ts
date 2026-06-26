@@ -3,6 +3,7 @@ import type {
   ReportKitAnalyticsContract,
   ReportKitAnalyticsDataset,
 } from "@/lib/analytics/report-kit";
+import type { ReportKitFilterPresetConfig } from "@/lib/analytics/report-kit-presets";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
 /** State dataset, filter và trạng thái tải riêng của một chart card. */
@@ -22,23 +23,29 @@ export type ReportKitChartState = {
 
 /** Tạo state filter riêng cho từng biểu đồ từ contract server ban đầu. */
 export function createReportKitChartState(
-  contract: ReportKitAnalyticsContract
+  contract: ReportKitAnalyticsContract,
+  initialFiltersByChart?: Partial<
+    Record<ReportKitAnalyticsChartId, AnalyticsFilters>
+  >
 ): ReportKitChartState {
-  const filters = contract.query.filters;
-
   return {
     charts: contract.charts,
     datasets: Object.fromEntries(
-      contract.charts.map((chartId) => [
-        chartId,
-        {
-          dataset: contract.datasets[chartId],
-          error: null,
-          filterSummary: formatReportKitChartFilterSummary(filters),
-          filters,
-          isLoading: false,
-        },
-      ])
+      contract.charts.map((chartId) => {
+        const filters =
+          initialFiltersByChart?.[chartId] ?? contract.query.filters;
+
+        return [
+          chartId,
+          {
+            dataset: contract.datasets[chartId],
+            error: null,
+            filterSummary: formatReportKitChartFilterSummary(filters),
+            filters,
+            isLoading: false,
+          },
+        ];
+      })
     ) as ReportKitChartState["datasets"],
   };
 }
@@ -129,6 +136,20 @@ export function formatReportKitChartFilterSummary(
   if (filters.kitTypeId) summary.push("Loại KIT đã chọn");
 
   return summary.length > 0 ? summary : ["Chưa áp dụng bộ lọc"];
+}
+
+/** Serialize state hiện tại thành preset config để lưu mặc định cho tổ chức. */
+export function createReportKitFilterPresetConfig(
+  state: ReportKitChartState
+): ReportKitFilterPresetConfig {
+  return {
+    charts: Object.fromEntries(
+      state.charts.map((chartId) => [
+        chartId,
+        { filters: state.datasets[chartId].filters },
+      ])
+    ),
+  };
 }
 
 function updateChart(

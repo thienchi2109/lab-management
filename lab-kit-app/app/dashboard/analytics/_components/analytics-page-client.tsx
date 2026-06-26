@@ -13,11 +13,18 @@ import type {
 import { AnalyticsPivotSection } from "./analytics-pivot-section";
 import { AnalyticsReportKitCharts } from "./analytics-report-kit-charts";
 
-import type { ReportKitAnalyticsContract } from "@/lib/analytics/report-kit";
+import type {
+  ReportKitAnalyticsChartId,
+  ReportKitAnalyticsContract,
+} from "@/lib/analytics/report-kit";
+import type { ReportKitFilterPresetConfig } from "@/lib/analytics/report-kit-presets";
+import type { AnalyticsFilters } from "@/lib/analytics/query";
 
 type AnalyticsPageClientProps = {
+  canSaveReportKitPreset?: boolean;
   initialDataset: AnalyticsPivotDataset;
   initialFilters: AnalyticsPageFilters;
+  initialReportKitFiltersByChart?: ReportKitFilterPresetConfig["charts"];
   initialReportKitContract?: ReportKitAnalyticsContract;
 };
 
@@ -34,8 +41,10 @@ const metricToneClasses = {
 
 /** Render Analytics Page & Pivot UI với bộ lọc giới hạn và bảng responsive. */
 export function AnalyticsPageClient({
+  canSaveReportKitPreset = false,
   initialDataset,
   initialFilters,
+  initialReportKitFiltersByChart,
   initialReportKitContract,
 }: AnalyticsPageClientProps) {
   const activeRequestId = useRef(0);
@@ -152,7 +161,13 @@ export function AnalyticsPageClient({
       </section>
 
       {initialReportKitContract ? (
-        <AnalyticsReportKitCharts contract={initialReportKitContract} />
+        <AnalyticsReportKitCharts
+          canSavePreset={canSaveReportKitPreset}
+          contract={initialReportKitContract}
+          initialFiltersByChart={toFiltersByChart(
+            initialReportKitFiltersByChart
+          )}
+        />
       ) : null}
 
       <section
@@ -194,6 +209,16 @@ export function AnalyticsPageClient({
       update();
     }
   }
+}
+
+function toFiltersByChart(
+  charts: ReportKitFilterPresetConfig["charts"] | undefined
+): Partial<Record<ReportKitAnalyticsChartId, AnalyticsFilters>> {
+  if (!charts) return {};
+
+  return Object.fromEntries(
+    Object.entries(charts).map(([chartId, value]) => [chartId, value?.filters])
+  );
 }
 
 function AnalyticsMetricCard({
