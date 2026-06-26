@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -72,4 +72,9 @@ Thêm story riêng cho filter per-chart, tách khỏi persistence Admin/Viewer.
 
 ## Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+- RED: `cd lab-kit-app && bun run test app/dashboard/analytics/_components/analytics-report-kit-chart-state.test.ts app/dashboard/analytics/_components/analytics-report-kit-charts.test.tsx app/api/analytics/report-kit/route.test.ts` fail trước implement vì thiếu helper/route và chart card chưa có summary/filter riêng.
+- Unit/integration/API: focused regression suite sau implement `cd lab-kit-app && bun run test app/dashboard/analytics/_components/analytics-report-kit-chart-state.test.ts app/dashboard/analytics/_components/analytics-report-kit-charts.test.tsx app/api/analytics/report-kit/route.test.ts app/dashboard/analytics/page.test.tsx app/api/analytics/pivot/route.test.ts` pass `5 files / 16 tests`.
+- Static gates: `cd lab-kit-app && bun run typecheck`, `bun run lint:strict`, `bun run format:check`, `bun run docstring:check`, `bun run react-doctor:diff` đều pass.
+- E2E desktop bằng `agent-browser`: `/dashboard/analytics` render đủ 4 chart; đổi filter chart `Tổng lượng KIT theo loại mẫu` sang `Từ 24/06/2026 đến 25/06/2026` chỉ cập nhật chart đó; chart `Tổng lượng KIT theo loại KIT` vẫn giữ summary `Từ 01/06/2026 đến 25/06/2026` và dataset `PCR Demo Kit`.
+- E2E mobile bằng `agent-browser set viewport 390 844`: render đủ 4 chart, `horizontalOverflow=false`, screenshot lưu tại `/root/.agent-browser/tmp/screenshots/screenshot-1782395689965.png`.
+- Release screenshot desktop lưu tại `/root/.agent-browser/tmp/screenshots/screenshot-1782395629904.png`.

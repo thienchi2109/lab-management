@@ -54,11 +54,17 @@ export default async function AnalyticsPage() {
         actor,
         overviewPort
       ),
-      listReportKitAnalyticsContract(
-        { filters: initialFilters },
-        actor,
-        reportKitPort
-      ),
+      (async () => {
+        try {
+          return await listReportKitAnalyticsContract(
+            { filters: initialFilters },
+            actor,
+            reportKitPort
+          );
+        } catch {
+          return undefined;
+        }
+      })(),
     ]);
 
   return (
