@@ -28,7 +28,7 @@ export function Field({
         type={type}
         defaultValue={defaultValue ?? ""}
         required={required}
-        className={inputClassName}
+        className={inputClassName ?? "h-11 px-3 text-sm"}
         aria-describedby={error ? errorId : undefined}
         aria-invalid={error ? true : undefined}
       />

@@ -274,10 +274,15 @@ export function DialogActions({
         sticky && "sticky bottom-0 -mx-4 -mb-4 px-4 py-3"
       )}
     >
-      <Button type="button" variant="outline" onClick={onClose}>
+      <Button
+        type="button"
+        variant="outline"
+        className="h-11 px-4"
+        onClick={onClose}
+      >
         {cancelLabel}
       </Button>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" className="h-11 px-4" disabled={pending}>
         {pending ? savingLabel : submitLabel}
       </Button>
     </div>

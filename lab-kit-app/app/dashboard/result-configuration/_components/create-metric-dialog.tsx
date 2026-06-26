@@ -71,7 +71,7 @@ export function CreateMetricDialog({
             label="Nhóm"
             name="resultGroupId"
             className="gap-1"
-            triggerClassName="h-9 px-2.5 shadow-none"
+            triggerClassName="h-11 px-3 shadow-none"
             options={groups.map((group) => [group.id, group.name])}
           />
           <SelectField
@@ -79,7 +79,7 @@ export function CreateMetricDialog({
             name="inputType"
             defaultValue="text"
             className="gap-1"
-            triggerClassName="h-9 px-2.5 shadow-none"
+            triggerClassName="h-11 px-3 shadow-none"
             options={RESULT_INPUT_TYPES.map((type) => [type, type])}
           />
           <Field
@@ -111,7 +111,7 @@ export function CreateMetricDialog({
             name="isRequired"
             defaultValue="true"
             className="gap-1"
-            triggerClassName="h-9 px-2.5 shadow-none"
+            triggerClassName="h-11 px-3 shadow-none"
             options={[
               ["true", "Có"],
               ["false", "Không"],
@@ -122,7 +122,7 @@ export function CreateMetricDialog({
             name="isActive"
             defaultValue="true"
             className="gap-1"
-            triggerClassName="h-9 px-2.5 shadow-none"
+            triggerClassName="h-11 px-3 shadow-none"
             options={[
               ["true", "Hoạt động"],
               ["false", "Tạm khóa"],
@@ -135,14 +135,14 @@ export function CreateMetricDialog({
             name="optionsJson"
             defaultValue="[]"
             className="block w-full space-y-1 text-sm font-medium"
-            inputClassName="min-h-16 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            inputClassName="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
           <TextAreaField
             label="Thiết lập JSON"
             name="settingsJson"
             defaultValue="{}"
             className="block w-full space-y-1 text-sm font-medium"
-            inputClassName="min-h-16 w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            inputClassName="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
         <ActionMessage state={state} />

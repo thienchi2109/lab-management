@@ -81,7 +81,7 @@ export function AppSelect({
           aria-describedby={error ? errorId : undefined}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "h-10 w-full rounded-md border-input bg-card px-3 text-sm shadow-xs hover:bg-accent/40",
+            "h-11 w-full rounded-md border-input bg-card px-3 text-sm shadow-xs hover:bg-accent/40",
             triggerClassName
           )}
           size={size}
@@ -99,7 +99,7 @@ export function AppSelect({
               <SelectItem
                 key={`${index}:${option.value}`}
                 value={option.value === "" ? emptyOptionValue : option.value}
-                className="min-h-9 rounded-lg px-2.5 py-2 text-sm data-[state=checked]:bg-accent data-[state=checked]:font-medium data-[state=checked]:text-accent-foreground"
+                className="min-h-10 rounded-lg px-3 py-2 text-sm data-[state=checked]:bg-accent data-[state=checked]:font-medium data-[state=checked]:text-accent-foreground"
               >
                 {option.label}
               </SelectItem>

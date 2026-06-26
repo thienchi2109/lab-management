@@ -129,6 +129,8 @@ describe("Overlay frame primitive", () => {
     expect(html).toContain("-translate-x-1/2");
     expect(html).toContain("Bỏ qua");
     expect(html).toContain("Đang xử lý...");
+    expect(html).toContain("h-11");
+    expect(html).toContain("px-4");
   });
 
   test("centers compact modals at desktop breakpoints", () => {
