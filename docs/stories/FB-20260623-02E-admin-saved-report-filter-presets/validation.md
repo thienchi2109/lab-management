@@ -31,12 +31,36 @@ proven mechanically and in browser. Proof must show:
 
 ## Commands
 
-Add commands after scripts/tests exist.
+Đã chạy trong `lab-kit-app/`:
 
 ```text
-TBD
+bun run test lib/analytics/report-kit-presets.test.ts app/api/analytics/report-kit/preset/route.test.ts app/dashboard/analytics/_components/analytics-report-kit-preset-ui.test.tsx app/dashboard/analytics/_components/analytics-report-kit-chart-state.test.ts app/dashboard/analytics/_components/analytics-report-kit-charts.test.tsx app/dashboard/analytics/page.test.tsx app/dashboard/analytics/page-report-kit.test.tsx app/api/analytics/report-kit/route.test.ts lib/analytics/report-kit.test.ts
+bun run typecheck
+bun run lint:strict
+bun run format:check
+bun run docstring:check
+bun run react-doctor:diff
 ```
 
 ## Acceptance Evidence
 
-Chưa có. Story đang ở trạng thái planned.
+- RED tests đã fail đúng lý do thiếu module/route preset trước khi implement.
+- Focused tests xanh: 9 files, 24 tests.
+- Supabase MCP namespace: `mcp__supabase_lab_management`; project-ref repo
+  mapping: `tuuqgpzgollcerqqszjr`.
+- Applied migrations:
+  - `20260626075430_report_filter_presets`
+  - `20260626075546_report_filter_preset_actor_fk_indexes`
+- RLS proof: `report_filter_presets` có policies Admin insert/update và
+  member select; function `upsert_report_filter_preset_with_audit` chỉ grant
+  `service_role`.
+- Advisor proof: security còn warning nền `auth_leaked_password_protection`;
+  performance không còn unindexed FK mới của `report_filter_presets`.
+- Browser proof bằng `agent-browser`:
+  - Admin đăng nhập `admin / 123456@`, chart đầu đọc preset; browser session
+    gọi `PUT /api/analytics/report-kit/preset` trả `200` và DB lưu
+    `receivedFrom = 2026-06-06`.
+  - Viewer đăng nhập bằng shortcut Viewer, mở `/dashboard/analytics`, đọc
+    preset `2026-06-06`, không có nút `Lưu preset mặc định`.
+  - Viewer local override không persist sau reload; direct Viewer `PUT` bị
+    chặn `403`.

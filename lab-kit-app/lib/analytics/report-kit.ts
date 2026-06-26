@@ -85,7 +85,8 @@ const INFECTED_PATTERN = /NHIỄM|POSITIVE|DƯƠNG/i;
 const SHRIMP_PL_PATTERN = /(^|\s)tôm\s*pl(\s|$)/i;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
-const REPORT_CHART_IDS = [
+/** Danh sách chart id hợp lệ cho hợp đồng báo cáo kit/mẫu. */
+export const REPORT_KIT_ANALYTICS_CHART_IDS = [
   "kitQuantityBySampleType",
   "kitQuantityByKitType",
   "sampleCountByClassification",
@@ -106,7 +107,11 @@ const filtersSchema = z.strictObject({
     .optional(),
 });
 const querySchema = z.strictObject({
-  charts: z.array(z.enum(REPORT_CHART_IDS)).min(1).max(4).optional(),
+  charts: z
+    .array(z.enum(REPORT_KIT_ANALYTICS_CHART_IDS))
+    .min(1)
+    .max(4)
+    .optional(),
   filters: filtersSchema.optional(),
   page: z.coerce.number().int().positive().max(MAX_ANALYTICS_PAGE).optional(),
   pageSize: z.coerce.number().int().positive().optional(),
@@ -130,7 +135,7 @@ export function parseReportKitAnalyticsQuery(
   const filters = result.data.filters ?? {};
 
   return {
-    charts: result.data.charts ?? [...REPORT_CHART_IDS],
+    charts: result.data.charts ?? [...REPORT_KIT_ANALYTICS_CHART_IDS],
     dimensions: ["sampleType", "kitType"],
     filterSummary: buildFilterSummary(filters),
     filters,
@@ -172,7 +177,7 @@ export function buildReportKitAnalyticsContract(
   rows: ReportKitAnalyticsSourceRow[]
 ): Omit<ReportKitAnalyticsContract, "filterSummary" | "query"> {
   return {
-    charts: [...REPORT_CHART_IDS],
+    charts: [...REPORT_KIT_ANALYTICS_CHART_IDS],
     datasets: {
       kitQuantityBySampleType: buildKitQuantityBySampleType(rows),
       kitQuantityByKitType: buildKitQuantityByKitType(rows),
