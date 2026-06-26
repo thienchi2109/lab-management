@@ -70,6 +70,7 @@ export function CreateSampleDialog(props: DialogProps) {
         submitLabel="Tạo mẫu"
         savingLabel="Đang tạo..."
         onClose={props.onClose}
+        stickyActions
         {...formProps}
       />
     </DialogFrame>

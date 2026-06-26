@@ -117,6 +117,9 @@ describe("sample metadata dialogs", () => {
     expect(screen.getByLabelText("Ngày nhận").getAttribute("type")).toBe(
       "date"
     );
+    expect(
+      screen.getByRole("button", { name: "Tạo mẫu" }).parentElement?.className
+    ).toContain("sticky bottom-0");
     expect(screen.queryByText(/snapshot/i)).toBeNull();
     expect(document.body.innerHTML).toContain("bg-card");
     expect(document.body.innerHTML).toContain("text-card-foreground");
