@@ -6,6 +6,13 @@ import type {
 import type { ReportKitFilterPresetConfig } from "@/lib/analytics/report-kit-presets";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
+/** Contract bootstrap chỉ giữ chart và dataset, không gộp metadata query theo chart. */
+export type ReportKitChartBootstrapContract = Pick<
+  ReportKitAnalyticsContract,
+  "charts" | "datasets"
+> &
+  Partial<Pick<ReportKitAnalyticsContract, "query">>;
+
 /** State dataset, filter và trạng thái tải riêng của một chart card. */
 export type ReportKitChartDatasetState = {
   dataset: ReportKitAnalyticsDataset;
@@ -23,7 +30,7 @@ export type ReportKitChartState = {
 
 /** Tạo state filter riêng cho từng biểu đồ từ contract server ban đầu. */
 export function createReportKitChartState(
-  contract: ReportKitAnalyticsContract,
+  contract: ReportKitChartBootstrapContract,
   initialFiltersByChart?: Partial<
     Record<ReportKitAnalyticsChartId, AnalyticsFilters>
   >
@@ -33,7 +40,7 @@ export function createReportKitChartState(
     datasets: Object.fromEntries(
       contract.charts.map((chartId) => {
         const filters =
-          initialFiltersByChart?.[chartId] ?? contract.query.filters;
+          initialFiltersByChart?.[chartId] ?? contract.query?.filters ?? {};
 
         return [
           chartId,

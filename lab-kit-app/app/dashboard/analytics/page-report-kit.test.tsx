@@ -113,6 +113,72 @@ describe("AnalyticsPage report kit preset bootstrap", () => {
       undefined
     );
   });
+
+  test("builds an initial chart bootstrap without single-chart query metadata", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    mockPageData();
+    vi.mocked(createSupabaseReportKitPresetPort).mockReturnValue({
+      readPreset: vi.fn(async () => ({
+        config: {
+          charts: {
+            kitQuantityBySampleType: {
+              filters: { receivedFrom: "2026-06-05", sampleTypeId: "pl" },
+            },
+            kitQuantityByKitType: {
+              filters: { kitTypeId: "kit-a" },
+            },
+          },
+        },
+        updatedAt: "2026-06-20T00:00:00.000Z",
+        updatedBy: "profile-admin",
+      })),
+      savePreset: vi.fn(),
+    });
+    vi.mocked(listReportKitAnalyticsContract).mockImplementation(
+      async (input) =>
+        createContract(input as { charts: [ChartId]; filters?: unknown })
+    );
+
+    render(await AnalyticsPage());
+
+    const clientCalls = analyticsPageClient.mock.calls as unknown as Array<
+      [
+        {
+          initialReportKitContract?: Record<string, unknown>;
+          initialReportKitFiltersByChart?: unknown;
+        },
+        unknown?,
+      ]
+    >;
+    const props = clientCalls[0][0];
+
+    expect(props.initialReportKitContract).toEqual(
+      expect.objectContaining({
+        charts: chartIds,
+        datasets: expect.objectContaining({
+          kitQuantityByKitType: expect.objectContaining({
+            chartId: "kitQuantityByKitType",
+          }),
+          kitQuantityBySampleType: expect.objectContaining({
+            chartId: "kitQuantityBySampleType",
+          }),
+        }),
+      })
+    );
+    expect(props.initialReportKitContract).not.toHaveProperty("query");
+    expect(props.initialReportKitContract).not.toHaveProperty("filterSummary");
+    expect(props.initialReportKitFiltersByChart).toEqual(
+      expect.objectContaining({
+        kitQuantityByKitType: {
+          filters: expect.objectContaining({ kitTypeId: "kit-a" }),
+        },
+        kitQuantityBySampleType: {
+          filters: expect.objectContaining({ sampleTypeId: "pl" }),
+        },
+      })
+    );
+  });
 });
 
 type ChartId = (typeof chartIds)[number];

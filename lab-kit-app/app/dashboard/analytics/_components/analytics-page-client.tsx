@@ -12,11 +12,9 @@ import type {
 } from "./analytics-page-types";
 import { AnalyticsPivotSection } from "./analytics-pivot-section";
 import { AnalyticsReportKitCharts } from "./analytics-report-kit-charts";
+import type { ReportKitChartBootstrapContract } from "./analytics-report-kit-chart-state";
 
-import type {
-  ReportKitAnalyticsChartId,
-  ReportKitAnalyticsContract,
-} from "@/lib/analytics/report-kit";
+import type { ReportKitAnalyticsChartId } from "@/lib/analytics/report-kit";
 import type { ReportKitFilterPresetConfig } from "@/lib/analytics/report-kit-presets";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
@@ -25,7 +23,7 @@ type AnalyticsPageClientProps = {
   initialDataset: AnalyticsPivotDataset;
   initialFilters: AnalyticsPageFilters;
   initialReportKitFiltersByChart?: ReportKitFilterPresetConfig["charts"];
-  initialReportKitContract?: ReportKitAnalyticsContract;
+  initialReportKitContract?: ReportKitChartBootstrapContract;
 };
 
 const defaultMeasures: AnalyticsPageMeasure[] = [

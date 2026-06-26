@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import type {
   ReportKitAnalyticsChartId,
-  ReportKitAnalyticsContract,
   ReportKitAnalyticsSegment,
 } from "@/lib/analytics/report-kit";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
@@ -29,12 +28,13 @@ import {
   setReportKitChartError,
   setReportKitChartLoading,
   updateReportKitChartFilters,
+  type ReportKitChartBootstrapContract,
   type ReportKitChartDatasetState,
 } from "./analytics-report-kit-chart-state";
 
 type AnalyticsReportKitChartsProps = {
   canSavePreset?: boolean;
-  contract: ReportKitAnalyticsContract;
+  contract: ReportKitChartBootstrapContract;
   initialFiltersByChart?: Partial<
     Record<ReportKitAnalyticsChartId, AnalyticsFilters>
   >;

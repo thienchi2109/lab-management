@@ -9,7 +9,6 @@ import { getDashboardOverviewData } from "@/lib/analytics/overview";
 import {
   listReportKitAnalyticsContract,
   REPORT_KIT_ANALYTICS_CHART_IDS,
-  type ReportKitAnalyticsContract,
 } from "@/lib/analytics/report-kit";
 import {
   canSaveReportKitFilterPreset,
@@ -24,6 +23,7 @@ import { getCurrentSession } from "@/lib/auth/session";
 
 import { DashboardPageContent } from "../_components/dashboard-page-content";
 import { AnalyticsPageClient } from "./_components/analytics-page-client";
+import type { ReportKitChartBootstrapContract } from "./_components/analytics-report-kit-chart-state";
 
 /** Render Báo cáo với dashboard overview và pivot analytics bounded. */
 export default async function AnalyticsPage() {
@@ -117,7 +117,7 @@ async function loadInitialReportKitContract(
     (typeof REPORT_KIT_ANALYTICS_CHART_IDS)[number],
     AnalyticsFilters
   >
-): Promise<ReportKitAnalyticsContract | undefined> {
+): Promise<ReportKitChartBootstrapContract | undefined> {
   try {
     const contracts = await Promise.all(
       REPORT_KIT_ANALYTICS_CHART_IDS.map((chartId) =>
@@ -128,12 +128,9 @@ async function loadInitialReportKitContract(
         )
       )
     );
-    const [firstContract] = contracts;
-
-    if (!firstContract) return undefined;
+    if (contracts.length === 0) return undefined;
 
     return {
-      ...firstContract,
       charts: [...REPORT_KIT_ANALYTICS_CHART_IDS],
       datasets: Object.fromEntries(
         contracts.map((contract) => {
@@ -141,7 +138,7 @@ async function loadInitialReportKitContract(
 
           return [chartId, contract.datasets[chartId]];
         })
-      ) as ReportKitAnalyticsContract["datasets"],
+      ) as ReportKitChartBootstrapContract["datasets"],
     };
   } catch {
     return undefined;
