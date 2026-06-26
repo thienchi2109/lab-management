@@ -23,6 +23,22 @@ describe("parseGroupInput", () => {
       isActive: true,
     });
   });
+
+  test("accepts versioned group codes with dot separators", () => {
+    expect(
+      parseGroupInput({
+        code: " PCR_8.1_Plus ",
+        name: "PCR_8.1_Plus (8 chỉ tiêu)",
+        sortOrder: "10",
+        isActive: "true",
+      })
+    ).toEqual({
+      code: "PCR_8.1_PLUS",
+      name: "PCR_8.1_Plus (8 chỉ tiêu)",
+      sortOrder: 10,
+      isActive: true,
+    });
+  });
 });
 
 describe("parseMetricInput", () => {

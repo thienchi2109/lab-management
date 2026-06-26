@@ -4,7 +4,7 @@ import { RESULT_INPUT_TYPES } from "./configuration";
 
 const INVALID_CONFIGURATION_MESSAGE =
   "Thông tin cấu hình chỉ tiêu không hợp lệ.";
-const CODE_PATTERN = /^[A-Z0-9_]{2,64}$/;
+const CODE_PATTERN = /^[A-Z0-9_.]{2,64}$/;
 
 const activeStateSchema = z.preprocess((value) => {
   if (value === true || value === "true" || value === "on") return true;
