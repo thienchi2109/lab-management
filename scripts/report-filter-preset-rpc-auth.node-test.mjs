@@ -38,3 +38,23 @@ test("report filter preset RPC has a forward-only admin actor guard", () => {
   assert.match(forwardSql, /tm\.role\s*=\s*'admin'::public\.app_role/);
   assert.match(forwardSql, /tm\.is_active/);
 });
+
+test("report filter preset RPC validates null scope and config explicitly", () => {
+  const migrationFiles = fs
+    .readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
+  const forwardSql = migrationFiles
+    .filter((file) => file > appliedMigration)
+    .map((file) => fs.readFileSync(path.join(migrationsDir, file), "utf8"))
+    .filter((sql) => sql.includes("upsert_report_filter_preset_with_audit"))
+    .join("\n")
+    .toLowerCase();
+
+  assert.match(
+    forwardSql,
+    /p_scope\s+is\s+distinct\s+from\s+'analytics-report-default'/,
+  );
+  assert.match(forwardSql, /p_config\s+is\s+null/);
+  assert.match(forwardSql, /jsonb_typeof\(p_config\)\s+<>\s+'object'/);
+});
