@@ -53,8 +53,8 @@ export function ResultConfigurationClient({
   }, [config, state.search]);
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
             Cấu hình chỉ tiêu
@@ -63,9 +63,13 @@ export function ResultConfigurationClient({
             Quản lý nhóm, chỉ tiêu, mẫu cấu hình và ngưỡng diễn giải kết quả.
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div
+          aria-label="Thao tác cấu hình"
+          className="grid grid-cols-2 gap-2 md:flex md:flex-row"
+        >
           <Button
             type="button"
+            className="min-h-11 gap-2 md:min-h-9"
             onClick={() => dispatch({ type: "openCreate", value: "groups" })}
           >
             <Plus className="size-4" />
@@ -74,6 +78,7 @@ export function ResultConfigurationClient({
           <Button
             type="button"
             variant="outline"
+            className="min-h-11 gap-2 bg-background md:min-h-9"
             onClick={() => dispatch({ type: "openCreate", value: "metrics" })}
           >
             <Plus className="size-4" />
@@ -84,7 +89,19 @@ export function ResultConfigurationClient({
 
       <ResultConfigurationSummaryStrip summary={summary} />
 
-      <div className="rounded-lg border bg-background p-4">
+      <div className="rounded-lg border bg-background/95 p-3 shadow-sm md:p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Chọn phạm vi hiển thị</h2>
+            <p className="text-xs text-muted-foreground">
+              Tìm và lọc nhanh nhóm, chỉ tiêu hoặc mẫu cấu hình.
+            </p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+            <SlidersHorizontal className="size-3.5" />
+            {visibleCount(filteredConfig, state.panel)} mục
+          </span>
+        </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -110,7 +127,7 @@ export function ResultConfigurationClient({
             ]}
           />
         </div>
-        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="mt-3 hidden items-center gap-2 text-xs text-muted-foreground md:flex">
           <SlidersHorizontal className="size-4" />
           Đang hiển thị {visibleCount(filteredConfig, state.panel)} mục
         </div>

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import type {
   ResultConfiguration,
@@ -15,15 +17,21 @@ export function ResultConfigurationLists({
   config,
   panel,
 }: ResultConfigurationListsProps) {
+  let content: ReactNode;
+
   if (panel === "groups") {
-    return <GroupList groups={config.groups} />;
+    content = <GroupList groups={config.groups} />;
+  } else if (panel === "metrics") {
+    content = <MetricList metrics={config.metrics} />;
+  } else {
+    content = <TemplateList templates={config.templates} />;
   }
 
-  if (panel === "metrics") {
-    return <MetricList metrics={config.metrics} />;
-  }
-
-  return <TemplateList templates={config.templates} />;
+  return (
+    <section aria-label="Danh sách cấu hình" className="pb-24 md:pb-0">
+      {content}
+    </section>
+  );
 }
 
 function GroupList({ groups }: { groups: ResultGroup[] }) {

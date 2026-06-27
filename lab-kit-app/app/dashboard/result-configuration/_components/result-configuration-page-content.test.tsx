@@ -76,4 +76,16 @@ describe("ResultConfigurationPageContent", () => {
     expect(html).toContain("PCR Realtime Ct");
     expect(html).toContain("Mẫu cấu hình");
   });
+
+  test("renders mobile-first layout landmarks", () => {
+    const html = renderToStaticMarkup(
+      <ResultConfigurationPageContent config={config} />
+    );
+
+    expect(html).toContain('aria-label="Thao tác cấu hình"');
+    expect(html).toContain('aria-label="Tổng quan cấu hình"');
+    expect(html).toContain("Chọn phạm vi hiển thị");
+    expect(html).toContain('aria-label="Danh sách cấu hình"');
+    expect(html).toContain("pb-24");
+  });
 });
