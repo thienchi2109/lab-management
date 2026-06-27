@@ -1,9 +1,9 @@
 import "server-only";
 
 import {
-  buildCloudinaryDeliveryUrl,
-  destroyCloudinaryImage,
-} from "@/lib/sample-images/cloudinary";
+  buildReportCloudinaryDeliveryUrl,
+  destroyReportCloudinaryImage,
+} from "./cloudinary";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import {
@@ -104,7 +104,7 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
 
       if (error) throw new Error("Không thể xóa ảnh báo cáo.");
     },
-    deleteCloudinaryImage: destroyCloudinaryImage,
+    deleteCloudinaryImage: destroyReportCloudinaryImage,
   };
 }
 
@@ -133,7 +133,7 @@ function mapReportImageRow(row: ReportImageRow): ReportImage {
     createdAt: row.created_at,
     id: row.id,
     publicId: row.storage_path,
-    secureUrl: buildCloudinaryDeliveryUrl({
+    secureUrl: buildReportCloudinaryDeliveryUrl({
       cloudName,
       publicId: row.storage_path,
     }),

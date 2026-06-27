@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getCurrentSession, type CurrentSession } from "@/lib/auth/session";
-import { getCloudinaryServerEnv } from "@/lib/sample-images/cloudinary";
+import { getCloudinaryServerEnv } from "@/lib/report-images/cloudinary";
 import { prepareReportImageUpload } from "@/lib/report-images/operations";
 import { createSupabaseReportImagesPort } from "@/lib/report-images/server";
 
@@ -10,9 +10,9 @@ import { POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/session", () => ({ getCurrentSession: vi.fn() }));
-vi.mock("@/lib/sample-images/cloudinary", async (importOriginal) => {
+vi.mock("@/lib/report-images/cloudinary", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@/lib/sample-images/cloudinary")>();
+    await importOriginal<typeof import("@/lib/report-images/cloudinary")>();
 
   return { ...actual, getCloudinaryServerEnv: vi.fn() };
 });

@@ -3,12 +3,10 @@ import { z } from "zod";
 
 import {
   createCloudinaryUploadSignature,
-  getCloudinaryServerEnv,
   getCloudinaryUploadUrl,
-} from "@/lib/sample-images/cloudinary";
-import {
   createReportImageFolder,
   createReportImagePublicId,
+  getCloudinaryServerEnv,
 } from "@/lib/report-images/cloudinary";
 import { prepareReportImageUpload } from "@/lib/report-images/operations";
 import {

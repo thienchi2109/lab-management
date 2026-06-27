@@ -4,7 +4,17 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import { createSupabaseReportImagesPort } from "./server";
 
+const cloudinaryMocks = vi.hoisted(() => ({
+  buildReportCloudinaryDeliveryUrl: vi.fn(
+    ({ cloudName, publicId }: { cloudName: string; publicId: string }) =>
+      `report://${cloudName}/${publicId}`
+  ),
+  destroyReportCloudinaryImage: vi.fn(),
+}));
+
 vi.mock("server-only", () => ({}));
+
+vi.mock("./cloudinary", () => cloudinaryMocks);
 
 vi.mock("@/lib/supabase/admin", () => ({
   getSupabaseAdminClient: vi.fn(),
@@ -49,6 +59,45 @@ describe("createSupabaseReportImagesPort", () => {
       p_storage_path: "lab/org-1/reports/report-1",
     });
     expect(from).not.toHaveBeenCalled();
+  });
+
+  test("maps Cloudinary delivery URLs through the report image module", async () => {
+    const returns = vi.fn().mockResolvedValue({
+      data: [
+        {
+          content_type: "image/webp",
+          created_at: "2026-06-27T00:00:00.000Z",
+          id: "report-image-1",
+          size_bytes: 2048,
+          storage_bucket: "cloudinary:demo-lab",
+          storage_path: "lab-management/org-1/reports/report-1",
+        },
+      ],
+      error: null,
+    });
+    const order = vi.fn().mockReturnValue({ returns });
+    const eq = vi.fn().mockReturnValue({ order });
+    const select = vi.fn().mockReturnValue({ eq });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from: vi.fn().mockReturnValue({ select }),
+      rpc: vi.fn(),
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseReportImagesPort();
+
+    await expect(
+      port.listReportImages({ organizationId: "org-1" })
+    ).resolves.toMatchObject([
+      {
+        secureUrl: "report://demo-lab/lab-management/org-1/reports/report-1",
+      },
+    ]);
+    expect(
+      cloudinaryMocks.buildReportCloudinaryDeliveryUrl
+    ).toHaveBeenCalledWith({
+      cloudName: "demo-lab",
+      publicId: "lab-management/org-1/reports/report-1",
+    });
   });
 
   test("maps the atomic report image limit guard to a conflict domain error", async () => {
