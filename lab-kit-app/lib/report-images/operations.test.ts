@@ -161,6 +161,28 @@ describe("confirmReportImageUpload", () => {
       "lab-management/org-1/reports/report-1"
     );
   });
+
+  test("relies on the audited insert transaction for the confirm capacity guard", async () => {
+    const port = createPort({
+      countReportImages: vi.fn().mockResolvedValue(20),
+    });
+
+    await expect(
+      confirmReportImageUpload(
+        adminActor,
+        {
+          contentType: "image/png",
+          publicId: "lab-management/org-1/reports/report-1",
+          secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
+          sizeBytes: 2048,
+        },
+        port
+      )
+    ).resolves.toEqual({ imageId: "report-image-1" });
+
+    expect(port.countReportImages).not.toHaveBeenCalled();
+    expect(port.insertReportImageWithAudit).toHaveBeenCalled();
+  });
 });
 
 describe("deleteReportImage", () => {

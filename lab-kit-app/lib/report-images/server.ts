@@ -6,7 +6,11 @@ import {
 } from "@/lib/sample-images/cloudinary";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-import type { ReportImage, ReportImagesPort } from "./operations";
+import {
+  ReportImageDomainError,
+  type ReportImage,
+  type ReportImagesPort,
+} from "./operations";
 
 type ReportImageRow = {
   id: string;
@@ -80,7 +84,11 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
         })
         .returns<string>();
 
-      if (error || typeof data !== "string") {
+      if (error) {
+        throw mapCreateReportImageError(error);
+      }
+
+      if (typeof data !== "string") {
         throw new Error("Không thể ghi nhận ảnh báo cáo.");
       }
 
@@ -98,6 +106,17 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
     },
     deleteCloudinaryImage: destroyCloudinaryImage,
   };
+}
+
+function mapCreateReportImageError(error: { message?: string }) {
+  if (error.message === "report image limit reached") {
+    return new ReportImageDomainError(
+      409,
+      "Gallery đang có đủ 20 ảnh. Hãy xóa bớt ảnh trước khi tải thêm."
+    );
+  }
+
+  return new Error("Không thể ghi nhận ảnh báo cáo.");
 }
 
 function mapReportImageRow(row: ReportImageRow): ReportImage {

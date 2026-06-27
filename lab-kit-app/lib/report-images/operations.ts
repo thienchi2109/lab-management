@@ -132,8 +132,6 @@ export async function confirmReportImageUpload(
   }
 
   try {
-    await ensureReportImageSlotAvailable(actor, port);
-
     return await port.insertReportImageWithAudit({
       auditEventPayload: {
         metadataPolicy: IMAGE_AUDIT_POLICY,

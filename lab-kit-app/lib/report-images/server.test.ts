@@ -50,4 +50,34 @@ describe("createSupabaseReportImagesPort", () => {
     });
     expect(from).not.toHaveBeenCalled();
   });
+
+  test("maps the atomic report image limit guard to a conflict domain error", async () => {
+    const rpc = vi.fn().mockReturnValue({
+      returns: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: "report image limit reached" },
+      }),
+    });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from: vi.fn(),
+      rpc,
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseReportImagesPort();
+
+    await expect(
+      port.insertReportImageWithAudit({
+        auditEventPayload: { metadataPolicy: "field-names-only" },
+        contentType: "image/png",
+        createdBy: "admin-1",
+        organizationId: "org-1",
+        sizeBytes: 2048,
+        storageBucket: "cloudinary",
+        storagePath: "lab/org-1/reports/report-1",
+      })
+    ).rejects.toMatchObject({
+      message: "Gallery đang có đủ 20 ảnh. Hãy xóa bớt ảnh trước khi tải thêm.",
+      status: 409,
+    });
+  });
 });
