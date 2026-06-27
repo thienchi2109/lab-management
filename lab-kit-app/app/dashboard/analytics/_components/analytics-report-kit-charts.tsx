@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Save, SlidersHorizontal } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BottomSheetFrame } from "@/components/ui/overlay-frame";
@@ -54,7 +54,11 @@ export function AnalyticsReportKitCharts({
     null
   );
   const [isSavingPreset, setIsSavingPreset] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [activeFilterChartId, setActiveFilterChartId] =
+    useState<ReportKitAnalyticsChartId | null>(null);
+  const activeFilterState = activeFilterChartId
+    ? chartState.datasets[activeFilterChartId]
+    : null;
 
   return (
     <section aria-label="Biểu đồ báo cáo kit và mẫu" className="space-y-3">
@@ -80,17 +84,6 @@ export function AnalyticsReportKitCharts({
           </Button>
         ) : null}
       </div>
-      <div className="md:hidden" data-report-kit-mobile-filter-toolbar="true">
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-12 w-full gap-2"
-          onClick={() => setIsMobileFilterOpen(true)}
-        >
-          <SlidersHorizontal className="size-4" />
-          Chỉnh bộ lọc biểu đồ
-        </Button>
-      </div>
       {presetMessage ? (
         <p
           aria-live={presetMessage.kind === "error" ? "assertive" : "polite"}
@@ -109,37 +102,29 @@ export function AnalyticsReportKitCharts({
           <ReportKitChartCard
             key={chartId}
             chartState={chartState.datasets[chartId]}
+            onOpenFilter={() => setActiveFilterChartId(chartId)}
             onFilterChange={(filters) => updateChartFilters(chartId, filters)}
             onSubmit={(event) => submitChartFilters(event, chartId)}
           />
         ))}
       </div>
-      {isMobileFilterOpen ? (
+      {activeFilterChartId && activeFilterState ? (
         <BottomSheetFrame
-          title="Bộ lọc biểu đồ"
+          title={`Bộ lọc: ${getReportKitChartTitle(activeFilterChartId)}`}
           closeLabel="Đóng"
-          onClose={() => setIsMobileFilterOpen(false)}
+          onClose={() => setActiveFilterChartId(null)}
         >
-          <div className="space-y-4">
-            {chartState.charts.map((chartId) => {
-              const state = chartState.datasets[chartId];
-
-              return (
-                <ReportKitChartFilterForm
-                  key={chartId}
-                  error={state.error}
-                  filterSummary={state.filterSummary}
-                  filters={state.filters}
-                  isLoading={state.isLoading}
-                  title={getReportKitChartTitle(chartId)}
-                  onFilterChange={(filters) =>
-                    updateChartFilters(chartId, filters)
-                  }
-                  onSubmit={(event) => submitChartFilters(event, chartId)}
-                />
-              );
-            })}
-          </div>
+          <ReportKitChartFilterForm
+            error={activeFilterState.error}
+            filterSummary={activeFilterState.filterSummary}
+            filters={activeFilterState.filters}
+            isLoading={activeFilterState.isLoading}
+            title={getReportKitChartTitle(activeFilterChartId)}
+            onFilterChange={(filters) =>
+              updateChartFilters(activeFilterChartId, filters)
+            }
+            onSubmit={(event) => submitChartFilters(event, activeFilterChartId)}
+          />
         </BottomSheetFrame>
       ) : null}
     </section>

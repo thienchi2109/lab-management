@@ -121,7 +121,7 @@ describe("AnalyticsPageClient report kit charts", () => {
     ).toBeTruthy();
   });
 
-  test("renders report kit charts as mobile-first accordion cards with one filter entry point", () => {
+  test("renders report kit charts as mobile-first accordion cards with chart-scoped filter actions", () => {
     const { container } = render(
       <AnalyticsPageClient
         initialDataset={initialDataset}
@@ -134,14 +134,96 @@ describe("AnalyticsPageClient report kit charts", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: "Chỉnh bộ lọc biểu đồ" })
-    ).toBeTruthy();
+      screen.queryByRole("button", { name: "Chỉnh bộ lọc biểu đồ" })
+    ).toBeNull();
+    expect(
+      screen.getAllByRole("button", { name: "Lọc biểu đồ này" })
+    ).toHaveLength(4);
     expect(
       container.querySelectorAll("details[data-report-kit-chart-card]")
     ).toHaveLength(4);
+  });
+
+  test("opens a chart-scoped filter sheet and submits only that chart", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        ...initialReportKitContract,
+        charts: ["kitQuantityByKitType"],
+        datasets: {
+          ...initialReportKitContract.datasets,
+          kitQuantityByKitType: {
+            chartId: "kitQuantityByKitType",
+            segments: [
+              {
+                key: "kit-c",
+                label: "KIT C",
+                metrics: { totalKitQuantity: 4 },
+              },
+            ],
+            warnings: [],
+          },
+        },
+        query: {
+          ...initialReportKitContract.query,
+          filters: {
+            receivedFrom: "2026-06-03",
+            receivedTo: "2026-06-08",
+          },
+        },
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <AnalyticsPageClient
+        initialDataset={initialDataset}
+        initialFilters={{
+          receivedFrom: "2026-06-01",
+          receivedTo: "2026-06-08",
+        }}
+        initialReportKitContract={initialReportKitContract}
+      />
+    );
+
+    const kitTypeChart = within(
+      screen.getByRole("region", {
+        name: "Tổng lượng KIT theo loại KIT",
+      })
+    );
+
+    await user.click(
+      kitTypeChart.getByRole("button", { name: "Lọc biểu đồ này" })
+    );
+
     expect(
-      container.querySelector("[data-report-kit-mobile-filter-toolbar]")
+      screen.getByRole("heading", {
+        name: "Bộ lọc: Tổng lượng KIT theo loại KIT",
+      })
     ).toBeTruthy();
+
+    const filterDialog = within(screen.getByRole("dialog"));
+
+    fireEvent.change(filterDialog.getByLabelText("Từ ngày"), {
+      target: { value: "2026-06-03" },
+    });
+    await user.click(
+      filterDialog.getByRole("button", { name: "Áp dụng bộ lọc biểu đồ" })
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/analytics/report-kit",
+      expect.objectContaining({
+        body: JSON.stringify({
+          charts: ["kitQuantityByKitType"],
+          filters: {
+            receivedFrom: "2026-06-03",
+            receivedTo: "2026-06-08",
+          },
+        }),
+      })
+    );
+    expect(await kitTypeChart.findByText("KIT C")).toBeTruthy();
   });
 
   test("renders an empty state inside only the chart with an empty dataset", () => {
