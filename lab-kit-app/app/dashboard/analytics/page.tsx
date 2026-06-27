@@ -20,6 +20,8 @@ import { createSupabaseDashboardOverviewPort } from "@/lib/analytics/server";
 import { createSupabaseReportKitAnalyticsPort } from "@/lib/analytics/server-report-kit";
 import { createSupabaseReportKitPresetPort } from "@/lib/analytics/server-report-kit-presets";
 import { getCurrentSession } from "@/lib/auth/session";
+import { getReportImages } from "@/lib/report-images/operations";
+import { createSupabaseReportImagesPort } from "@/lib/report-images/server";
 
 import { DashboardPageContent } from "../_components/dashboard-page-content";
 import { AnalyticsPageClient } from "./_components/analytics-page-client";
@@ -54,19 +56,29 @@ export default async function AnalyticsPage() {
   const overviewPort = createSupabaseDashboardOverviewPort();
   const reportKitPort = createSupabaseReportKitAnalyticsPort();
   const presetPort = createSupabaseReportKitPresetPort();
-  const [overview, initialDataset, savedPreset] = await Promise.all([
-    getDashboardOverviewData(actor, overviewPort),
-    listAnalyticsDataset(
-      {
-        dimensions: ["receivedDate"],
-        filters: initialFilters,
-        measures: ["sampleCount", "positiveCount"],
-      },
-      actor,
-      overviewPort
-    ),
-    presetPort.readPreset({ actor }).catch(() => null),
-  ]);
+  const reportImagesPort = createSupabaseReportImagesPort();
+  const [overview, initialDataset, savedPreset, initialReportImages] =
+    await Promise.all([
+      getDashboardOverviewData(actor, overviewPort),
+      listAnalyticsDataset(
+        {
+          dimensions: ["receivedDate"],
+          filters: initialFilters,
+          measures: ["sampleCount", "positiveCount"],
+        },
+        actor,
+        overviewPort
+      ),
+      presetPort.readPreset({ actor }).catch(() => null),
+      getReportImages(
+        {
+          canManage: actor.role === "admin",
+          organizationId: actor.organizationId,
+          profileId: actor.profileId,
+        },
+        reportImagesPort
+      ),
+    ]);
   const initialReportKitFiltersByChart = mergeReportKitDefaultFilters(
     initialFilters,
     savedPreset?.config
@@ -84,9 +96,11 @@ export default async function AnalyticsPage() {
     <div className="flex flex-col gap-6 md:gap-8">
       <DashboardPageContent overview={overview} recentSampleMobileLimit={2} />
       <AnalyticsPageClient
+        canManageReportImages={actor.role === "admin"}
         canSaveReportKitPreset={canSaveReportKitFilterPreset(actor)}
         initialDataset={initialDataset}
         initialFilters={initialFilters}
+        initialReportImages={initialReportImages}
         initialReportKitFiltersByChart={initialReportKitPresetConfig.charts}
         initialReportKitContract={initialReportKitContract}
       />

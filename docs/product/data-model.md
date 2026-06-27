@@ -23,6 +23,8 @@
 - `sample_images` — uploaded evidence image metadata. For Cloudinary, store the
   provider marker in `storage_bucket` and the Cloudinary `public_id` in
   `storage_path`.
+- `report_images` — uploaded report gallery image metadata, scoped by
+  organization and stored separately from sample evidence images.
 
 ### Result Engine
 
@@ -57,6 +59,7 @@ metric_settings                                     │
               sample_results
               sample_group_conclusions
               sample_images
+              report_images
 ```
 
 ## Key Constraints

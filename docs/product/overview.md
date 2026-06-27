@@ -26,6 +26,7 @@ Tiếng Việt.
 - 10 kiểu nhập liệu: number, text, textarea, select, multi_select, boolean,
   scale_1_5, percent, pcr_qualitative, pcr_realtime
 - Upload tối đa 20 ảnh/mẫu (≤5 MB/ảnh)
+- Gallery tối đa 20 ảnh báo cáo chung để Viewer xem trong tab Báo cáo
 - Bảng dữ liệu filter/sort/search, ẩn/hiện cột
 - Form nhập liệu responsive/mobile-first
 - Kết Quả Chung theo từng nhóm kết quả

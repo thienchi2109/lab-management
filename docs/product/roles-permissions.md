@@ -17,6 +17,8 @@
 | Delete samples | ✓ | ✗ default | ✗ |
 | Enter results | ✓ | ✓ | ✗ |
 | Upload evidence images | ✓ | ✓ | ✗ |
+| Manage report gallery images | ✓ | ✗ | ✗ |
+| View report gallery images | ✓ | ✓ | ✓ |
 | Approve samples | ✓ | ✓ if granted | ✗ |
 | Export Excel/CSV | ✓ | ✓ | ✓ if granted |
 | Manage result groups | ✓ | ✗ | ✗ |

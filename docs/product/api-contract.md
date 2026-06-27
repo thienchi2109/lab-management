@@ -59,12 +59,18 @@ GET/POST/PATCH /api/metric-settings
 POST   /api/uploads/cloudinary/signature
 POST   /api/samples/:id/images
 DELETE /api/samples/:id/images/:imageId
+POST   /api/reports/images/signature
+GET    /api/reports/images
+POST   /api/reports/images
+DELETE /api/reports/images/:imageId
 ```
 
-Rules: max 20 images/sample, max 5 MB each, jpeg/png/webp only,
-client uploads directly to Cloudinary with server-signed parameters, never log
-Cloudinary API secrets, upload signatures, or raw provider responses containing
-credential material. Production must not use unsigned upload presets.
+Rules: max 20 images/sample for evidence images, max 20 images in the report
+gallery, max 5 MB each, jpeg/png/webp only. Client uploads directly to
+Cloudinary with server-signed parameters, never log Cloudinary API secrets,
+upload signatures, or raw provider responses containing credential material.
+Production must not use unsigned upload presets. Report gallery images are
+stored in `report_images`, not `sample_images`.
 
 ## Analytics & Export
 
