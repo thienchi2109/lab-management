@@ -162,6 +162,37 @@ describe("confirmReportImageUpload", () => {
     );
   });
 
+  test("logs Cloudinary cleanup failures while preserving the insert error", async () => {
+    const insertError = new Error("insert failed");
+    const cleanupError = new Error("cleanup failed");
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const port = createPort({
+      deleteCloudinaryImage: vi.fn().mockRejectedValue(cleanupError),
+      insertReportImageWithAudit: vi.fn().mockRejectedValue(insertError),
+    });
+
+    await expect(
+      confirmReportImageUpload(
+        adminActor,
+        {
+          contentType: "image/png",
+          publicId: "lab-management/org-1/reports/report-1",
+          secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
+          sizeBytes: 2048,
+        },
+        port
+      )
+    ).rejects.toBe(insertError);
+
+    expect(consoleError).toHaveBeenCalledWith(
+      "Không thể dọn ảnh Cloudinary sau lỗi ghi metadata ảnh báo cáo.",
+      cleanupError
+    );
+    consoleError.mockRestore();
+  });
+
   test("relies on the audited insert transaction for the confirm capacity guard", async () => {
     const port = createPort({
       countReportImages: vi.fn().mockResolvedValue(20),

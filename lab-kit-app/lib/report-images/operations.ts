@@ -145,7 +145,15 @@ export async function confirmReportImageUpload(
       storagePath: input.publicId,
     });
   } catch (error) {
-    await port.deleteCloudinaryImage(input.publicId).catch(() => undefined);
+    try {
+      await port.deleteCloudinaryImage(input.publicId);
+    } catch (cleanupError) {
+      console.error(
+        "Không thể dọn ảnh Cloudinary sau lỗi ghi metadata ảnh báo cáo.",
+        cleanupError
+      );
+    }
+
     throw error;
   }
 }

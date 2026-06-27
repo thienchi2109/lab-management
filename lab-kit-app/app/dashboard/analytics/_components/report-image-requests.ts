@@ -33,8 +33,14 @@ type CloudinaryUploadResponse = {
   secure_url: string;
 };
 
+type ConfirmResponse = {
+  imageId: string;
+};
+
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+const INVALID_UPLOAD_RESPONSE_MESSAGE =
+  "Phản hồi upload ảnh báo cáo không hợp lệ.";
 
 /** Upload one report image through signed Cloudinary params. */
 export async function uploadReportImageRequest(
@@ -55,7 +61,10 @@ export async function uploadReportImageRequest(
       return error(await readError(signatureResponse, "Không thể tạo chữ ký."));
     }
 
-    const signature = await readJson<SignatureResponse>(signatureResponse);
+    const signature = await readSignatureResponse(signatureResponse);
+
+    if (!signature) return error(INVALID_UPLOAD_RESPONSE_MESSAGE);
+
     const uploadResponse = await fetcher(signature.uploadUrl, {
       body: createCloudinaryForm(file, signature),
       method: "POST",
@@ -64,7 +73,10 @@ export async function uploadReportImageRequest(
     if (!uploadResponse.ok)
       return error("Không thể upload ảnh lên Cloudinary.");
 
-    const uploaded = await readJson<CloudinaryUploadResponse>(uploadResponse);
+    const uploaded = await readCloudinaryUploadResponse(uploadResponse);
+
+    if (!uploaded) return error(INVALID_UPLOAD_RESPONSE_MESSAGE);
+
     const confirmResponse = await fetcher("/api/reports/images", {
       body: JSON.stringify({
         contentType: file.type,
@@ -79,7 +91,9 @@ export async function uploadReportImageRequest(
       return error(await readError(confirmResponse, "Không thể ghi nhận ảnh."));
     }
 
-    const confirmed = await readJson<{ imageId: string }>(confirmResponse);
+    const confirmed = await readConfirmResponse(confirmResponse);
+
+    if (!confirmed) return error(INVALID_UPLOAD_RESPONSE_MESSAGE);
 
     return {
       image: {
@@ -145,21 +159,65 @@ function createCloudinaryForm(file: File, signature: SignatureResponse) {
 async function readError(response: Response, fallback: string) {
   const payload = await readJsonOrNull(response);
 
-  if (payload && typeof payload.message === "string") return payload.message;
+  if (isRecord(payload) && typeof payload.message === "string") {
+    return payload.message;
+  }
 
   return fallback;
 }
 
-async function readJson<T>(response: Response): Promise<T> {
-  return (await response.json()) as T;
+async function readSignatureResponse(response: Response) {
+  const payload = await readJsonOrNull(response);
+  return isSignatureResponse(payload) ? payload : null;
+}
+
+async function readCloudinaryUploadResponse(response: Response) {
+  const payload = await readJsonOrNull(response);
+  return isCloudinaryUploadResponse(payload) ? payload : null;
+}
+
+async function readConfirmResponse(response: Response) {
+  const payload = await readJsonOrNull(response);
+  return isConfirmResponse(payload) ? payload : null;
 }
 
 async function readJsonOrNull(response: Response) {
   try {
-    return (await response.json()) as { message?: unknown };
+    return (await response.json()) as unknown;
   } catch {
     return null;
   }
+}
+
+function isSignatureResponse(value: unknown): value is SignatureResponse {
+  return (
+    isRecord(value) &&
+    typeof value.apiKey === "string" &&
+    typeof value.folder === "string" &&
+    typeof value.publicId === "string" &&
+    typeof value.signature === "string" &&
+    typeof value.timestamp === "number" &&
+    typeof value.uploadUrl === "string"
+  );
+}
+
+function isCloudinaryUploadResponse(
+  value: unknown
+): value is CloudinaryUploadResponse {
+  return (
+    isRecord(value) &&
+    typeof value.bytes === "number" &&
+    typeof value.public_id === "string" &&
+    typeof value.secure_url === "string"
+  );
+}
+
+function isConfirmResponse(value: unknown): value is ConfirmResponse {
+  return isRecord(value) && typeof value.imageId === "string";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function error(message: string): RequestResult {

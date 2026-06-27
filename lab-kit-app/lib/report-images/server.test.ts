@@ -129,4 +129,28 @@ describe("createSupabaseReportImagesPort", () => {
       status: 409,
     });
   });
+
+  test("preserves Supabase error context when list queries fail", async () => {
+    const supabaseError = { code: "PGRST301", message: "permission denied" };
+    const returns = vi.fn().mockResolvedValue({
+      data: null,
+      error: supabaseError,
+    });
+    const order = vi.fn().mockReturnValue({ returns });
+    const eq = vi.fn().mockReturnValue({ order });
+    const select = vi.fn().mockReturnValue({ eq });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({
+      from: vi.fn().mockReturnValue({ select }),
+      rpc: vi.fn(),
+    } as unknown as ReturnType<typeof getSupabaseAdminClient>);
+
+    const port = createSupabaseReportImagesPort();
+
+    await expect(
+      port.listReportImages({ organizationId: "org-1" })
+    ).rejects.toMatchObject({
+      cause: supabaseError,
+      message: "Không thể tải ảnh báo cáo.",
+    });
+  });
 });

@@ -32,7 +32,9 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
         .select("id", { count: "exact", head: true })
         .eq("organization_id", input.organizationId);
 
-      if (error) throw new Error("Không thể kiểm tra số lượng ảnh báo cáo.");
+      if (error) {
+        throw withCause("Không thể kiểm tra số lượng ảnh báo cáo.", error);
+      }
       return count ?? 0;
     },
     async findReportImageByPublicId(input) {
@@ -44,7 +46,7 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
         .eq("storage_path", input.publicId)
         .maybeSingle<{ id: string }>();
 
-      if (error) throw new Error("Không thể kiểm tra ảnh Cloudinary.");
+      if (error) throw withCause("Không thể kiểm tra ảnh Cloudinary.", error);
       return data;
     },
     async findReportImageForDelete(input) {
@@ -55,7 +57,7 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
         .eq("organization_id", input.organizationId)
         .maybeSingle<{ storage_path: string }>();
 
-      if (error) throw new Error("Không thể kiểm tra ảnh báo cáo.");
+      if (error) throw withCause("Không thể kiểm tra ảnh báo cáo.", error);
       return data ? { publicId: data.storage_path } : null;
     },
     async listReportImages(input) {
@@ -68,7 +70,7 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
         .order("created_at", { ascending: false })
         .returns<ReportImageRow[]>();
 
-      if (error) throw new Error("Không thể tải ảnh báo cáo.");
+      if (error) throw withCause("Không thể tải ảnh báo cáo.", error);
       return (data ?? []).map(mapReportImageRow);
     },
     async insertReportImageWithAudit(input) {
@@ -102,7 +104,7 @@ export function createSupabaseReportImagesPort(): ReportImagesPort {
         p_organization_id: input.organizationId,
       });
 
-      if (error) throw new Error("Không thể xóa ảnh báo cáo.");
+      if (error) throw withCause("Không thể xóa ảnh báo cáo.", error);
     },
     deleteCloudinaryImage: destroyReportCloudinaryImage,
   };
@@ -116,7 +118,11 @@ function mapCreateReportImageError(error: { message?: string }) {
     );
   }
 
-  return new Error("Không thể ghi nhận ảnh báo cáo.");
+  return withCause("Không thể ghi nhận ảnh báo cáo.", error);
+}
+
+function withCause(message: string, cause: unknown) {
+  return new Error(message, { cause });
 }
 
 function mapReportImageRow(row: ReportImageRow): ReportImage {
