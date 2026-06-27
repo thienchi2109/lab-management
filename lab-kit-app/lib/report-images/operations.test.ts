@@ -228,7 +228,7 @@ describe("deleteReportImage", () => {
     expect(port.deleteReportImageRecordWithAudit).not.toHaveBeenCalled();
   });
 
-  test("deletes the audited database record before Cloudinary cleanup", async () => {
+  test("deletes the Cloudinary asset before the audited database record", async () => {
     const callOrder: string[] = [];
     const port = createPort({
       deleteCloudinaryImage: vi.fn(async () => {
@@ -244,10 +244,10 @@ describe("deleteReportImage", () => {
 
     await deleteReportImage("report-image-1", adminActor, port);
 
-    expect(callOrder).toEqual(["database", "cloudinary"]);
+    expect(callOrder).toEqual(["cloudinary", "database"]);
   });
 
-  test("does not delete Cloudinary when audited database deletion fails", async () => {
+  test("surfaces audited database deletion failures after Cloudinary cleanup", async () => {
     const port = createPort({
       deleteReportImageRecordWithAudit: vi
         .fn()
@@ -261,6 +261,25 @@ describe("deleteReportImage", () => {
       deleteReportImage("report-image-1", adminActor, port)
     ).rejects.toThrow("audit delete failed");
 
-    expect(port.deleteCloudinaryImage).not.toHaveBeenCalled();
+    expect(port.deleteCloudinaryImage).toHaveBeenCalledWith(
+      "lab-management/org-1/reports/report-1"
+    );
+  });
+
+  test("keeps the database record when report image Cloudinary cleanup fails", async () => {
+    const port = createPort({
+      deleteCloudinaryImage: vi
+        .fn()
+        .mockRejectedValue(new Error("Cloudinary timeout")),
+      findReportImageForDelete: vi.fn().mockResolvedValue({
+        publicId: "lab-management/org-1/reports/report-1",
+      }),
+    });
+
+    await expect(
+      deleteReportImage("report-image-1", adminActor, port)
+    ).rejects.toThrow("Cloudinary timeout");
+
+    expect(port.deleteReportImageRecordWithAudit).not.toHaveBeenCalled();
   });
 });

@@ -41,6 +41,8 @@ const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 const INVALID_UPLOAD_RESPONSE_MESSAGE =
   "Phản hồi upload ảnh báo cáo không hợp lệ.";
+const REPORT_IMAGES_ENDPOINT = "/api/reports/images";
+const REPORT_IMAGE_SIGNATURE_ENDPOINT = "/api/reports/images/signature";
 
 /** Upload one report image through signed Cloudinary params. */
 export async function uploadReportImageRequest(
@@ -52,7 +54,7 @@ export async function uploadReportImageRequest(
   if (validation) return error(validation);
 
   try {
-    const signatureResponse = await fetcher("/api/reports/images/signature", {
+    const signatureResponse = await fetcher(REPORT_IMAGE_SIGNATURE_ENDPOINT, {
       body: JSON.stringify({ contentType: file.type, sizeBytes: file.size }),
       method: "POST",
     });
@@ -77,7 +79,7 @@ export async function uploadReportImageRequest(
 
     if (!uploaded) return error(INVALID_UPLOAD_RESPONSE_MESSAGE);
 
-    const confirmResponse = await fetcher("/api/reports/images", {
+    const confirmResponse = await fetcher(REPORT_IMAGES_ENDPOINT, {
       body: JSON.stringify({
         contentType: file.type,
         publicId: uploaded.public_id,
@@ -117,7 +119,7 @@ export async function deleteReportImageRequest(
   fetcher: Fetcher = fetch
 ): Promise<RequestResult> {
   try {
-    const response = await fetcher(`/api/reports/images/${imageId}`, {
+    const response = await fetcher(`${REPORT_IMAGES_ENDPOINT}/${imageId}`, {
       method: "DELETE",
     });
 

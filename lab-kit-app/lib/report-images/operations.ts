@@ -175,6 +175,7 @@ export async function deleteReportImage(
   }
 
   validateReportImagePublicId(image.publicId, actor.organizationId);
+  await port.deleteCloudinaryImage(image.publicId);
   await port.deleteReportImageRecordWithAudit({
     actorId: actor.profileId,
     eventPayload: {
@@ -184,7 +185,6 @@ export async function deleteReportImage(
     imageId,
     organizationId: actor.organizationId,
   });
-  await port.deleteCloudinaryImage(image.publicId);
 }
 
 function ensureCanManage(actor: ReportImageActor, action: "tải" | "xóa") {
