@@ -13,6 +13,7 @@ import {
 import { prepareReportImageUpload } from "@/lib/report-images/operations";
 import {
   jsonError,
+  parseJsonRequest,
   requireReportImageActor,
   ResponseError,
 } from "@/lib/report-images/route-auth";
@@ -34,7 +35,12 @@ const signatureRequestSchema = z.object({
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const actor = await requireReportImageActor(true);
-    const input = parseSignatureRequest(await request.json());
+    const input = parseSignatureRequest(
+      await parseJsonRequest(
+        request,
+        "Payload upload ảnh báo cáo không hợp lệ."
+      )
+    );
 
     await prepareReportImageUpload(
       actor,

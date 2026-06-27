@@ -72,8 +72,8 @@ Implemented on 2026-06-27.
   protection disabled; performance advisor reported existing background index
   notices plus newly unused `report_images` indexes because the table was just
   created.
-- Browser proof with `agent-browser`: admin login `admin / 123456@`, opened
-  `/dashboard/analytics`, verified gallery renders, uploaded
+- Browser proof with `agent-browser`: signed in with test admin credentials,
+  opened `/dashboard/analytics`, verified gallery renders, uploaded
   `/root/images/Capture.PNG`, saw success message and image card, then deleted
   it through the confirm dialog and saw the empty state.
 - Cloudinary proof: live browser upload used signed report image signature route

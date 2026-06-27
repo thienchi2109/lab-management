@@ -33,6 +33,13 @@ export function jsonError(error: unknown, fallback: string) {
     );
   }
 
+  if (isReportImageStatusError(error)) {
+    return NextResponse.json(
+      { message: error.message, status: "error" },
+      { status: error.status }
+    );
+  }
+
   return NextResponse.json(
     {
       message: fallback,
@@ -40,6 +47,15 @@ export function jsonError(error: unknown, fallback: string) {
     },
     { status: 500 }
   );
+}
+
+/** Parse route JSON and convert malformed bodies into a 400 response error. */
+export async function parseJsonRequest(request: Request, message: string) {
+  try {
+    return await request.json();
+  } catch {
+    throw new ResponseError(400, message);
+  }
 }
 
 /** HTTP-aware route error used by report-image API handlers. */
@@ -51,6 +67,18 @@ export class ResponseError extends Error {
     super(message);
     this.name = "ResponseError";
   }
+}
+
+function isReportImageStatusError(
+  error: unknown
+): error is Error & { status: number } {
+  return (
+    error instanceof Error &&
+    "status" in error &&
+    typeof error.status === "number" &&
+    error.status >= 400 &&
+    error.status < 500
+  );
 }
 
 function getActiveMembership(session: CurrentSession) {

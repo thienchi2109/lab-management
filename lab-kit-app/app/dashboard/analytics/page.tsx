@@ -77,7 +77,7 @@ export default async function AnalyticsPage() {
           profileId: actor.profileId,
         },
         reportImagesPort
-      ),
+      ).catch(() => []),
     ]);
   const initialReportKitFiltersByChart = mergeReportKitDefaultFilters(
     initialFilters,

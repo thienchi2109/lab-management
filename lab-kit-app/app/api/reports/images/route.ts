@@ -8,6 +8,7 @@ import {
 } from "@/lib/report-images/operations";
 import {
   jsonError,
+  parseJsonRequest,
   requireReportImageActor,
   ResponseError,
 } from "@/lib/report-images/route-auth";
@@ -34,7 +35,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const actor = await requireReportImageActor(true);
     const result = await confirmReportImageUpload(
       actor,
-      parseConfirmInput(await request.json()),
+      parseConfirmInput(
+        await parseJsonRequest(request, "Payload ảnh báo cáo không hợp lệ.")
+      ),
       createSupabaseReportImagesPort()
     );
 

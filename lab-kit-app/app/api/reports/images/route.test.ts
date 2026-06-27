@@ -85,6 +85,49 @@ describe("/api/reports/images", () => {
     expect(confirmReportImageUpload).not.toHaveBeenCalled();
   });
 
+  test("POST rejects malformed JSON as a bad request", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(adminSession);
+
+    const response = await POST(
+      new NextRequest("http://test.local", {
+        body: "{",
+        method: "POST",
+      })
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Payload ảnh báo cáo không hợp lệ.",
+      status: "error",
+    });
+    expect(confirmReportImageUpload).not.toHaveBeenCalled();
+  });
+
+  test("POST preserves expected report image domain error statuses", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(adminSession);
+    vi.mocked(confirmReportImageUpload).mockRejectedValue(
+      Object.assign(new Error("Gallery đang có đủ 20 ảnh."), { status: 409 })
+    );
+
+    const response = await POST(
+      new NextRequest("http://test.local", {
+        body: JSON.stringify({
+          contentType: "image/png",
+          publicId: "lab-management/org-1/reports/report-1",
+          secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
+          sizeBytes: 2048,
+        }),
+        method: "POST",
+      })
+    );
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Gallery đang có đủ 20 ảnh.",
+      status: "error",
+    });
+  });
+
   test("POST lets admins confirm report images", async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(adminSession);
     vi.mocked(confirmReportImageUpload).mockResolvedValue({

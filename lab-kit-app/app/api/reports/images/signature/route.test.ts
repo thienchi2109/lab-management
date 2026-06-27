@@ -66,6 +66,24 @@ describe("/api/reports/images/signature", () => {
     expect(prepareReportImageUpload).not.toHaveBeenCalled();
   });
 
+  test("rejects malformed JSON as a bad request", async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(adminSession);
+
+    const response = await POST(
+      new NextRequest("http://test.local", {
+        body: "{",
+        method: "POST",
+      })
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Payload upload ảnh báo cáo không hợp lệ.",
+      status: "error",
+    });
+    expect(prepareReportImageUpload).not.toHaveBeenCalled();
+  });
+
   test("returns signed Cloudinary params for admins without leaking secret", async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(adminSession);
     vi.mocked(prepareReportImageUpload).mockResolvedValue(undefined);

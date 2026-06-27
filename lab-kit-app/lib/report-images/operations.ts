@@ -1,3 +1,5 @@
+import { createReportImageFolder } from "./cloudinary";
+
 /** Actor đã xác thực cho thao tác ảnh báo cáo. */
 export type ReportImageActor = {
   profileId: string;
@@ -77,6 +79,17 @@ export const MAX_REPORT_IMAGES_PER_ORGANIZATION = 20;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const IMAGE_AUDIT_POLICY = "field-names-only";
 
+/** Lỗi nghiệp vụ ảnh báo cáo cần giữ nguyên HTTP status ở API layer. */
+export class ReportImageDomainError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = "ReportImageDomainError";
+  }
+}
+
 /** Kiểm tra actor trước khi cấp chữ ký tải ảnh báo cáo lên Cloudinary. */
 export async function prepareReportImageUpload(
   actor: ReportImageActor,
@@ -104,8 +117,7 @@ export async function confirmReportImageUpload(
 ) {
   ensureCanManage(actor, "tải");
   validateImageMetadata(input);
-  validateCloudinaryResult(input);
-  await ensureReportImageSlotAvailable(actor, port);
+  validateCloudinaryResult(input, actor.organizationId);
 
   const duplicate = await port.findReportImageByPublicId({
     organizationId: actor.organizationId,
@@ -113,21 +125,31 @@ export async function confirmReportImageUpload(
   });
 
   if (duplicate) {
-    throw new Error("Ảnh Cloudinary đã được ghi nhận trước đó.");
+    throw new ReportImageDomainError(
+      409,
+      "Ảnh Cloudinary đã được ghi nhận trước đó."
+    );
   }
 
-  return port.insertReportImageWithAudit({
-    auditEventPayload: {
-      metadataPolicy: IMAGE_AUDIT_POLICY,
-      submittedFields: ["publicId", "contentType", "sizeBytes"],
-    },
-    contentType: input.contentType,
-    createdBy: actor.profileId,
-    organizationId: actor.organizationId,
-    sizeBytes: input.sizeBytes,
-    storageBucket: "cloudinary",
-    storagePath: input.publicId,
-  });
+  try {
+    await ensureReportImageSlotAvailable(actor, port);
+
+    return await port.insertReportImageWithAudit({
+      auditEventPayload: {
+        metadataPolicy: IMAGE_AUDIT_POLICY,
+        submittedFields: ["publicId", "contentType", "sizeBytes"],
+      },
+      contentType: input.contentType,
+      createdBy: actor.profileId,
+      organizationId: actor.organizationId,
+      sizeBytes: input.sizeBytes,
+      storageBucket: "cloudinary",
+      storagePath: input.publicId,
+    });
+  } catch (error) {
+    await port.deleteCloudinaryImage(input.publicId).catch(() => undefined);
+    throw error;
+  }
 }
 
 /** Delete a report image record and request Cloudinary asset cleanup. */
@@ -143,10 +165,10 @@ export async function deleteReportImage(
   });
 
   if (!image) {
-    throw new Error("Ảnh báo cáo không tồn tại.");
+    throw new ReportImageDomainError(404, "Ảnh báo cáo không tồn tại.");
   }
 
-  await port.deleteCloudinaryImage(image.publicId);
+  validateReportImagePublicId(image.publicId, actor.organizationId);
   await port.deleteReportImageRecordWithAudit({
     actorId: actor.profileId,
     eventPayload: {
@@ -156,32 +178,44 @@ export async function deleteReportImage(
     imageId,
     organizationId: actor.organizationId,
   });
+  await port.deleteCloudinaryImage(image.publicId);
 }
 
 function ensureCanManage(actor: ReportImageActor, action: "tải" | "xóa") {
   if (!actor.canManage) {
-    throw new Error(`Bạn không có quyền ${action} ảnh báo cáo.`);
+    throw new ReportImageDomainError(
+      403,
+      `Bạn không có quyền ${action} ảnh báo cáo.`
+    );
   }
 }
 
 function validateImageMetadata(input: PrepareReportImageInput) {
   if (!ACCEPTED_CONTENT_TYPES.has(input.contentType)) {
-    throw new Error("Định dạng ảnh không được hỗ trợ.");
+    throw new ReportImageDomainError(400, "Định dạng ảnh không được hỗ trợ.");
   }
 
   if (!Number.isInteger(input.sizeBytes) || input.sizeBytes <= 0) {
-    throw new Error("Dung lượng ảnh không hợp lệ.");
+    throw new ReportImageDomainError(400, "Dung lượng ảnh không hợp lệ.");
   }
 
   if (input.sizeBytes > MAX_IMAGE_SIZE_BYTES) {
-    throw new Error("Ảnh báo cáo không được vượt quá 5 MB.");
+    throw new ReportImageDomainError(
+      400,
+      "Ảnh báo cáo không được vượt quá 5 MB."
+    );
   }
 }
 
-function validateCloudinaryResult(input: ConfirmReportImageInput) {
+function validateCloudinaryResult(
+  input: ConfirmReportImageInput,
+  organizationId: string
+) {
   if (!input.publicId.trim()) {
-    throw new Error("Thiếu mã ảnh Cloudinary.");
+    throw new ReportImageDomainError(400, "Thiếu mã ảnh Cloudinary.");
   }
+
+  validateReportImagePublicId(input.publicId, organizationId);
 
   try {
     const url = new URL(input.secureUrl);
@@ -190,10 +224,21 @@ function validateCloudinaryResult(input: ConfirmReportImageInput) {
       return;
     }
   } catch {
-    throw new Error("URL ảnh Cloudinary không hợp lệ.");
+    throw new ReportImageDomainError(400, "URL ảnh Cloudinary không hợp lệ.");
   }
 
-  throw new Error("URL ảnh Cloudinary không hợp lệ.");
+  throw new ReportImageDomainError(400, "URL ảnh Cloudinary không hợp lệ.");
+}
+
+function validateReportImagePublicId(publicId: string, organizationId: string) {
+  const expectedPrefix = `${createReportImageFolder({ organizationId })}/`;
+
+  if (!publicId.startsWith(expectedPrefix)) {
+    throw new ReportImageDomainError(
+      400,
+      "Mã ảnh Cloudinary không thuộc tổ chức hiện tại."
+    );
+  }
 }
 
 async function ensureReportImageSlotAvailable(
@@ -205,7 +250,8 @@ async function ensureReportImageSlotAvailable(
   });
 
   if (count >= MAX_REPORT_IMAGES_PER_ORGANIZATION) {
-    throw new Error(
+    throw new ReportImageDomainError(
+      409,
       "Gallery đang có đủ 20 ảnh. Hãy xóa bớt ảnh trước khi tải thêm."
     );
   }

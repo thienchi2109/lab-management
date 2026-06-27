@@ -13,6 +13,7 @@ import { getDashboardOverviewData } from "@/lib/analytics/overview";
 import { listReportKitAnalyticsContract } from "@/lib/analytics/report-kit";
 import { createSupabaseReportKitPresetPort } from "@/lib/analytics/server-report-kit-presets";
 import { getCurrentSession } from "@/lib/auth/session";
+import { getReportImages } from "@/lib/report-images/operations";
 
 const { analyticsPageClient, chartIds, dashboardPageContent } = vi.hoisted(
   () => ({
@@ -204,6 +205,30 @@ describe("AnalyticsPage report kit preset bootstrap", () => {
           filters: expect.objectContaining({ sampleTypeId: "pl" }),
         },
       })
+    );
+  });
+
+  test("falls back to an empty report image gallery when bootstrap read fails", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    mockPageData();
+    vi.mocked(createSupabaseReportKitPresetPort).mockReturnValue({
+      readPreset: vi.fn(async () => null),
+      savePreset: vi.fn(),
+    });
+    vi.mocked(listReportKitAnalyticsContract).mockImplementation(
+      async (input) =>
+        createContract(input as { charts: [ChartId]; filters?: unknown })
+    );
+    vi.mocked(getReportImages).mockRejectedValue(new Error("gallery down"));
+
+    render(await AnalyticsPage());
+
+    expect(analyticsPageClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialReportImages: [],
+      }),
+      undefined
     );
   });
 });

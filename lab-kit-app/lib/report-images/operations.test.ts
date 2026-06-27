@@ -8,6 +8,8 @@ import {
   type ReportImagesPort,
 } from "./operations";
 
+vi.mock("server-only", () => ({}));
+
 const adminActor: ReportImageActor = {
   canManage: true,
   organizationId: "org-1",
@@ -95,7 +97,7 @@ describe("confirmReportImageUpload", () => {
         adminActor,
         {
           contentType: "image/jpeg",
-          publicId: "lab/org-1/reports/report-1",
+          publicId: "lab-management/org-1/reports/report-1",
           secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
           sizeBytes: 4096,
         },
@@ -113,8 +115,51 @@ describe("confirmReportImageUpload", () => {
       organizationId: "org-1",
       sizeBytes: 4096,
       storageBucket: "cloudinary",
-      storagePath: "lab/org-1/reports/report-1",
+      storagePath: "lab-management/org-1/reports/report-1",
     });
+  });
+
+  test("rejects Cloudinary public IDs outside the actor organization folder", async () => {
+    await expect(
+      confirmReportImageUpload(
+        adminActor,
+        {
+          contentType: "image/png",
+          publicId: "lab-management/org-2/reports/report-1",
+          secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
+          sizeBytes: 2048,
+        },
+        createPort()
+      )
+    ).rejects.toMatchObject({
+      message: "Mã ảnh Cloudinary không thuộc tổ chức hiện tại.",
+      status: 400,
+    });
+  });
+
+  test("cleans up a validated Cloudinary asset when metadata insert fails", async () => {
+    const port = createPort({
+      insertReportImageWithAudit: vi
+        .fn()
+        .mockRejectedValue(new Error("insert failed")),
+    });
+
+    await expect(
+      confirmReportImageUpload(
+        adminActor,
+        {
+          contentType: "image/png",
+          publicId: "lab-management/org-1/reports/report-1",
+          secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
+          sizeBytes: 2048,
+        },
+        port
+      )
+    ).rejects.toThrow("insert failed");
+
+    expect(port.deleteCloudinaryImage).toHaveBeenCalledWith(
+      "lab-management/org-1/reports/report-1"
+    );
   });
 });
 
@@ -128,5 +173,41 @@ describe("deleteReportImage", () => {
 
     expect(port.deleteCloudinaryImage).not.toHaveBeenCalled();
     expect(port.deleteReportImageRecordWithAudit).not.toHaveBeenCalled();
+  });
+
+  test("deletes the audited database record before Cloudinary cleanup", async () => {
+    const callOrder: string[] = [];
+    const port = createPort({
+      deleteCloudinaryImage: vi.fn(async () => {
+        callOrder.push("cloudinary");
+      }),
+      deleteReportImageRecordWithAudit: vi.fn(async () => {
+        callOrder.push("database");
+      }),
+      findReportImageForDelete: vi.fn().mockResolvedValue({
+        publicId: "lab-management/org-1/reports/report-1",
+      }),
+    });
+
+    await deleteReportImage("report-image-1", adminActor, port);
+
+    expect(callOrder).toEqual(["database", "cloudinary"]);
+  });
+
+  test("does not delete Cloudinary when audited database deletion fails", async () => {
+    const port = createPort({
+      deleteReportImageRecordWithAudit: vi
+        .fn()
+        .mockRejectedValue(new Error("audit delete failed")),
+      findReportImageForDelete: vi.fn().mockResolvedValue({
+        publicId: "lab-management/org-1/reports/report-1",
+      }),
+    });
+
+    await expect(
+      deleteReportImage("report-image-1", adminActor, port)
+    ).rejects.toThrow("audit delete failed");
+
+    expect(port.deleteCloudinaryImage).not.toHaveBeenCalled();
   });
 });
