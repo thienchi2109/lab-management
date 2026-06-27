@@ -13,15 +13,19 @@ import type {
 import { AnalyticsPivotSection } from "./analytics-pivot-section";
 import { AnalyticsReportKitCharts } from "./analytics-report-kit-charts";
 import type { ReportKitChartBootstrapContract } from "./analytics-report-kit-chart-state";
+import { ReportImageGallery } from "./report-image-gallery";
+import type { ReportImageView } from "./report-image-requests";
 
 import type { ReportKitAnalyticsChartId } from "@/lib/analytics/report-kit";
 import type { ReportKitFilterPresetConfig } from "@/lib/analytics/report-kit-presets";
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
 type AnalyticsPageClientProps = {
+  canManageReportImages?: boolean;
   canSaveReportKitPreset?: boolean;
   initialDataset: AnalyticsPivotDataset;
   initialFilters: AnalyticsPageFilters;
+  initialReportImages?: ReportImageView[];
   initialReportKitFiltersByChart?: ReportKitFilterPresetConfig["charts"];
   initialReportKitContract?: ReportKitChartBootstrapContract;
 };
@@ -30,6 +34,7 @@ const defaultMeasures: AnalyticsPageMeasure[] = [
   "sampleCount",
   "positiveCount",
 ];
+const EMPTY_REPORT_IMAGES: ReportImageView[] = [];
 
 const metricToneClasses = {
   default: "border-border/70 bg-card",
@@ -39,9 +44,11 @@ const metricToneClasses = {
 
 /** Render Analytics Page & Pivot UI với bộ lọc giới hạn và bảng responsive. */
 export function AnalyticsPageClient({
+  canManageReportImages = false,
   canSaveReportKitPreset = false,
   initialDataset,
   initialFilters,
+  initialReportImages = EMPTY_REPORT_IMAGES,
   initialReportKitFiltersByChart,
   initialReportKitContract,
 }: AnalyticsPageClientProps) {
@@ -167,6 +174,11 @@ export function AnalyticsPageClient({
           )}
         />
       ) : null}
+
+      <ReportImageGallery
+        canManage={canManageReportImages}
+        initialImages={initialReportImages}
+      />
 
       <section
         aria-label="Tổng quan analytics"

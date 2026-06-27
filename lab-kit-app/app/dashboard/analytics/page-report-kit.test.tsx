@@ -13,6 +13,7 @@ import { getDashboardOverviewData } from "@/lib/analytics/overview";
 import { listReportKitAnalyticsContract } from "@/lib/analytics/report-kit";
 import { createSupabaseReportKitPresetPort } from "@/lib/analytics/server-report-kit-presets";
 import { getCurrentSession } from "@/lib/auth/session";
+import { getReportImages } from "@/lib/report-images/operations";
 
 const { analyticsPageClient, chartIds, dashboardPageContent } = vi.hoisted(
   () => ({
@@ -49,6 +50,21 @@ vi.mock("@/lib/analytics/server-report-kit", () => ({
 }));
 vi.mock("@/lib/analytics/server-report-kit-presets", () => ({
   createSupabaseReportKitPresetPort: vi.fn(),
+}));
+vi.mock("@/lib/report-images/server", () => ({
+  createSupabaseReportImagesPort: vi.fn(() => "report-images-port"),
+}));
+vi.mock("@/lib/report-images/operations", () => ({
+  getReportImages: vi.fn(async () => [
+    {
+      contentType: "image/png",
+      createdAt: "2026-06-27T00:00:00.000Z",
+      id: "report-image-1",
+      publicId: "lab/org-1/reports/report-1",
+      secureUrl: "https://res.cloudinary.com/lab/image/upload/report-1",
+      sizeBytes: 2048,
+    },
+  ]),
 }));
 vi.mock("../_components/dashboard-page-content", () => ({
   DashboardPageContent: dashboardPageContent,
@@ -112,6 +128,10 @@ describe("AnalyticsPage report kit preset bootstrap", () => {
     expect(analyticsPageClient).toHaveBeenCalledWith(
       expect.objectContaining({
         canSaveReportKitPreset: true,
+        canManageReportImages: true,
+        initialReportImages: [
+          expect.objectContaining({ id: "report-image-1" }),
+        ],
         initialReportKitFiltersByChart: expect.objectContaining({
           kitQuantityBySampleType: {
             filters: expect.objectContaining({ sampleTypeId: "pl" }),
@@ -185,6 +205,30 @@ describe("AnalyticsPage report kit preset bootstrap", () => {
           filters: expect.objectContaining({ sampleTypeId: "pl" }),
         },
       })
+    );
+  });
+
+  test("falls back to an empty report image gallery when bootstrap read fails", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    mockPageData();
+    vi.mocked(createSupabaseReportKitPresetPort).mockReturnValue({
+      readPreset: vi.fn(async () => null),
+      savePreset: vi.fn(),
+    });
+    vi.mocked(listReportKitAnalyticsContract).mockImplementation(
+      async (input) =>
+        createContract(input as { charts: [ChartId]; filters?: unknown })
+    );
+    vi.mocked(getReportImages).mockRejectedValue(new Error("gallery down"));
+
+    render(await AnalyticsPage());
+
+    expect(analyticsPageClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialReportImages: [],
+      }),
+      undefined
     );
   });
 });

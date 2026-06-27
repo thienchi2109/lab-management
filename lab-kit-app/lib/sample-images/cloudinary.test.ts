@@ -65,15 +65,21 @@ describe("Cloudinary sample image helpers", () => {
   });
 
   test("wraps Cloudinary destroy network failures with a domain error", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const networkError = new Error("DNS lookup failed");
     process.env.CLOUDINARY_API_KEY = "api-key-1";
     process.env.CLOUDINARY_API_SECRET = "secret-1";
     process.env.CLOUDINARY_CLOUD_NAME = "lab-cloud";
-    globalThis.fetch = vi
-      .fn<typeof fetch>()
-      .mockRejectedValue(new Error("DNS lookup failed"));
+    globalThis.fetch = vi.fn<typeof fetch>().mockRejectedValue(networkError);
 
     await expect(destroyCloudinaryImage("public-id-1")).rejects.toThrow(
       "Không thể xóa ảnh trên Cloudinary."
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "Không thể xóa ảnh trên Cloudinary.",
+      networkError
     );
   });
 });
