@@ -10,6 +10,7 @@ import { createSupabaseReportImagesPort } from "@/lib/report-images/server";
 
 import { GET, POST } from "./route";
 
+vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth/session", () => ({ getCurrentSession: vi.fn() }));
 vi.mock("@/lib/report-images/operations", () => ({

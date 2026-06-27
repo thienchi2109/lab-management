@@ -124,7 +124,8 @@ export async function destroyCloudinaryImage(publicId: string) {
     if (response.ok) {
       return;
     }
-  } catch {
+  } catch (error) {
+    console.error("Không thể xóa ảnh trên Cloudinary.", error);
     throw new Error("Không thể xóa ảnh trên Cloudinary.");
   }
 

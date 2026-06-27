@@ -37,7 +37,7 @@ export function ReportImageGallery({
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const [file] = Array.from(event.target.files ?? []);
     event.target.value = "";
-    if (!file) return;
+    if (!file || isFull) return;
 
     setIsWorking(true);
     const result = await uploadReportImageRequest(file);
@@ -110,6 +110,7 @@ export function ReportImageGallery({
                 alt="Ảnh báo cáo"
                 width={640}
                 height={480}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="aspect-[4/3] w-full object-cover"
               />
               <div className="flex items-center justify-between gap-2 p-3">
