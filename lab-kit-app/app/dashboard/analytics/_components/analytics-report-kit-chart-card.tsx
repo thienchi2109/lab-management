@@ -1,8 +1,17 @@
 "use client";
 
-import { ChevronDown, SlidersHorizontal } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronDown,
+  Layers,
+  Package,
+  SlidersHorizontal,
+  Tags,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ReportKitChartFilterForm } from "./analytics-report-kit-chart-filter-form";
 import type { ReportKitChartDatasetState } from "./analytics-report-kit-chart-state";
 
@@ -13,7 +22,10 @@ import type {
 import type { AnalyticsFilters } from "@/lib/analytics/query";
 
 type ChartConfig = {
+  accentClassName: string;
   description: string;
+  icon: LucideIcon;
+  marker: string;
   metric: keyof ReportKitAnalyticsSegment["metrics"];
   title: string;
   unit: string;
@@ -28,26 +40,42 @@ type ReportKitChartCardProps = {
 
 const chartConfigs = {
   cleanShrimpPlByGeneralPcrConclusion: {
+    accentClassName:
+      "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-400/30 dark:bg-teal-400/10 dark:text-teal-300",
     description: "Tổng lượng sạch của mẫu tôm PL theo kết quả chung PCR.",
+    icon: BadgeCheck,
+    marker: "Tôm PL sạch",
     metric: "cleanCount",
     title: "Tôm PL sạch theo kết quả chung PCR",
     unit: "mẫu sạch",
   },
   kitQuantityByKitType: {
+    accentClassName:
+      "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-400/30 dark:bg-violet-400/10 dark:text-violet-300",
     description: "Tổng lượng KIT đã dùng theo từng loại KIT.",
+    icon: Package,
+    marker: "Theo loại KIT",
     metric: "totalKitQuantity",
     title: "Tổng lượng KIT theo loại KIT",
     unit: "KIT",
   },
   kitQuantityBySampleType: {
+    accentClassName:
+      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300",
     description: "Tổng lượng KIT đã dùng theo từng loại mẫu.",
+    icon: Layers,
+    marker: "Theo loại mẫu",
     metric: "totalKitQuantity",
     title: "Tổng lượng KIT theo loại mẫu",
     unit: "KIT",
   },
   sampleCountByClassification: {
+    accentClassName:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300",
     description:
       "Tổng lượng mẫu sử dụng theo phân loại khách hàng hoặc nội bộ.",
+    icon: Tags,
+    marker: "Theo phân loại",
     metric: "sampleCount",
     title: "Tổng lượng mẫu theo phân loại",
     unit: "mẫu",
@@ -70,6 +98,7 @@ export function ReportKitChartCard({
 }: ReportKitChartCardProps) {
   const { dataset } = chartState;
   const config = chartConfigs[dataset.chartId];
+  const Icon = config.icon;
   const segments = dataset.segments.map((segment, index) => ({
     color: segmentColors[index % segmentColors.length],
     key: segment.key,
@@ -78,47 +107,69 @@ export function ReportKitChartCard({
   }));
   const total = segments.reduce((sum, segment) => sum + segment.value, 0);
   const primarySegment = segments[0];
+  const filterSummary = chartState.filterSummary.join(" · ");
 
   return (
     <section
       aria-label={config.title}
-      className="rounded-lg border border-border/70 bg-card"
+      className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm"
     >
       <details className="group" data-report-kit-chart-card>
-        <summary className="cursor-pointer list-none p-4 [&::-webkit-details-marker]:hidden">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold md:text-base">
-                {config.title}
-              </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Bộ lọc: {chartState.filterSummary.join(" · ")}
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="font-mono text-lg font-semibold tabular-nums">
-                {total.toLocaleString("vi-VN")}
-              </p>
-              <p className="text-[11px] text-muted-foreground">{config.unit}</p>
-            </div>
-            <ChevronDown className="mt-1 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 md:hidden" />
-          </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
-            <span className="h-2 flex-1 rounded-full bg-muted">
+        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <div className="border-b border-border/50 bg-muted/20 px-4 py-3">
+            <div className="flex items-start gap-3">
               <span
-                className="block h-2 rounded-full bg-primary"
-                style={{ width: primarySegment ? "72%" : "0%" }}
-              />
-            </span>
-            <span className="max-w-[11rem] truncate">
-              {primarySegment
-                ? `${primarySegment.label} dẫn đầu`
-                : "Chưa có dữ liệu"}
-            </span>
+                aria-label={`Dấu hiệu nhận diện biểu đồ: ${config.marker}`}
+                className={cn(
+                  "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg border",
+                  config.accentClassName
+                )}
+              >
+                <Icon aria-hidden="true" className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  {config.marker}
+                </p>
+                <h3 className="mt-0.5 text-[15px] font-semibold leading-snug text-foreground md:text-base">
+                  {config.title}
+                </h3>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  Bộ lọc: {filterSummary}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-start gap-2">
+                <div className="rounded-md bg-background/80 px-2.5 py-1 text-right ring-1 ring-border/60">
+                  <p className="font-mono text-lg font-semibold leading-none tabular-nums">
+                    {total.toLocaleString("vi-VN")}
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {config.unit}
+                  </p>
+                </div>
+                <span className="mt-0.5 inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md border border-border/60 bg-background/70 px-2.5 text-xs font-medium text-muted-foreground">
+                  <span className="hidden md:inline">Xem biểu đồ</span>
+                  <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
+              <span className="h-2 flex-1 rounded-full bg-muted">
+                <span
+                  className="block h-2 rounded-full bg-primary"
+                  style={{ width: primarySegment ? "72%" : "0%" }}
+                />
+              </span>
+              <span className="max-w-[11rem] truncate">
+                {primarySegment
+                  ? `${primarySegment.label} dẫn đầu`
+                  : "Chưa có dữ liệu"}
+              </span>
+            </div>
           </div>
         </summary>
         <div
-          className="hidden space-y-4 px-4 pb-4 group-open:block md:block"
+          className="hidden space-y-4 px-4 py-4 group-open:block"
           data-report-kit-chart-body
         >
           <div className="hidden md:block">
